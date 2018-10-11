@@ -10,7 +10,7 @@ import java.lang.reflect.Member;
  * This class depends on context {@link ReflectionParserManager} of parsing
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class ClassNameParser {

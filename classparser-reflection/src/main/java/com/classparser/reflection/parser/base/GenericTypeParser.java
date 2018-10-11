@@ -23,7 +23,7 @@ import java.util.List;
  * Depending on context {@link ReflectionParserManager} of parsing
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class GenericTypeParser {

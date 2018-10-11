@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * Thread safe
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class ReflectionParser implements ClassParser {

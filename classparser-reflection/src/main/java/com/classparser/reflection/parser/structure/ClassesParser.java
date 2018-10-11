@@ -12,7 +12,7 @@ import java.util.List;
  * This class depends on parsing context {@link ReflectionParserManager}
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class ClassesParser {

@@ -21,7 +21,7 @@ import java.util.List;
  * about arguments for {@link Executable} objects
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class ArgumentParser {

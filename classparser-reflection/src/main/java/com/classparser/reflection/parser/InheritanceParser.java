@@ -14,7 +14,7 @@ import java.util.List;
  * about inheritance and implemented interfaces for any classes
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class InheritanceParser {
