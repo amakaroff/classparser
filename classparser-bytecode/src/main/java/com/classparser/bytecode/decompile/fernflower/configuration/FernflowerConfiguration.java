@@ -262,6 +262,7 @@ public interface FernflowerConfiguration extends Configuration {
      * Default value: selected by OS
      *
      * @param character line separator
+     * @return builder instance
      */
     FernflowerConfiguration defineLineSeparator(String character);
 
