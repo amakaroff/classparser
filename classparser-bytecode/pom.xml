@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>classparser</artifactId>
+        <groupId>com.classparser</groupId>
+        <version>1.0.0</version>
+    </parent>
+
+    <groupId>com.classparser.bytecode</groupId>
+    <artifactId>classparser-bytecode</artifactId>
+    <packaging>jar</packaging>
+    <version>1.0.0</version>
+
+    <description>
+        Module store classes for bytecode decompile parsing mechanism
+    </description>
+
+    <properties>
+        <tools.jar.default.location>${java.home}/../lib/tools.jar</tools.jar.default.location>
+        <tools.jar.jdk.location>${java.home}/lib/tools.jar</tools.jar.jdk.location>
+        <tools.jar.mac.location>${java.home}/../Classes/classes.jar</tools.jar.mac.location>
+        <tools.jar.location>/</tools.jar.location>
+    </properties>
+
+    <dependencies>
+        <!-- FernFlower Decompiler -->
+        <dependency>
+            <groupId>org.jboss.windup.decompiler.fernflower</groupId>
+            <artifactId>windup-fernflower</artifactId>
+            <version>1.0.0.20171018</version>
+        </dependency>
+
+        <!-- Java dev tools -->
+        <dependency>
+            <groupId>com.sun</groupId>
+            <artifactId>tools</artifactId>
+            <version>1.8</version>
+            <scope>system</scope>
+            <systemPath>${tools.jar.default.location}</systemPath>
+        </dependency>
+
+        <!-- Modules-->
+        <dependency>
+            <groupId>com.classparser.core</groupId>
+            <artifactId>classparser-core</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <file>
+                    <exists>${tools.jar.default.location}</exists>
+                </file>
+            </activation>
+            <properties>
+                <tools.jar.location>${tools.jar.default.location}</tools.jar.location>
+            </properties>
+        </profile>
+        <profile>
+            <id>jdk</id>
+            <activation>
+                <file>
+                    <exists>${tools.jar.jdk.location}</exists>
+                </file>
+            </activation>
+            <properties>
+                <tools.jar.location>${tools.jar.jdk.location}</tools.jar.location>
+            </properties>
+        </profile>
+        <profile>
+            <id>mac</id>
+            <activation>
+                <file>
+                    <exists>${tools.jar.mac.location}</exists>
+                </file>
+            </activation>
+            <properties>
+                <tools.jar.location>${tools.jar.mac.location}</tools.jar.location>
+            </properties>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <finalName>${project.artifactId}-${project.version}-with-decompiler</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,3 @@
+com.classparser.bytecode.collector.ClassFileBytecodeCollector
+com.classparser.bytecode.collector.DumperBytecodeCollector
+com.classparser.bytecode.collector.InstrumentationBytecodeCollector

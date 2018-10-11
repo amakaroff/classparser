@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.classparser</groupId>
+    <artifactId>classparser</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <description>
+        Root module for classparser
+    </description>
+
+    <url>
+
+    </url>
+
+    <scm>
+        <url>https://github.com/amakaroff/...</url>
+        <connection>scm:git:https://github.com/amakaroff/....git</connection>
+    </scm>
+
+    <issueManagement>
+        <url>https://github.com/amakaroff/.../issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
+
+    <developers>
+        <developer>
+            <id>amakaroff</id>
+            <name>Aleksei Makarov</name>
+            <email>alekseymakarov1996@gmail.com</email>
+        </developer>
+        <developer>
+            <id>vadim8kiselev</id>
+            <name>Vadim Kiselev</name>
+            <email>vadim8kiselev@gmail.com</email>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+    <modules>
+        <module>classparser-core</module>
+        <module>classparser-reflection</module>
+        <module>classparser-bytecode</module>
+        <module>classparser-cfr-decompiler</module>
+        <module>classparser-jd-decompiler</module>
+        <module>classparser-procyon-decompiler</module>
+        <module>classparser-javap-disassembler</module>
+        <module>classparser-test</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadoc</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-source</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

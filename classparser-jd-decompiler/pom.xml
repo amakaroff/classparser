@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>classparser</artifactId>
+        <groupId>com.classparser</groupId>
+        <version>1.0.0</version>
+    </parent>
+
+    <groupId>com.classparser.bytecode.decompile.jd</groupId>
+    <artifactId>classparser-jd-decompiler</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <description>
+        Module provides jd decompiler adapter
+    </description>
+
+    <properties>
+        <jd.decompiler.version>0.7.1</jd.decompiler.version>
+    </properties>
+
+    <repositories>
+        <!-- Maven repository on Github where storage artifact of JD decompiler-->
+        <repository>
+            <id>java-decompiler-mvn-repo</id>
+            <name>GitHub JD Decompiler Repository</name>
+            <url>https://raw.github.com/java-decompiler/mvn-repo/master</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <!-- JD Decompiler-->
+        <dependency>
+            <groupId>jd</groupId>
+            <artifactId>jd-core</artifactId>
+            <version>${jd.decompiler.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jd</groupId>
+            <artifactId>jd-common</artifactId>
+            <version>${jd.decompiler.version}</version>
+        </dependency>
+
+        <!-- Modules-->
+        <dependency>
+            <groupId>com.classparser.bytecode</groupId>
+            <artifactId>classparser-bytecode</artifactId>
+            <scope>provided</scope>
+            <version>1.0.0</version>
+        </dependency>
+    </dependencies>
+</project>
