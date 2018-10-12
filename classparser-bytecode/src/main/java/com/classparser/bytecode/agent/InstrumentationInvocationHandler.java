@@ -8,11 +8,13 @@ import java.util.function.Supplier;
 
 /**
  * Proxy invocation handler uses for redirect any methods by bounded agent
+ * <p>
+ * Non public API
  *
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-class InstrumentationInvocationHandler implements InvocationHandler {
+final class InstrumentationInvocationHandler implements InvocationHandler {
 
     private final DefaultJavaAgent defaultJavaAgent;
 

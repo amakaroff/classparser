@@ -11,11 +11,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * Proxy class file transformer uses for redirect calls of
  * {@link Instrumentation#retransformClasses(Class[])} for different java agents
+ * <p>
+ * Non public API
  *
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-class ProxyChainClassTransformer implements ClassFileTransformer {
+final class ProxyChainClassTransformer implements ClassFileTransformer {
 
     private final DefaultJavaAgent defaultJavaAgent;
 
