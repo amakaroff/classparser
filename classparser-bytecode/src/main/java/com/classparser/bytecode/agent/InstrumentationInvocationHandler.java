@@ -83,7 +83,7 @@ final class InstrumentationInvocationHandler implements InvocationHandler {
     private Void addTransformer(Object[] args) {
         ClassFileTransformer classFileTransformer = (ClassFileTransformer) args[0];
         boolean isRetransformEnable = (args.length == 2) && (boolean) args[1];
-        ClassFileTransformerImpl transformer = new ClassFileTransformerImpl(classFileTransformer, isRetransformEnable);
+        ClassFileTransformerWrapper transformer = new ClassFileTransformerWrapper(classFileTransformer, isRetransformEnable);
 
         proxyChainClassTransformer.addTransformer(transformer);
 
