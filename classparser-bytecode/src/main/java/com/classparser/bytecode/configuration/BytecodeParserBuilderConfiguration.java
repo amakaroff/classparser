@@ -23,7 +23,7 @@ public class BytecodeParserBuilderConfiguration {
      *
      * @return builder instance
      */
-    public static BytecodeParserConfiguration getBuilder() {
+    public static BytecodeParserConfiguration createBuilder() {
         return new Builder();
     }
 

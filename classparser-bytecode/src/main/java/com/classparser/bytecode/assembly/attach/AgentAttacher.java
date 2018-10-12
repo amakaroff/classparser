@@ -27,7 +27,7 @@ public class AgentAttacher {
 
     private static final char JVM_NAME_ID_SEPARATOR = '@';
 
-    private static final String JAVA_HOME;
+    private static final String JAVA_HOME = System.getProperty("java.home");
 
     private static final String JAVA_TOOLS_PATH = "/../lib/tools.jar";
 
@@ -38,10 +38,6 @@ public class AgentAttacher {
     private static volatile ClassLoader toolsJarClassLoader;
 
     private final ConfigurationManager configurationManager;
-
-    static {
-        JAVA_HOME = System.getProperty("java.home");
-    }
 
     public AgentAttacher(ConfigurationManager configurationManager) {
         this.configurationManager = configurationManager;

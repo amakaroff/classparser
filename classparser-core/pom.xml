@@ -8,9 +8,9 @@
     <parent>
         <artifactId>classparser</artifactId>
         <groupId>com.classparser</groupId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>classparser-core</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
 </project>

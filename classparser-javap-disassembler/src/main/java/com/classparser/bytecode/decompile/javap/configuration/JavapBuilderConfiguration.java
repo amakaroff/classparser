@@ -20,7 +20,7 @@ public class JavapBuilderConfiguration {
      *
      * @return {@link JavapDisassembler} instance
      */
-    public static JavapConfiguration getBuilderConfiguration() {
+    public static JavapConfiguration createBuilder() {
         return new Builder();
     }
 

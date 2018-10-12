@@ -20,7 +20,7 @@ public class ReflectionParserBuilderConfiguration {
      *
      * @return builder for configuration
      */
-    public static ReflectionParserConfiguration getBuilder() {
+    public static ReflectionParserConfiguration createBuilder() {
         return new Builder();
     }
 

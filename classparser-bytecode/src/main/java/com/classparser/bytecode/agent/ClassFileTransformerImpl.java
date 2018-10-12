@@ -5,7 +5,7 @@ import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 
 /**
- * Decorator for {@link ClassFileTransformer} for store {@link #isRetransformClass} value
+ * Decorator for {@link ClassFileTransformer} for store {@link #isCanRetransformClasses} value
  *
  * @author Aleksei Makarov
  * @since 1.0.0
@@ -14,11 +14,11 @@ class ClassFileTransformerImpl implements ClassFileTransformer {
 
     private final ClassFileTransformer classFileTransformer;
 
-    private final boolean isRetransformClass;
+    private final boolean isCanRetransformClasses;
 
-    public ClassFileTransformerImpl(ClassFileTransformer classFileTransformer, boolean isRetransformClass) {
+    public ClassFileTransformerImpl(ClassFileTransformer classFileTransformer, boolean isCanRetransformClasses) {
         this.classFileTransformer = classFileTransformer;
-        this.isRetransformClass = isRetransformClass;
+        this.isCanRetransformClasses = isCanRetransformClasses;
     }
 
     @Override
@@ -31,12 +31,12 @@ class ClassFileTransformerImpl implements ClassFileTransformer {
     }
 
     /**
-     * Getter for field {@link #isRetransformClass}
+     * Getter for field {@link #isCanRetransformClasses}
      *
      * @return true if this transformer can retransform classes
      */
-    public boolean isRetransformClass() {
-        return isRetransformClass;
+    public boolean isCanRetransformClasses() {
+        return isCanRetransformClasses;
     }
 
     /**
@@ -49,9 +49,9 @@ class ClassFileTransformerImpl implements ClassFileTransformer {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof ClassFileTransformerImpl) {
-            ClassFileTransformer classFileTransformer = ((ClassFileTransformerImpl) obj).getClassFileTransformer();
+    public boolean equals(Object object) {
+        if (object instanceof ClassFileTransformerImpl) {
+            ClassFileTransformer classFileTransformer = ((ClassFileTransformerImpl) object).getClassFileTransformer();
             return this.classFileTransformer == classFileTransformer;
         }
 

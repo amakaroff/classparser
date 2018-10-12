@@ -147,12 +147,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          */
         private ConstantPool getHotSpotConstantPool(Class<?> clazz) {
             Method constantPoolMethod = Reflection.getMethod(Class.class, "getConstantPool");
-            constantPoolMethod.setAccessible(true);
-            try {
-                return (ConstantPool) Reflection.invoke(constantPoolMethod, clazz);
-            } finally {
-                constantPoolMethod.setAccessible(false);
-            }
+            return (ConstantPool) Reflection.invoke(constantPoolMethod, clazz);
         }
 
         /**
@@ -191,7 +186,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
 
         private int index = 1;
 
-        public BytecodeConstantPoolClassIterator(Class<?> clazz) {
+        BytecodeConstantPoolClassIterator(Class<?> clazz) {
             try {
                 DataInputStream stream = getBytecodeDataStream(clazz);
                 int constantPoolSize = stream.readUnsignedShort();
@@ -251,10 +246,10 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          *
          * @return class or null if in constant pool no more exists classes
          */
-        public Class<?> iterateToNextNotNull() {
+        Class<?> iterateToNextNotNull() {
             while (index < size) {
                 Integer integer = indexes.get(index);
-                String className = constantPool[integer].replace('/', '.');
+                String className = ClassNameConverter.toJavaClassName(constantPool[integer]);
                 try {
                     return Class.forName(className, false, getClass().getClassLoader());
                 } catch (ClassNotFoundException ignore) {

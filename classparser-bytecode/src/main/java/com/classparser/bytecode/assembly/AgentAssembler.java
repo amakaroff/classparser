@@ -41,13 +41,12 @@ public class AgentAssembler {
      * {@link JavaAgent#getManifestFileName()}
      * and dynamically attach this jar to JVM
      * <p>
-     * If agent already init, then method was skip
+     * If agent already init, then method will be skipped
      *
      * @param agent java agent instance
      */
     public void assembly(JavaAgent agent) {
-        if (!agent.isInitialize()) {
-
+        if (!agent.isInitialized()) {
             if (configurationManager.isCacheAgentJar()) {
                 cachedAssembly(agent);
             } else {
@@ -109,7 +108,7 @@ public class AgentAssembler {
      * @return absolute path to path to agent jar
      */
     private String createAgent(JavaAgent agent) {
-        return AgentBuilder.getBuilder()
+        return AgentBuilder.createBuilder()
                 .addAgentName(agent.getAgentJarName())
                 .addAgentDirLocation(agent.getAgentLocationPath())
                 .addAgentClass(agent.getAgentClass())

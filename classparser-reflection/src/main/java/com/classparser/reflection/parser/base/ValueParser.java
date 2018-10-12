@@ -180,10 +180,8 @@ public class ValueParser {
      * @return value from static field or empty string if value can't be obtained
      */
     private String getFieldValue(Field field) {
-        if (configurationManager.isDisplayFieldValue() &&
-                Modifier.isStatic(field.getModifiers()) &&
-                !isEnumConstant(field)) {
-            Object value = Reflection.get(field);
+        if (isDisplayFieldValue(field)) {
+            Object value = Reflection.getStatic(field);
             if (!isField(value)) {
                 String fieldValue = getValue(value);
                 if (!"".equals(fieldValue)) {
@@ -193,6 +191,18 @@ public class ValueParser {
         }
 
         return "";
+    }
+
+    /**
+     * Checks if value displayed is necessary
+     *
+     * @param field any field
+     * @return true if value of field should be displayed
+     */
+    private boolean isDisplayFieldValue(Field field) {
+        return configurationManager.isDisplayFieldValue() &&
+                Modifier.isStatic(field.getModifiers()) &&
+                !isEnumConstant(field);
     }
 
     /**

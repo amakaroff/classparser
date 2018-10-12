@@ -52,14 +52,12 @@ class ProxyChainClassTransformer implements ClassFileTransformer {
             for (ClassFileTransformerImpl classFileTransformer : transformersQueue) {
                 byte[] transformedBytecode = classFileTransformer.transform(loader, className,
                         classBeingRedefined, protectionDomain, currentBytecode);
-                if (transformedBytecode != null && classFileTransformer.isRetransformClass()) {
+                if (transformedBytecode != null && classFileTransformer.isCanRetransformClasses()) {
                     currentBytecode = transformedBytecode;
                 }
             }
 
-            if (Arrays.equals(bytecode, currentBytecode)) {
-                return null;
-            } else {
+            if (!Arrays.equals(bytecode, currentBytecode)) {
                 return currentBytecode;
             }
         }

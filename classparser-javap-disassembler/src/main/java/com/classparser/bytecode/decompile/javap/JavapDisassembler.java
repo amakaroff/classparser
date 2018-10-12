@@ -138,7 +138,7 @@ public final class JavapDisassembler implements Decompiler {
      */
     private Map<String, Object> getDefaultConfiguration() {
         return JavapBuilderConfiguration
-                .getBuilderConfiguration()
+                .createBuilder()
                 .displayAllAttributesOfCode(false)
                 .displayCodeLineAndLocalVariableTable(false)
                 .displayConstants(true)

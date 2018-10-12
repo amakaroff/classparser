@@ -19,7 +19,7 @@ public class CFRBuilderConfiguration {
      *
      * @return {@link CFRConfiguration} instance
      */
-    public static CFRConfiguration getBuilderConfiguration() {
+    public static CFRConfiguration createBuilder() {
         return new Builder();
     }
 

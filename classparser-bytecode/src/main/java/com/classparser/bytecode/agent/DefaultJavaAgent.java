@@ -38,7 +38,7 @@ public final class DefaultJavaAgent implements JavaAgent {
 
     private final ProxyChainClassTransformer proxyClassTransformer;
 
-    private volatile boolean isInitialize;
+    private volatile boolean isInitialized;
 
     public DefaultJavaAgent(ConfigurationManager configurationManager) {
         this(new AgentAssembler(configurationManager));
@@ -50,7 +50,7 @@ public final class DefaultJavaAgent implements JavaAgent {
         this.retransformIndicator = new ThreadLocal<>();
         this.proxyClassTransformer = new ProxyChainClassTransformer(this);
         this.proxyInstrumentation = createProxyInstrumentation();
-        this.isInitialize = false;
+        this.isInitialized = false;
         finishRetransform();
     }
 
@@ -85,23 +85,23 @@ public final class DefaultJavaAgent implements JavaAgent {
      * If agent already init, do nothing
      */
     private void ensureInitialize() {
-        if (!isInitialize()) {
+        if (!isInitialized()) {
             synchronized (lock) {
-                if (!isInitialize()) {
+                if (!isInitialized()) {
                     if (instrumentation == null) {
                         agentAssembler.assembly(this);
                     }
 
                     instrumentation.addTransformer(proxyClassTransformer, true);
-                    isInitialize = true;
+                    isInitialized = true;
                 }
             }
         }
     }
 
     @Override
-    public boolean isInitialize() {
-        return instrumentation != null && isInitialize;
+    public boolean isInitialized() {
+        return instrumentation != null && isInitialized;
     }
 
     @Override

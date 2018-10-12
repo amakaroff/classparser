@@ -151,7 +151,7 @@ public final class ProcyonDecompiler implements Decompiler {
         options.EnumBraceStyle = BraceStyle.EndOfLine;
 
         return ProcyonBuilderConfiguration
-                .getBuilderConfiguration()
+                .createBuilder()
                 .uploadClassReference(true)
                 .excludeNestedTypes(false)
                 .flattenSwitchBlocks(true)

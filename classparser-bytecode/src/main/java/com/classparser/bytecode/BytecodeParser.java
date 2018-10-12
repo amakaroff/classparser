@@ -36,7 +36,7 @@ public class BytecodeParser implements ClassParser {
 
     private final ConfigurationManager configurationManager;
 
-    private final BytecodeFileSaver saver;
+    private final BytecodeFileSaver bytecodeFileSaver;
 
     private final InnerClassesCollector classesCollector;
 
@@ -64,12 +64,12 @@ public class BytecodeParser implements ClassParser {
         this.configurationManager = new ConfigurationManager();
         this.bytecodeCollector = new ChainBytecodeCollector(configurationManager);
         this.classesCollector = new InnerClassesCollector(configurationManager);
-        this.saver = new BytecodeFileSaver(configurationManager);
+        this.bytecodeFileSaver = new BytecodeFileSaver(configurationManager);
     }
 
     @Override
     public String parseClass(Class<?> clazz) throws ByteCodeParserException {
-        checkToCorrectClass(clazz);
+        validateCorrectnessOfClass(clazz);
 
         byte[] bytecode = getBytecodeOfClass(clazz);
         List<byte[]> bytecodeOfInnerClasses = getBytecodeOfInnerClasses(clazz);
@@ -91,9 +91,9 @@ public class BytecodeParser implements ClassParser {
      * @param bytecodeOfInnerClasses bytecode of inner classes
      */
     private void saveByteCodeToFile(byte[] bytecode, List<byte[]> bytecodeOfInnerClasses) {
-        saver.saveToFile(bytecode);
+        bytecodeFileSaver.saveToFile(bytecode);
         for (byte[] bytecodeOfInnerClass : bytecodeOfInnerClasses) {
-            saver.saveToFile(bytecodeOfInnerClass);
+            bytecodeFileSaver.saveToFile(bytecodeOfInnerClass);
         }
     }
 
@@ -104,7 +104,7 @@ public class BytecodeParser implements ClassParser {
      * @return list with bytecode of inner classes
      */
     private List<byte[]> getBytecodeOfInnerClasses(Class<?> clazz) {
-        if (configurationManager.isDecompileInnerClasses()) {
+        if (configurationManager.isNeedToDecompileInnerClasses()) {
             List<byte[]> bytecodeOfInnerClasses = new ArrayList<>();
 
             for (Class<?> innerClass : classesCollector.getInnerClasses(clazz)) {
@@ -141,14 +141,14 @@ public class BytecodeParser implements ClassParser {
      *
      * @param clazz any class
      */
-    private void checkToCorrectClass(Class<?> clazz) {
+    private void validateCorrectnessOfClass(Class<?> clazz) {
         if (clazz == null) {
-            throw new NullPointerException("Class for parsing is can't be a null!");
+            throw new NullPointerException("Class for parsing can't be a null!");
         }
 
         if (clazz.isPrimitive()) {
             String className = ClassNameConverter.toJavaClassName(clazz);
-            throw new IllegalClassException("Primitive type: \"" + className + "\" can'tbe decompiled", clazz);
+            throw new IllegalClassException("Primitive type: \"" + className + "\" can't be decompiled", clazz);
         }
 
         if (clazz.isArray()) {
