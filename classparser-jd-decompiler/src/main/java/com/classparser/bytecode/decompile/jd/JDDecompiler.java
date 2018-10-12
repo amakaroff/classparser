@@ -178,7 +178,7 @@ public final class JDDecompiler implements Decompiler {
      */
     private Map<String, Object> getDefaultConfiguration() {
         return JDBuilderConfiguration
-                .getBuilderConfiguration()
+                .createBuilder()
                 .displayDefaultConstructor(true)
                 .realignmentLineNumber(true)
                 .displayPrefixThis(true)

@@ -48,7 +48,7 @@ public class ConfigurationManager {
      */
     protected Map<String, Object> getDefaultConfiguration() {
         return ReflectionParserBuilderConfiguration
-                .getBuilder()
+                .createBuilder()
                 .displayAnnotationOnTypes(true)
                 .displayInnerClasses(true)
                 .displaySyntheticEntities(false)

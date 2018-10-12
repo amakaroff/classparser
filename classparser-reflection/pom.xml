@@ -8,17 +8,15 @@
     <parent>
         <artifactId>classparser</artifactId>
         <groupId>com.classparser</groupId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <description>
         Module store classes for reflection parsing mechanism
     </description>
 
-    <groupId>com.classparser.reflection</groupId>
     <artifactId>classparser-reflection</artifactId>
-    <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <dependencies>
         <!-- Modules-->

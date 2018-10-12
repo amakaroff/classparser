@@ -24,7 +24,7 @@ public interface JavaAgent {
      *
      * @return boolean status
      */
-    boolean isInitialize();
+    boolean isInitialized();
 
     /**
      * Obtains agent jar file name

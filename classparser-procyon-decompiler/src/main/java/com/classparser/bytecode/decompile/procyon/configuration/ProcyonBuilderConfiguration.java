@@ -21,7 +21,7 @@ public class ProcyonBuilderConfiguration {
      *
      * @return {@link ProcyonConfiguration} instance
      */
-    public static ProcyonConfiguration getBuilderConfiguration() {
+    public static ProcyonConfiguration createBuilder() {
         return new Builder();
     }
 

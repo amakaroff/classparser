@@ -8,13 +8,11 @@
     <parent>
         <artifactId>classparser</artifactId>
         <groupId>com.classparser</groupId>
-        <version>1.0.0</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.classparser.bytecode.decompile.jd</groupId>
     <artifactId>classparser-jd-decompiler</artifactId>
-    <version>1.0.0</version>
-    <packaging>jar</packaging>
+    <version>1.0.0-SNAPSHOT</version>
 
     <description>
         Module provides jd decompiler adapter

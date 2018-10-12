@@ -32,7 +32,7 @@ public final class AgentBuilder {
 
     private static final String DEFAULT_AGENT_JAR_FILE_NAME = "agent.jar";
 
-    public static AgentJarBuilder getBuilder() {
+    public static AgentJarBuilder createBuilder() {
         return new Builder();
     }
 
@@ -42,6 +42,8 @@ public final class AgentBuilder {
     private static class Builder implements AgentJarBuilder {
 
         private static final String JAR_SUFFIX = ".jar";
+
+        private static final String DEFAULT_AGENT_JAR_NAME = "agent.jar";
 
         private final Collection<Class<?>> attachedClasses;
 
@@ -54,7 +56,7 @@ public final class AgentBuilder {
         private Manifest manifest;
 
         private Builder() {
-            this.agentName = "agent.jar";
+            this.agentName = DEFAULT_AGENT_JAR_NAME;
             this.agentDirLocation = "";
             this.attachedClasses = new HashSet<>();
         }
@@ -99,7 +101,7 @@ public final class AgentBuilder {
         public AgentJarBuilder addAgentClass(Class<?> agentClass) {
             if (!isAgentClass(agentClass)) {
                 String className = ClassNameConverter.toJavaClassName(agentClass);
-                throw new IllegalClassException("Class \"" + className + "\" is can't be a agent class", agentClass);
+                throw new IllegalClassException("Class \"" + className + "\" is can't be an agent class", agentClass);
             }
 
             this.agentClass = agentClass;
@@ -142,7 +144,7 @@ public final class AgentBuilder {
 
                 jarStream.finish();
             } catch (IOException exception) {
-                throw new FileCreatingException("Java agent jar is can't created", exception, agentPath);
+                throw new FileCreatingException("Java agent jar is can't be created", exception, agentPath);
             }
 
             return agentPath;
@@ -165,11 +167,11 @@ public final class AgentBuilder {
         /**
          * Checks if class exists special agent signature method
          * <code>
-         *      void agentmain(String args, Instrumentation instrumentation)
+         * void agentmain(String args, Instrumentation instrumentation)
          * </code>
          * or
          * <code>
-         *      void premain(String args, Instrumentation instrumentation)
+         * void premain(String args, Instrumentation instrumentation)
          * </code>
          *
          * @param clazz any class
@@ -211,7 +213,7 @@ public final class AgentBuilder {
         /**
          * Tryings and append any suffix if it's needed
          *
-         * @param value  any value
+         * @param value any value
          * @return value exists suffix
          */
         private String appendJarSuffixIfNeeded(String value) {

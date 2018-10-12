@@ -22,7 +22,7 @@ public class FernflowerBuilderConfiguration {
      *
      * @return {@link FernflowerConfiguration} instance
      */
-    public static FernflowerConfiguration getBuilderConfiguration() {
+    public static FernflowerConfiguration createBuilder() {
         return new Builder();
     }
 

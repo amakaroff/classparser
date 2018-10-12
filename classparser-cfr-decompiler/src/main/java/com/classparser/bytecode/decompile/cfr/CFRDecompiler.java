@@ -135,7 +135,7 @@ public final class CFRDecompiler implements Decompiler {
      */
     private Map<String, Object> getDefaultConfiguration() {
         return CFRBuilderConfiguration
-                .getBuilderConfiguration()
+                .createBuilder()
                 .replaceStringConcatToStringBuffer(false)
                 .replaceStringConcatToStringBuilder(false)
                 .decompileSugarEnumInSwitch(true)

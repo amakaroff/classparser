@@ -107,7 +107,7 @@ public final class FernflowerDecompiler implements Decompiler {
      */
     private Map<String, Object> getDefaultConfiguration() {
         return FernflowerBuilderConfiguration
-                .getBuilderConfiguration()
+                .createBuilder()
                 .displayBridgeMethods(false)
                 .displayMemberSyntheticClasses(false)
                 .decompileInnerClasses(true)

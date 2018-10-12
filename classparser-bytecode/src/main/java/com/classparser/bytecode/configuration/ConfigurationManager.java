@@ -36,7 +36,7 @@ public class ConfigurationManager {
     /**
      * Obtain default configuration
      * <ul>
-     *      <li>{@link #isDecompileInnerClasses()} ()} - yes</li>
+     *      <li>{@link #isNeedToDecompileInnerClasses()} ()} - yes</li>
      *      <li>{@link #getDecompiler()} - {@link FernflowerDecompiler}</li>
      *      <li>{@link #isEnableClassFileBytecodeCollector()} - yes</li>
      *      <li>{@link #isEnableInstrumentationBytecodeCollector()} - yes</li>
@@ -53,7 +53,7 @@ public class ConfigurationManager {
      */
     protected Map<String, Object> getDefaultConfiguration() {
         return BytecodeParserBuilderConfiguration
-                .getBuilder()
+                .createBuilder()
                 .decompileAllInnerClasses(true)
                 .setDecompiler(new FernflowerDecompiler())
                 .enableClassFileBytecodeCollector(true)
@@ -82,7 +82,7 @@ public class ConfigurationManager {
      *
      * @return true if decompile inner classes is needed
      */
-    public boolean isDecompileInnerClasses() {
+    public boolean isNeedToDecompileInnerClasses() {
         return utils.getConfigOption(DECOMPILE_ALL_INNER_CLASSES_KEY, Boolean.class);
     }
 

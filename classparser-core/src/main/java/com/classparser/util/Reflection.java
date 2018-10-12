@@ -104,7 +104,7 @@ public class Reflection {
      * @param field any field
      * @return field value
      */
-    public static Object get(Field field) {
+    public static Object getStatic(Field field) {
         return get(field, null);
     }
 

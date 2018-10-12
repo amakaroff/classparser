@@ -6,15 +6,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>classparser</artifactId>
         <groupId>com.classparser</groupId>
-        <version>1.0.0</version>
+        <artifactId>classparser</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.classparser.bytecode</groupId>
     <artifactId>classparser-bytecode</artifactId>
-    <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <description>
         Module store classes for bytecode decompile parsing mechanism
@@ -25,6 +23,7 @@
         <tools.jar.jdk.location>${java.home}/lib/tools.jar</tools.jar.jdk.location>
         <tools.jar.mac.location>${java.home}/../Classes/classes.jar</tools.jar.mac.location>
         <tools.jar.location>/</tools.jar.location>
+        <fernflower.decompiler.version>1.0.0.20171018</fernflower.decompiler.version>
     </properties>
 
     <dependencies>
@@ -32,7 +31,7 @@
         <dependency>
             <groupId>org.jboss.windup.decompiler.fernflower</groupId>
             <artifactId>windup-fernflower</artifactId>
-            <version>1.0.0.20171018</version>
+            <version>${fernflower.decompiler.version}</version>
         </dependency>
 
         <!-- Java dev tools -->
@@ -88,7 +87,7 @@
         </profile>
     </profiles>
 
-    <build>
+    <!--<build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -112,5 +111,5 @@
                 </executions>
             </plugin>
         </plugins>
-    </build>
+    </build>-->
 </project>
