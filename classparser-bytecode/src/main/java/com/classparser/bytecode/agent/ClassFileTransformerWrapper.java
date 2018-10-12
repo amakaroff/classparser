@@ -12,13 +12,13 @@ import java.security.ProtectionDomain;
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-final class ClassFileTransformerImpl implements ClassFileTransformer {
+final class ClassFileTransformerWrapper implements ClassFileTransformer {
 
     private final ClassFileTransformer classFileTransformer;
 
     private final boolean isCanRetransformClasses;
 
-    public ClassFileTransformerImpl(ClassFileTransformer classFileTransformer, boolean isCanRetransformClasses) {
+    public ClassFileTransformerWrapper(ClassFileTransformer classFileTransformer, boolean isCanRetransformClasses) {
         this.classFileTransformer = classFileTransformer;
         this.isCanRetransformClasses = isCanRetransformClasses;
     }
@@ -52,8 +52,10 @@ final class ClassFileTransformerImpl implements ClassFileTransformer {
 
     @Override
     public boolean equals(Object object) {
-        if (object instanceof ClassFileTransformerImpl) {
-            ClassFileTransformer classFileTransformer = ((ClassFileTransformerImpl) object).getClassFileTransformer();
+        if (object != null && object.getClass() == getClass()) {
+            ClassFileTransformerWrapper transformerWrapper = (ClassFileTransformerWrapper) object;
+
+            ClassFileTransformer classFileTransformer = transformerWrapper.getClassFileTransformer();
             return this.classFileTransformer == classFileTransformer;
         }
 

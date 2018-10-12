@@ -21,7 +21,7 @@ final class ProxyChainClassTransformer implements ClassFileTransformer {
 
     private final DefaultJavaAgent defaultJavaAgent;
 
-    private final Queue<ClassFileTransformerImpl> transformersQueue;
+    private final Queue<ClassFileTransformerWrapper> transformersQueue;
 
     public ProxyChainClassTransformer(DefaultJavaAgent defaultJavaAgent) {
         this.defaultJavaAgent = defaultJavaAgent;
@@ -33,7 +33,7 @@ final class ProxyChainClassTransformer implements ClassFileTransformer {
      *
      * @param classFileTransformer any class file transformer
      */
-    public void addTransformer(ClassFileTransformerImpl classFileTransformer) {
+    public void addTransformer(ClassFileTransformerWrapper classFileTransformer) {
         transformersQueue.add(classFileTransformer);
     }
 
@@ -43,7 +43,7 @@ final class ProxyChainClassTransformer implements ClassFileTransformer {
      * @param classFileTransformer any class file transformer
      */
     public boolean removeTransformer(ClassFileTransformer classFileTransformer) {
-        return transformersQueue.remove(new ClassFileTransformerImpl(classFileTransformer, false));
+        return transformersQueue.remove(new ClassFileTransformerWrapper(classFileTransformer, false));
     }
 
     @Override
@@ -51,7 +51,7 @@ final class ProxyChainClassTransformer implements ClassFileTransformer {
                                   ProtectionDomain protectionDomain, byte[] bytecode) throws IllegalClassFormatException {
         if (defaultJavaAgent.isCurrentAgentUsed()) {
             byte[] currentBytecode = bytecode;
-            for (ClassFileTransformerImpl classFileTransformer : transformersQueue) {
+            for (ClassFileTransformerWrapper classFileTransformer : transformersQueue) {
                 byte[] transformedBytecode = classFileTransformer.transform(loader, className,
                         classBeingRedefined, protectionDomain, currentBytecode);
                 if (transformedBytecode != null && classFileTransformer.isCanRetransformClasses()) {
