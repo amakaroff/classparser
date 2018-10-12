@@ -6,11 +6,13 @@ import java.security.ProtectionDomain;
 
 /**
  * Decorator for {@link ClassFileTransformer} for store {@link #isCanRetransformClasses} value
+ * <p>
+ * Non public API
  *
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-class ClassFileTransformerImpl implements ClassFileTransformer {
+final class ClassFileTransformerImpl implements ClassFileTransformer {
 
     private final ClassFileTransformer classFileTransformer;
 
