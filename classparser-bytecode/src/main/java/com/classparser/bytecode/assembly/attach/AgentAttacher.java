@@ -204,9 +204,13 @@ public class AgentAttacher {
      * @return tools.jar class loader instance
      * @throws MalformedURLException if path to tools.jar is invalid
      */
-    private synchronized ClassLoader getToolsJarClassLoader(Path toolsPath) throws MalformedURLException {
+    private ClassLoader getToolsJarClassLoader(Path toolsPath) throws MalformedURLException {
         if (toolsJarClassLoader == null) {
-            toolsJarClassLoader = new URLClassLoader(new URL[]{toolsPath.toUri().toURL()});
+            synchronized (AgentAttacher.class) {
+                if (toolsJarClassLoader == null) {
+                    toolsJarClassLoader = new URLClassLoader(new URL[]{toolsPath.toUri().toURL()});
+                }
+            }
         }
 
         return toolsJarClassLoader;
