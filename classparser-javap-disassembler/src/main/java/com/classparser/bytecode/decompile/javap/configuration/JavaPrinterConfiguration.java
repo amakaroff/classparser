@@ -9,7 +9,7 @@ import java.lang.reflect.Modifier;
 /**
  * Interface for builder configuration for {@link JavaPrinterDisassembler}
  */
-public interface JavapConfiguration extends Configuration {
+public interface JavaPrinterConfiguration extends Configuration {
 
     String DISPLAY_DECOMPILE_CODE_KEY = "ddc";
 
@@ -39,7 +39,7 @@ public interface JavapConfiguration extends Configuration {
      * @param flag true/false value
      * @return builder instance
      */
-    JavapConfiguration displayDecompiledCode(boolean flag);
+    JavaPrinterConfiguration displayDecompiledCode(boolean flag);
 
     /**
      * Displays all attributes of code for methods
@@ -47,7 +47,7 @@ public interface JavapConfiguration extends Configuration {
      * @param flag true/false value
      * @return builder instance
      */
-    JavapConfiguration displayAllAttributesOfCode(boolean flag);
+    JavaPrinterConfiguration displayAllAttributesOfCode(boolean flag);
 
     /**
      * Displays line of code and local variable table
@@ -57,7 +57,7 @@ public interface JavapConfiguration extends Configuration {
      * @param flag true/false value
      * @return builder instance
      */
-    JavapConfiguration displayCodeLineAndLocalVariableTable(boolean flag);
+    JavaPrinterConfiguration displayCodeLineAndLocalVariableTable(boolean flag);
 
     /**
      * Displays system information about path to class file
@@ -65,7 +65,7 @@ public interface JavapConfiguration extends Configuration {
      * @param flag true/false value
      * @return builder instance
      */
-    JavapConfiguration displaySystemInformation(boolean flag);
+    JavaPrinterConfiguration displaySystemInformation(boolean flag);
 
     /**
      * Displays full information about bytecode of class
@@ -75,7 +75,7 @@ public interface JavapConfiguration extends Configuration {
      * @param flag true/false value
      * @return builder instance
      */
-    JavapConfiguration displayVerboseInformation(boolean flag);
+    JavaPrinterConfiguration displayVerboseInformation(boolean flag);
 
     /**
      * Displays constant value for static final fields
@@ -83,7 +83,7 @@ public interface JavapConfiguration extends Configuration {
      * @param flag true/false value
      * @return builder instance
      */
-    JavapConfiguration displayConstants(boolean flag);
+    JavaPrinterConfiguration displayConstants(boolean flag);
 
     /**
      * Appends access modifier to displayed access modifier set
@@ -94,7 +94,7 @@ public interface JavapConfiguration extends Configuration {
      * @param accessModifier any access modifier
      * @return builder instance
      */
-    JavapConfiguration appendDisplayOnlyElementsWithAccessModifier(AccessModifier accessModifier);
+    JavaPrinterConfiguration appendDisplayOnlyElementsWithAccessModifier(AccessModifier accessModifier);
 
     /**
      * Sets count of indent spaces for disassemble code
@@ -104,7 +104,7 @@ public interface JavapConfiguration extends Configuration {
      * @param count count of indent spaces
      * @return builder instance
      */
-    JavapConfiguration setIndentSpaces(int count);
+    JavaPrinterConfiguration setIndentSpaces(int count);
 
     /**
      * Displays descriptor for methods
@@ -112,7 +112,7 @@ public interface JavapConfiguration extends Configuration {
      * @param flag true/false value
      * @return builder instance
      */
-    JavapConfiguration displayDescriptors(boolean flag);
+    JavaPrinterConfiguration displayDescriptors(boolean flag);
 
     /**
      * Appends kind to displayed kind set
@@ -123,7 +123,7 @@ public interface JavapConfiguration extends Configuration {
      * @param kind any kind
      * @return builder instance
      */
-    JavapConfiguration appendDisplayDetails(InstructionDetailWriter.Kind kind);
+    JavaPrinterConfiguration appendDisplayDetails(InstructionDetailWriter.Kind kind);
 
     /**
      * Inner class uses for store information about
