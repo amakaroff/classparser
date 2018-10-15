@@ -63,7 +63,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
 
         private int index = 1;
 
-        public UnsafeReflectConstantPoolClassIterator(Class<?> clazz) {
+        UnsafeReflectConstantPoolClassIterator(Class<?> clazz) {
             this.constantPool = getConstantPool(clazz);
             this.size = constantPool.getSize();
         }
@@ -265,9 +265,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
             if (hasNext()) {
                 Class<?> clazz = iterateToNextNotNull();
                 index++;
-                if (clazz != null) {
-                    return null;
-                }
+                return clazz;
             }
 
             throw new NoSuchElementException("No such the follow class constant!");

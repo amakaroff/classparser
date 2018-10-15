@@ -63,6 +63,7 @@
         <module>classparser-jd-decompiler</module>
         <module>classparser-procyon-decompiler</module>
         <module>classparser-javap-disassembler</module>
+        <module>classparser-test</module>
     </modules>
 
     <build>
@@ -74,6 +75,10 @@
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
+                    <compilerArgument>-Xlint:-sunapi</compilerArgument>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>

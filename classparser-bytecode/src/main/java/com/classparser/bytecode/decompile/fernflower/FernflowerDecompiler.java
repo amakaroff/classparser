@@ -215,7 +215,7 @@ public final class FernflowerDecompiler implements Decompiler {
 
         private final IResultSaver saver;
 
-        public FernflowerContext(Fernflower fernflower, IResultSaver saver) {
+        FernflowerContext(Fernflower fernflower, IResultSaver saver) {
             this.fernflower = fernflower;
             this.structContext = fernflower.getStructContext();
             this.units = getContextUnitByReflection(structContext);
@@ -239,7 +239,7 @@ public final class FernflowerDecompiler implements Decompiler {
          *
          * @return Fernflower instance
          */
-        public Fernflower getFernflower() {
+        Fernflower getFernflower() {
             return fernflower;
         }
 
@@ -248,7 +248,7 @@ public final class FernflowerDecompiler implements Decompiler {
          *
          * @return Struct Context instance
          */
-        public StructContext getStructContext() {
+        StructContext getStructContext() {
             return structContext;
         }
 
@@ -257,7 +257,7 @@ public final class FernflowerDecompiler implements Decompiler {
          *
          * @return map of utils
          */
-        public Map<String, ContextUnit> getUnits() {
+        Map<String, ContextUnit> getUnits() {
             return units;
         }
 
@@ -266,7 +266,7 @@ public final class FernflowerDecompiler implements Decompiler {
          *
          * @return decompiled code saver instance
          */
-        public IResultSaver getSaver() {
+        IResultSaver getSaver() {
             return saver;
         }
     }
@@ -284,7 +284,7 @@ public final class FernflowerDecompiler implements Decompiler {
          * @param destination destination stub
          * @param options     options stub
          */
-        public DecompiledCodeSaver(File destination, Map<String, Object> options) {
+        DecompiledCodeSaver(File destination, Map<String, Object> options) {
             super(destination, options);
         }
 
@@ -298,7 +298,7 @@ public final class FernflowerDecompiler implements Decompiler {
          *
          * @return decompiled code
          */
-        public String getDecompiledCode() {
+        String getDecompiledCode() {
             return decompiledCode;
         }
     }

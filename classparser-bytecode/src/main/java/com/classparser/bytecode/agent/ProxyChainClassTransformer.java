@@ -23,7 +23,7 @@ final class ProxyChainClassTransformer implements ClassFileTransformer {
 
     private final Queue<ClassFileTransformerWrapper> transformersQueue;
 
-    public ProxyChainClassTransformer(DefaultJavaAgent defaultJavaAgent) {
+    ProxyChainClassTransformer(DefaultJavaAgent defaultJavaAgent) {
         this.defaultJavaAgent = defaultJavaAgent;
         this.transformersQueue = new ConcurrentLinkedQueue<>();
     }
@@ -33,7 +33,7 @@ final class ProxyChainClassTransformer implements ClassFileTransformer {
      *
      * @param classFileTransformer any class file transformer
      */
-    public void addTransformer(ClassFileTransformerWrapper classFileTransformer) {
+    void addTransformer(ClassFileTransformerWrapper classFileTransformer) {
         transformersQueue.add(classFileTransformer);
     }
 
@@ -42,7 +42,7 @@ final class ProxyChainClassTransformer implements ClassFileTransformer {
      *
      * @param classFileTransformer any class file transformer
      */
-    public boolean removeTransformer(ClassFileTransformer classFileTransformer) {
+    boolean removeTransformer(ClassFileTransformer classFileTransformer) {
         return transformersQueue.remove(new ClassFileTransformerWrapper(classFileTransformer, false));
     }
 

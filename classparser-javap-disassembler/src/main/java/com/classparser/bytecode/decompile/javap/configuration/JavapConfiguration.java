@@ -1,13 +1,13 @@
 package com.classparser.bytecode.decompile.javap.configuration;
 
-import com.classparser.bytecode.decompile.javap.JavapDisassembler;
+import com.classparser.bytecode.decompile.javap.JavaPrinterDisassembler;
 import com.classparser.configuration.Configuration;
 import com.sun.tools.javap.InstructionDetailWriter;
 
 import java.lang.reflect.Modifier;
 
 /**
- * Interface for builder configuration for {@link JavapDisassembler}
+ * Interface for builder configuration for {@link JavaPrinterDisassembler}
  */
 public interface JavapConfiguration extends Configuration {
 

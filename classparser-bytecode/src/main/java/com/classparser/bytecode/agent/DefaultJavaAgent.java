@@ -26,7 +26,7 @@ public final class DefaultJavaAgent implements JavaAgent {
 
     private static final String TEMP_DIR_KEY = "java.io.tmpdir";
 
-    private static volatile Instrumentation instrumentation;
+    private static Instrumentation instrumentation;
 
     private final ThreadLocal<Boolean> retransformIndicator;
 
@@ -51,7 +51,6 @@ public final class DefaultJavaAgent implements JavaAgent {
         this.proxyClassTransformer = new ProxyChainClassTransformer(this);
         this.proxyInstrumentation = createProxyInstrumentation();
         this.isInitialized = false;
-        finishRetransform();
     }
 
     /**
@@ -161,7 +160,8 @@ public final class DefaultJavaAgent implements JavaAgent {
      * @return true if uses this agent
      */
     boolean isCurrentAgentUsed() {
-        return retransformIndicator.get();
+        Boolean value = retransformIndicator.get();
+        return value != null && value;
     }
 
     /**

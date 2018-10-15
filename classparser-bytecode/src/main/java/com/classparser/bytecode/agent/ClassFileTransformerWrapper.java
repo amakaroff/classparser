@@ -18,7 +18,7 @@ final class ClassFileTransformerWrapper implements ClassFileTransformer {
 
     private final boolean isCanRetransformClasses;
 
-    public ClassFileTransformerWrapper(ClassFileTransformer classFileTransformer, boolean isCanRetransformClasses) {
+    ClassFileTransformerWrapper(ClassFileTransformer classFileTransformer, boolean isCanRetransformClasses) {
         this.classFileTransformer = classFileTransformer;
         this.isCanRetransformClasses = isCanRetransformClasses;
     }
@@ -37,26 +37,15 @@ final class ClassFileTransformerWrapper implements ClassFileTransformer {
      *
      * @return true if this transformer can retransform classes
      */
-    public boolean isCanRetransformClasses() {
+    boolean isCanRetransformClasses() {
         return isCanRetransformClasses;
-    }
-
-    /**
-     * Getter for field {@link #classFileTransformer}
-     *
-     * @return class file transformer instance
-     */
-    public ClassFileTransformer getClassFileTransformer() {
-        return classFileTransformer;
     }
 
     @Override
     public boolean equals(Object object) {
         if (object != null && object.getClass() == getClass()) {
             ClassFileTransformerWrapper transformerWrapper = (ClassFileTransformerWrapper) object;
-
-            ClassFileTransformer classFileTransformer = transformerWrapper.getClassFileTransformer();
-            return this.classFileTransformer == classFileTransformer;
+            return this.classFileTransformer == transformerWrapper.classFileTransformer;
         }
 
         return false;

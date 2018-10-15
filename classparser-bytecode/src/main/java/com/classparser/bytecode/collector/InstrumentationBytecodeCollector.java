@@ -65,7 +65,8 @@ public class InstrumentationBytecodeCollector implements BytecodeCollector {
 
     @Override
     public boolean isEnable() {
-        return configurationManager.isEnableInstrumentationBytecodeCollector();
+        ConfigurationManager configurationManager = this.configurationManager;
+        return configurationManager != null && configurationManager.isEnableInstrumentationBytecodeCollector();
     }
 
     @Override

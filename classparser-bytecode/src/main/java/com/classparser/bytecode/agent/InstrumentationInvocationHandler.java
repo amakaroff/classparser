@@ -22,7 +22,7 @@ final class InstrumentationInvocationHandler implements InvocationHandler {
 
     private final ProxyChainClassTransformer proxyChainClassTransformer;
 
-    public InstrumentationInvocationHandler(DefaultJavaAgent defaultJavaAgent,
+    InstrumentationInvocationHandler(DefaultJavaAgent defaultJavaAgent,
                                             Supplier<Instrumentation> instrumentationSupplier,
                                             ProxyChainClassTransformer proxyChainClassTransformer) {
         this.defaultJavaAgent = defaultJavaAgent;
