@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>classparser-procyon-decompiler</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-SNAPSHOT</version>
 
     <description>
         Module provides procyon decompiler adapter
