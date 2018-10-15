@@ -45,7 +45,9 @@ public interface JavaAgent {
      *
      * @return agent class
      */
-    Class<? extends JavaAgent> getAgentClass();
+    default Class<? extends JavaAgent> getAgentClass() {
+        return getClass();
+    }
 
     /**
      * Obtains manifest file name which will be uses for agent jar

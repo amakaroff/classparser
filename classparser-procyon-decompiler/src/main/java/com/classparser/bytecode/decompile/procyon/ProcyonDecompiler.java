@@ -53,11 +53,6 @@ public final class ProcyonDecompiler implements Decompiler {
     }
 
     @Override
-    public String decompile(byte[] bytecode) {
-        return decompile(bytecode, Collections.emptyList());
-    }
-
-    @Override
     public String decompile(byte[] bytecode, Collection<byte[]> classes) {
         if (bytecode != null && classes != null) {
             String className = ClassNameConverter.getClassName(bytecode);
