@@ -59,11 +59,6 @@ public final class JavaPrinterDisassembler implements Decompiler {
     }
 
     @Override
-    public String decompile(byte[] bytecode) {
-        return decompile(bytecode, Collections.emptyList());
-    }
-
-    @Override
     public String decompile(byte[] bytecode, Collection<byte[]> classes) {
         Map<String, byte[]> bytecodeMap = new HashMap<>();
         String className = ClassNameConverter.getClassName(bytecode);

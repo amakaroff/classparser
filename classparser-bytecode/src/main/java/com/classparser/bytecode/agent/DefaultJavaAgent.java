@@ -114,11 +114,6 @@ public final class DefaultJavaAgent implements JavaAgent {
     }
 
     @Override
-    public Class<? extends JavaAgent> getAgentClass() {
-        return getClass();
-    }
-
-    @Override
     public Manifest getManifestFileName() {
         Manifest manifest = new Manifest();
         String agentClassName = ClassNameConverter.toJavaClassName(getAgentClass());
