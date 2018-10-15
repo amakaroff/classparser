@@ -13,21 +13,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-public class JavapBuilderConfiguration {
+public class JavaPrinterBuilderConfiguration {
 
     /**
      * Creates instance of builder
      *
      * @return {@link JavaPrinterDisassembler} instance
      */
-    public static JavapConfiguration createBuilder() {
+    public static JavaPrinterConfiguration createBuilder() {
         return new Builder();
     }
 
     /**
-     * Inner builder class implements {@link JavapConfiguration}
+     * Inner builder class implements {@link JavaPrinterConfiguration}
      */
-    private static class Builder implements JavapConfiguration {
+    private static class Builder implements JavaPrinterConfiguration {
 
         private final Map<String, Object> configuration;
 
@@ -36,43 +36,43 @@ public class JavapBuilderConfiguration {
         }
 
         @Override
-        public JavapConfiguration displayAllAttributesOfCode(boolean flag) {
+        public JavaPrinterConfiguration displayAllAttributesOfCode(boolean flag) {
             configuration.put(DISPLAY_ATTRIBUTES_OF_CODE_KEY, flag);
             return this;
         }
 
         @Override
-        public JavapConfiguration displaySystemInformation(boolean flag) {
+        public JavaPrinterConfiguration displaySystemInformation(boolean flag) {
             configuration.put(DISPLAY_SYSTEM_INFORMATION_KEY, flag);
             return this;
         }
 
         @Override
-        public JavapConfiguration displayVerboseInformation(boolean flag) {
+        public JavaPrinterConfiguration displayVerboseInformation(boolean flag) {
             configuration.put(DISPLAY_VERBOSE_INFORMATION_KEY, flag);
             return this;
         }
 
         @Override
-        public JavapConfiguration displayConstants(boolean flag) {
+        public JavaPrinterConfiguration displayConstants(boolean flag) {
             configuration.put(DISPLAY_CONSTANTS_KEY, flag);
             return this;
         }
 
         @Override
-        public JavapConfiguration displayDecompiledCode(boolean flag) {
+        public JavaPrinterConfiguration displayDecompiledCode(boolean flag) {
             configuration.put(DISPLAY_DECOMPILE_CODE_KEY, flag);
             return this;
         }
 
         @Override
-        public JavapConfiguration displayCodeLineAndLocalVariableTable(boolean flag) {
+        public JavaPrinterConfiguration displayCodeLineAndLocalVariableTable(boolean flag) {
             configuration.put(DISPLAY_CODE_LINE_AND_LOCAL_VARIABLE_KEY, flag);
             return this;
         }
 
         @Override
-        public JavapConfiguration appendDisplayOnlyElementsWithAccessModifier(AccessModifier accessModifier) {
+        public JavaPrinterConfiguration appendDisplayOnlyElementsWithAccessModifier(AccessModifier accessModifier) {
             if (accessModifier != null) {
                 Set<AccessModifier> accessModifiers = getOrCreateSetByKey(DISPLAY_MODIFIER_ACCESSOR_KEY);
                 accessModifiers.add(accessModifier);
@@ -82,7 +82,7 @@ public class JavapBuilderConfiguration {
         }
 
         @Override
-        public JavapConfiguration setIndentSpaces(int count) {
+        public JavaPrinterConfiguration setIndentSpaces(int count) {
             if (count > 0) {
                 configuration.put(INDENT_COUNT_SPACES_KEY, count);
             }
@@ -90,13 +90,13 @@ public class JavapBuilderConfiguration {
         }
 
         @Override
-        public JavapConfiguration displayDescriptors(boolean flag) {
+        public JavaPrinterConfiguration displayDescriptors(boolean flag) {
             configuration.put(DISPLAY_DESCRIPTORS_KEY, flag);
             return this;
         }
 
         @Override
-        public JavapConfiguration appendDisplayDetails(InstructionDetailWriter.Kind kind) {
+        public JavaPrinterConfiguration appendDisplayDetails(InstructionDetailWriter.Kind kind) {
             if (kind != null) {
                 Set<InstructionDetailWriter.Kind> kinds = getOrCreateSetByKey(APPEND_DISPLAY_DETAILS_KEY);
                 kinds.add(kind);

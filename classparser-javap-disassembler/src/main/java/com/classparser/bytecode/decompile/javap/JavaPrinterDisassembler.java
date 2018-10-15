@@ -2,8 +2,8 @@ package com.classparser.bytecode.decompile.javap;
 
 import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.configuration.ConfigurationManager;
-import com.classparser.bytecode.decompile.javap.configuration.JavapBuilderConfiguration;
-import com.classparser.bytecode.decompile.javap.configuration.JavapConfiguration;
+import com.classparser.bytecode.decompile.javap.configuration.JavaPrinterBuilderConfiguration;
+import com.classparser.bytecode.decompile.javap.configuration.JavaPrinterConfiguration;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
 import com.classparser.util.Reflection;
@@ -33,7 +33,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import static com.classparser.bytecode.decompile.javap.configuration.JavapConfiguration.*;
+import static com.classparser.bytecode.decompile.javap.configuration.JavaPrinterConfiguration.*;
 
 /**
  * Adapter of Java Printer disassembler for {@link Decompiler} API
@@ -144,10 +144,10 @@ public final class JavaPrinterDisassembler implements Decompiler {
      * Describe of option can Java Printer configuration
      *
      * @return default configuration map
-     * @see JavapConfiguration
+     * @see JavaPrinterConfiguration
      */
     private Map<String, Object> getDefaultConfiguration() {
-        return JavapBuilderConfiguration
+        return JavaPrinterBuilderConfiguration
                 .createBuilder()
                 .displayAllAttributesOfCode(false)
                 .displayCodeLineAndLocalVariableTable(false)
