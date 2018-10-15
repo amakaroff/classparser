@@ -63,7 +63,7 @@
         <module>classparser-jd-decompiler</module>
         <module>classparser-procyon-decompiler</module>
         <module>classparser-javap-disassembler</module>
-        <module>classparser-test</module>
+        <!--<module>classparser-test</module>-->
     </modules>
 
     <build>

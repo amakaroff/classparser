@@ -150,7 +150,7 @@ public class GenericTypeParser {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             if (isNeedNameForInnerClass((Class) parameterizedType.getRawType())) {
                 // Have problems because of https://bugs.openjdk.java.net/browse/JDK-8146861
-                // Fixed in Java 9
+                // Fixed in Java 9 AnnotatedParameterizedType#getAnnotatedOwnerType
                 AnnotatedParameterizedType annotatedOwnerParametrizedType = null;
                 String correctAnnotations = getCorrectAnnotations(annotations);
                 Type ownerType = parameterizedType.getOwnerType();

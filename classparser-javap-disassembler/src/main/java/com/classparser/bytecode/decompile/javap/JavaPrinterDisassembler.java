@@ -14,7 +14,6 @@ import com.sun.tools.javap.Messages;
 import com.sun.tools.javap.Options;
 
 import javax.tools.DiagnosticListener;
-import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import java.io.ByteArrayInputStream;
@@ -85,8 +84,7 @@ public final class JavaPrinterDisassembler implements Decompiler {
         }
 
         StringPrintWriter stringPrintWriter = new StringPrintWriter();
-        JavapTask task = new BytecodeJavaPrinterTask(stringPrintWriter, null, STUB, null,
-                classesList, bytecodeMap, context);
+        JavapTask task = new BytecodeJavaPrinterTask(stringPrintWriter, null, classesList, bytecodeMap, context);
 
         setOptionsField(task, options);
 
@@ -222,22 +220,18 @@ public final class JavaPrinterDisassembler implements Decompiler {
         /**
          * Default constructor for initialize of {@link BytecodeJavaPrinterTask}
          *
-         * @param writer
-         * @param javaFileManager
-         * @param diagnosticListener
-         * @param options
-         * @param classes
-         * @param bytecodeMap        bytecode map of classes
-         * @param context            current disassemble context
+         * @param writer      out class writer
+         * @param options     java printer task options
+         * @param classes     classes for disassemble process
+         * @param bytecodeMap bytecode map of classes
+         * @param context     current disassemble context
          */
-        public BytecodeJavaPrinterTask(Writer writer,
-                                       JavaFileManager javaFileManager,
-                                       DiagnosticListener<? super JavaFileObject> diagnosticListener,
-                                       Iterable<String> options,
-                                       Iterable<String> classes,
-                                       Map<String, byte[]> bytecodeMap,
-                                       Context context) {
-            super(writer, javaFileManager, diagnosticListener, options, classes);
+        BytecodeJavaPrinterTask(Writer writer,
+                                Iterable<String> options,
+                                Iterable<String> classes,
+                                Map<String, byte[]> bytecodeMap,
+                                Context context) {
+            super(writer, null, STUB, options, classes);
             this.bytecodeMap = bytecodeMap;
             this.context = context;
         }
