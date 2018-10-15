@@ -54,7 +54,8 @@ public class ClassFileBytecodeCollector implements BytecodeCollector {
 
     @Override
     public boolean isEnable() {
-        return configurationManager.isEnableClassFileBytecodeCollector();
+        ConfigurationManager configurationManager = this.configurationManager;
+        return configurationManager != null && configurationManager.isEnableClassFileBytecodeCollector();
     }
 
     @Override

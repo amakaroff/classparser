@@ -1,6 +1,6 @@
 package com.classparser.bytecode.decompile.javap.configuration;
 
-import com.classparser.bytecode.decompile.javap.JavapDisassembler;
+import com.classparser.bytecode.decompile.javap.JavaPrinterDisassembler;
 import com.sun.tools.javap.InstructionDetailWriter;
 
 import java.util.*;
@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class provides java API special builder for creating
- * configuration map for {@link JavapDisassembler}
+ * configuration map for {@link JavaPrinterDisassembler}
  *
  * @author Aleksei Makarov
  * @since 1.0.0
@@ -18,7 +18,7 @@ public class JavapBuilderConfiguration {
     /**
      * Creates instance of builder
      *
-     * @return {@link JavapDisassembler} instance
+     * @return {@link JavaPrinterDisassembler} instance
      */
     public static JavapConfiguration createBuilder() {
         return new Builder();

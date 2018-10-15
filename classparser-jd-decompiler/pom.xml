@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>classparser-jd-decompiler</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <description>
         Module provides jd decompiler adapter
@@ -47,7 +47,7 @@
 
         <!-- Modules-->
         <dependency>
-            <groupId>com.classparser.bytecode</groupId>
+            <groupId>com.classparser</groupId>
             <artifactId>classparser-bytecode</artifactId>
             <scope>provided</scope>
             <version>1.0.0</version>

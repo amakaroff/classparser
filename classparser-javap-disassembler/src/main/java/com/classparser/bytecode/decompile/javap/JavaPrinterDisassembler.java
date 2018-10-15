@@ -7,23 +7,36 @@ import com.classparser.bytecode.decompile.javap.configuration.JavapConfiguration
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
 import com.classparser.util.Reflection;
-import com.sun.tools.javap.*;
+import com.sun.tools.javap.Context;
+import com.sun.tools.javap.InstructionDetailWriter;
+import com.sun.tools.javap.JavapTask;
+import com.sun.tools.javap.Messages;
+import com.sun.tools.javap.Options;
 
 import javax.tools.DiagnosticListener;
+import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
 import java.io.ByteArrayInputStream;
 import java.io.CharArrayWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.lang.reflect.Field;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static com.classparser.bytecode.decompile.javap.configuration.JavapConfiguration.*;
 
 /**
- * Adapter of Javap disassembler for {@link Decompiler} API
+ * Adapter of Java Printer disassembler for {@link Decompiler} API
  * This disassembler is standard tool and deliver with jdk
  * Disassembler version uses on depend current jdk
  * <p>
@@ -32,7 +45,7 @@ import static com.classparser.bytecode.decompile.javap.configuration.JavapConfig
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-public final class JavapDisassembler implements Decompiler {
+public final class JavaPrinterDisassembler implements Decompiler {
 
     private static final DiagnosticListener<JavaFileObject> STUB = (empty) -> {
     };
@@ -40,9 +53,9 @@ public final class JavapDisassembler implements Decompiler {
     private final ConfigurationUtils utils;
 
     /**
-     * Default constructor for initialize {@link JavapDisassembler}
+     * Default constructor for initialize {@link JavaPrinterDisassembler}
      */
-    public JavapDisassembler() {
+    public JavaPrinterDisassembler() {
         this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
     }
 
@@ -64,21 +77,18 @@ public final class JavapDisassembler implements Decompiler {
         classesList.add(className);
 
         Context context = new Context();
-        context.put(Messages.class, new JavapMessages());
-
+        context.put(Messages.class, new JavaPrinterMessages());
         Options options = getOptions(context);
 
         if (!classes.isEmpty()) {
             options.showInnerClasses = true;
         }
 
-        JavapTask task = new ByteCodeJavapTask(bytecodeMap, context);
         StringPrintWriter stringPrintWriter = new StringPrintWriter();
+        JavapTask task = new BytecodeJavaPrinterTask(stringPrintWriter, null, STUB, null,
+                classesList, bytecodeMap, context);
 
-        setField(task, "log", stringPrintWriter);
-        setField(task, "classes", classesList);
-        setField(task, "options", options);
-        setField(task, "diagnosticListener", STUB);
+        setOptionsField(task, options);
 
         task.run();
 
@@ -86,12 +96,12 @@ public final class JavapDisassembler implements Decompiler {
     }
 
     /**
-     * Parses and creates options for javap disassembler
+     * Parses and creates options for java printer disassembler
      *
      * @return disassembler options
      */
     private Options getOptions(Context context) {
-        Options options = new JavapOptions(context);
+        Options options = new JavaPrinterOptions(context);
 
         options.showAllAttrs = utils.getConfigOption(DISPLAY_ATTRIBUTES_OF_CODE_KEY, Boolean.class);
         options.showDisassembled = utils.getConfigOption(DISPLAY_DECOMPILE_CODE_KEY, Boolean.class);
@@ -130,8 +140,8 @@ public final class JavapDisassembler implements Decompiler {
     }
 
     /**
-     * Creates default javap configuration
-     * Describe of option can Javap configuration
+     * Creates default java printer configuration
+     * Describe of option can Java Printer configuration
      *
      * @return default configuration map
      * @see JavapConfiguration
@@ -160,11 +170,10 @@ public final class JavapDisassembler implements Decompiler {
      * Set value to field uses reflection mechanism
      *
      * @param object     any object
-     * @param fieldName  object field name
      * @param fieldValue value what should be set to field
      */
-    private void setField(Object object, String fieldName, Object fieldValue) {
-        Field field = Reflection.getField(JavapTask.class, fieldName);
+    private void setOptionsField(Object object, Object fieldValue) {
+        Field field = Reflection.getField(JavapTask.class, "options");
         Reflection.set(field, object, fieldValue);
     }
 
@@ -185,7 +194,7 @@ public final class JavapDisassembler implements Decompiler {
          *
          * @param bytecode bytecode of class
          */
-        public ByteArrayJavaFileObject(byte[] bytecode) {
+        ByteArrayJavaFileObject(byte[] bytecode) {
             super(URI.create(EMPTY_URI), Kind.CLASS);
             this.bytecode = bytecode;
             this.className = ClassNameConverter.getClassName(bytecode);
@@ -206,17 +215,29 @@ public final class JavapDisassembler implements Decompiler {
      * Implementation of {@link JavapTask} uses {@link ByteArrayJavaFileObject}
      * for loading class files to current process of task
      */
-    private static class ByteCodeJavapTask extends JavapTask {
+    private static class BytecodeJavaPrinterTask extends JavapTask {
 
         private final Map<String, byte[]> bytecodeMap;
 
         /**
-         * Default constructor for initialize of {@link ByteCodeJavapTask}
+         * Default constructor for initialize of {@link BytecodeJavaPrinterTask}
          *
-         * @param bytecodeMap bytecode map of classes
-         * @param context     current disassemble context
+         * @param writer
+         * @param javaFileManager
+         * @param diagnosticListener
+         * @param options
+         * @param classes
+         * @param bytecodeMap        bytecode map of classes
+         * @param context            current disassemble context
          */
-        public ByteCodeJavapTask(Map<String, byte[]> bytecodeMap, Context context) {
+        public BytecodeJavaPrinterTask(Writer writer,
+                                       JavaFileManager javaFileManager,
+                                       DiagnosticListener<? super JavaFileObject> diagnosticListener,
+                                       Iterable<String> options,
+                                       Iterable<String> classes,
+                                       Map<String, byte[]> bytecodeMap,
+                                       Context context) {
+            super(writer, javaFileManager, diagnosticListener, options, classes);
             this.bytecodeMap = bytecodeMap;
             this.context = context;
         }
@@ -239,7 +260,7 @@ public final class JavapDisassembler implements Decompiler {
         /**
          * Default constructor for initialize of {@link StringPrintWriter}
          */
-        public StringPrintWriter() {
+        StringPrintWriter() {
             super(new CharArrayWriter());
             this.stringBuilder = new StringBuilder();
         }
@@ -254,7 +275,7 @@ public final class JavapDisassembler implements Decompiler {
          *
          * @return disassembled code of class
          */
-        public String getDisassembledCode() {
+        String getDisassembledCode() {
             return stringBuilder.toString();
         }
     }
@@ -262,14 +283,14 @@ public final class JavapDisassembler implements Decompiler {
     /**
      * {@link Options} stub for create public constructor
      */
-    private static class JavapOptions extends Options {
+    private static class JavaPrinterOptions extends Options {
 
         /**
-         * Default constructor for initialize of {@link JavapOptions}
+         * Default constructor for initialize of {@link JavaPrinterOptions}
          *
          * @param context current context of disassemble process
          */
-        protected JavapOptions(Context context) {
+        JavaPrinterOptions(Context context) {
             super(context);
         }
     }
@@ -277,7 +298,7 @@ public final class JavapDisassembler implements Decompiler {
     /**
      * {@link Messages} stub for store in context
      */
-    private static class JavapMessages implements Messages {
+    private static class JavaPrinterMessages implements Messages {
 
         @Override
         public String getMessage(String s, Object... objects) {

@@ -16,12 +16,12 @@
     </description>
 
     <artifactId>classparser-reflection</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <dependencies>
         <!-- Modules-->
         <dependency>
-            <groupId>com.classparser.core</groupId>
+            <groupId>com.classparser</groupId>
             <artifactId>classparser-core</artifactId>
             <version>1.0.0</version>
         </dependency>
