@@ -5,22 +5,17 @@ import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.decompile.fernflower.configuration.FernflowerBuilderConfiguration;
 import com.classparser.bytecode.decompile.fernflower.configuration.FernflowerConfiguration;
 import com.classparser.bytecode.exception.decompile.DecompilationException;
-import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.configuration.Configuration;
-import com.classparser.util.Reflection;
 import org.jetbrains.java.decompiler.main.Fernflower;
 import org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler;
 import org.jetbrains.java.decompiler.main.decompiler.PrintStreamLogger;
 import org.jetbrains.java.decompiler.main.extern.IFernflowerLogger;
-import org.jetbrains.java.decompiler.main.extern.IResultSaver;
-import org.jetbrains.java.decompiler.struct.ContextUnit;
 import org.jetbrains.java.decompiler.struct.StructClass;
 import org.jetbrains.java.decompiler.struct.StructContext;
 import org.jetbrains.java.decompiler.struct.lazy.LazyLoader;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -57,11 +52,11 @@ public final class FernflowerDecompiler implements Decompiler {
             Map<String, Object> configuration = getConfiguration();
 
             Fernflower fernflower = new Fernflower(null, decompiledCodeSaver, configuration, logger);
-            FernflowerContext fernflowerContext = new FernflowerContext(fernflower, decompiledCodeSaver);
 
-            uploadBytecode(fernflowerContext, bytecode);
+            StructContext structContext = fernflower.getStructContext();
+            uploadBytecode(structContext, bytecode);
             for (byte[] nestedClass : classes) {
-                uploadBytecode(fernflowerContext, nestedClass);
+                uploadBytecode(structContext, nestedClass);
             }
 
             decompile(fernflower);
@@ -139,21 +134,14 @@ public final class FernflowerDecompiler implements Decompiler {
     /**
      * Uploads bytecode to current fernflower decompiler context
      *
-     * @param context  fernflower context
+     * @param structContext  struct context
      * @param bytecode bytecode of class
      */
-    private void uploadBytecode(FernflowerContext context, byte[] bytecode) {
+    private void uploadBytecode(StructContext structContext, byte[] bytecode) {
         StructClass structClass = createClassStruct(bytecode);
 
-        StructContext structContext = context.getStructContext();
         Map<String, StructClass> classes = structContext.getClasses();
         classes.put(structClass.qualifiedName, structClass);
-
-        ContextUnit unit = createFakeContextUnit(context.getFernflower(), context.getSaver());
-        unit.addClass(structClass, ClassNameConverter.toFileJavaClassName(structClass.qualifiedName));
-
-        Map<String, ContextUnit> units = context.getUnits();
-        units.put(structClass.qualifiedName, unit);
     }
 
     /**
@@ -175,17 +163,6 @@ public final class FernflowerDecompiler implements Decompiler {
         }
     }
 
-    /**
-     * Creates fake context unit for fernflower decompiler
-     *
-     * @param fernflower fernflower decompiler instance
-     * @param saver      decompiled code saver
-     * @return fake context unit instance
-     */
-    private ContextUnit createFakeContextUnit(Fernflower fernflower, IResultSaver saver) {
-        return new ContextUnit(ContextUnit.TYPE_FOLDER, "", "", true, saver, fernflower);
-    }
-
     @Override
     public void setConfigurationManager(ConfigurationManager configurationManager) {
         if (configurationManager != null) {
@@ -198,76 +175,6 @@ public final class FernflowerDecompiler implements Decompiler {
                     this.configurationMap.putAll(defaultConfiguration);
                 }
             }
-        }
-    }
-
-    /**
-     * Class uses for store fernflower context includes
-     * decompiler, struct context, units and result saver
-     */
-    private static class FernflowerContext {
-
-        private final Fernflower fernflower;
-
-        private final StructContext structContext;
-
-        private final Map<String, ContextUnit> units;
-
-        private final IResultSaver saver;
-
-        FernflowerContext(Fernflower fernflower, IResultSaver saver) {
-            this.fernflower = fernflower;
-            this.structContext = fernflower.getStructContext();
-            this.units = getContextUnitByReflection(structContext);
-            this.saver = saver;
-        }
-
-        /**
-         * Obtains content unit from struct context uses reflective mechanism
-         *
-         * @param context struct context instance
-         * @return map of units
-         */
-        @SuppressWarnings("unchecked")
-        private Map<String, ContextUnit> getContextUnitByReflection(StructContext context) {
-            Field units = Reflection.getField(StructContext.class, "units");
-            return (Map<String, ContextUnit>) Reflection.get(units, context);
-        }
-
-        /**
-         * Getter for {@link Fernflower} instance
-         *
-         * @return Fernflower instance
-         */
-        Fernflower getFernflower() {
-            return fernflower;
-        }
-
-        /**
-         * Getter for {@link StructContext} instance
-         *
-         * @return Struct Context instance
-         */
-        StructContext getStructContext() {
-            return structContext;
-        }
-
-        /**
-         * Getter for Map of {@link ContextUnit} instance
-         *
-         * @return map of utils
-         */
-        Map<String, ContextUnit> getUnits() {
-            return units;
-        }
-
-        /**
-         * Getter for {@link IResultSaver} instance
-         *
-         * @return decompiled code saver instance
-         */
-        IResultSaver getSaver() {
-            return saver;
         }
     }
 
