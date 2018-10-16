@@ -94,10 +94,10 @@ public class ClassNameConverter {
             if (className.endsWith(";")) {
                 simpleName = className.substring(countBlocks + 1, className.length() - 1);
                 if (simpleName.contains(".")) {
-                    simpleName = simpleName.substring(simpleName.lastIndexOf('.') + 1, simpleName.length());
+                    simpleName = simpleName.substring(simpleName.lastIndexOf('.') + 1);
                 }
             } else {
-                simpleName = PRIMITIVE_NAMES.get(className.substring(countBlocks, className.length()));
+                simpleName = PRIMITIVE_NAMES.get(className.substring(countBlocks));
             }
 
             return simpleName + createBlocks(countBlocks);

@@ -4,7 +4,6 @@ import com.classparser.exception.ParsingException;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
 /**
  * Utility class uses for reflect operation
@@ -24,22 +23,6 @@ public class Reflection {
             return Class.forName(className);
         } catch (ClassNotFoundException exception) {
             throw new ParsingException("Can't load class by name: " + className, exception);
-        }
-    }
-
-    /**
-     * Unchecked wrapper for obtaining field instance from class
-     *
-     * @param clazz     any class
-     * @param fieldName field name
-     * @return field instance
-     * @throws ParsingException if method obtaining was obtains any errors
-     */
-    public static Field getField(Class<?> clazz, String fieldName) {
-        try {
-            return clazz.getDeclaredField(fieldName);
-        } catch (NoSuchFieldException exception) {
-            throw new ParsingException("Can't find field for class " + clazz + "by name: " + fieldName, exception);
         }
     }
 
@@ -130,47 +113,6 @@ public class Reflection {
             }
         } catch (ReflectiveOperationException exception) {
             throw new ParsingException("Can't perform get field value operation for: " + field, exception);
-        }
-    }
-
-    /**
-     * Set value to static field
-     *
-     * @param field any static field
-     * @param value set value
-     */
-    public static void set(Field field, Object value) {
-        if (Modifier.isStatic(field.getModifiers())) {
-            set(field, null, value);
-        }
-    }
-
-    /**
-     * Performs set value to field
-     *
-     * @param field  any field
-     * @param object any object
-     * @param value  set value
-     */
-    public static void set(Field field, Object object, Object value) {
-        try {
-            if (field.isAccessible()) {
-                field.set(object, value);
-            } else {
-                field.setAccessible(true);
-                try {
-                    if (Modifier.isFinal(field.getModifiers())) {
-                        throw new IllegalAccessException("Can't change state of final field!");
-                    } else {
-                        field.set(object, value);
-
-                    }
-                } finally {
-                    field.setAccessible(false);
-                }
-            }
-        } catch (ReflectiveOperationException exception) {
-            throw new ParsingException("Can't perform set field value operation for: " + field, exception);
         }
     }
 }

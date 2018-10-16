@@ -70,11 +70,7 @@ public class ConfigurationManager {
      * @return "'\n\r" if system windows or "\n" in other cases
      */
     private static String chooseSystemNewLineCharacter() {
-        if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
-            return "\n\r";
-        } else {
-            return "\n";
-        }
+        return System.getProperty("line.separator");
     }
 
     /**
