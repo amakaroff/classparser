@@ -111,15 +111,13 @@ public class AnnotationParser {
      * @return string meta information about annotation
      */
     public String parseAnnotation(Annotation annotation) {
-        String annotationSignature = "";
-
         if (annotation != null) {
             String annotationName = genericTypeParser.parseType(annotation.annotationType());
             String annotationArguments = parseAnnotationArguments(annotation);
-            annotationSignature += '@' + annotationName + annotationArguments;
+            return  '@' + annotationName + annotationArguments;
         }
 
-        return annotationSignature;
+        return "";
     }
 
     /**
@@ -129,9 +127,8 @@ public class AnnotationParser {
      * @return string line with annotation parameters information
      */
     private String parseAnnotationArguments(Annotation annotation) {
-        String annotationArguments = "";
-
         List<String> arguments = new ArrayList<>();
+
         Set<Map.Entry<String, Object>> annotationParameters = getAnnotationMemberTypes(annotation).entrySet();
         for (Map.Entry<String, Object> entry : annotationParameters) {
             if (DEFAULT_ANNOTATION_METHOD.equals(entry.getKey()) && annotationParameters.size() == 1) {
@@ -142,10 +139,10 @@ public class AnnotationParser {
         }
 
         if (!arguments.isEmpty()) {
-            annotationArguments += '(' + String.join(", ", arguments) + ')';
+            return  '(' + String.join(", ", arguments) + ')';
         }
 
-        return annotationArguments;
+        return "";
     }
 
     /**
