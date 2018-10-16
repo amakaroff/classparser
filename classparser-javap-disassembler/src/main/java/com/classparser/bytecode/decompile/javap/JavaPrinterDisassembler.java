@@ -6,12 +6,7 @@ import com.classparser.bytecode.decompile.javap.configuration.JavaPrinterBuilder
 import com.classparser.bytecode.decompile.javap.configuration.JavaPrinterConfiguration;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
-import com.classparser.util.Reflection;
-import com.sun.tools.javap.Context;
-import com.sun.tools.javap.InstructionDetailWriter;
-import com.sun.tools.javap.JavapTask;
-import com.sun.tools.javap.Messages;
-import com.sun.tools.javap.Options;
+import com.sun.tools.javap.*;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
@@ -21,11 +16,9 @@ import java.io.CharArrayWriter;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -72,16 +65,15 @@ public final class JavaPrinterDisassembler implements Decompiler {
 
         Context context = new Context();
         context.put(Messages.class, new JavaPrinterMessages());
-        Options options = getOptions(context);
+        context.put(Options.class, prepareOptions(context));
 
+        List<String> options = new ArrayList<>();
         if (!classes.isEmpty()) {
-            options.showInnerClasses = true;
+            options.add("-XDinner");
         }
 
         StringPrintWriter stringPrintWriter = new StringPrintWriter();
-        JavapTask task = new BytecodeJavaPrinterTask(stringPrintWriter, null, classesList, bytecodeMap, context);
-
-        setOptionsField(task, options);
+        JavapTask task = new BytecodeJavaPrinterTask(stringPrintWriter, options, classesList, bytecodeMap, context);
 
         task.run();
 
@@ -90,11 +82,9 @@ public final class JavaPrinterDisassembler implements Decompiler {
 
     /**
      * Parses and creates options for java printer disassembler
-     *
-     * @return disassembler options
      */
-    private Options getOptions(Context context) {
-        Options options = new JavaPrinterOptions(context);
+    private Options prepareOptions(Context context) {
+        Options options = Options.instance(context);
 
         options.showAllAttrs = utils.getConfigOption(DISPLAY_ATTRIBUTES_OF_CODE_KEY, Boolean.class);
         options.showDisassembled = utils.getConfigOption(DISPLAY_DECOMPILE_CODE_KEY, Boolean.class);
@@ -121,8 +111,6 @@ public final class JavaPrinterDisassembler implements Decompiler {
         }
 
         options.showDescriptors = utils.getConfigOption(DISPLAY_DESCRIPTORS_KEY, Boolean.class);
-
-        context.put(Options.class, options);
 
         return options;
     }
@@ -157,17 +145,6 @@ public final class JavaPrinterDisassembler implements Decompiler {
                 .appendDisplayDetails(InstructionDetailWriter.Kind.TYPE_ANNOS)
                 .appendDisplayDetails(InstructionDetailWriter.Kind.TRY_BLOCKS)
                 .getConfiguration();
-    }
-
-    /**
-     * Set value to field uses reflection mechanism
-     *
-     * @param object     any object
-     * @param fieldValue value what should be set to field
-     */
-    private void setOptionsField(Object object, Object fieldValue) {
-        Field field = Reflection.getField(JavapTask.class, "options");
-        Reflection.set(field, object, fieldValue);
     }
 
     /**
@@ -266,21 +243,6 @@ public final class JavaPrinterDisassembler implements Decompiler {
          */
         String getDisassembledCode() {
             return stringBuilder.toString();
-        }
-    }
-
-    /**
-     * {@link Options} stub for create public constructor
-     */
-    private static class JavaPrinterOptions extends Options {
-
-        /**
-         * Default constructor for initialize of {@link JavaPrinterOptions}
-         *
-         * @param context current context of disassemble process
-         */
-        JavaPrinterOptions(Context context) {
-            super(context);
         }
     }
 

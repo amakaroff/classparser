@@ -9,6 +9,7 @@ import sun.reflect.ConstantPool;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -47,7 +48,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
     /**
      * Private exception uses for message if ReflectionConstantPool can't be used
      */
-    private class ConstantPoolNotSupportedException extends RuntimeException {
+    private static class ConstantPoolNotSupportedException extends RuntimeException {
     }
 
     /**
@@ -55,7 +56,9 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
      * This implementation is very fast for a little sets of classes
      */
     @SuppressWarnings("sunapi")
-    private class UnsafeReflectConstantPoolClassIterator implements Iterator<Class<?>> {
+    private static class UnsafeReflectConstantPoolClassIterator implements Iterator<Class<?>> {
+
+        private static final String VIRTUAL_MACHINE_NAME = ManagementFactory.getRuntimeMXBean().getVmName();
 
         private final ConstantPool constantPool;
 
@@ -127,7 +130,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          * @return true if JVM is hotspot
          */
         private boolean isHotSpotJVM() {
-            return System.getProperty("java.vm.name").toLowerCase().contains("hotspot");
+            return VIRTUAL_MACHINE_NAME.toLowerCase().contains("hotspot");
         }
 
         /**
@@ -136,7 +139,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          * @return true if JVM is hotspot
          */
         private boolean isOpenJDKVM() {
-            return System.getProperty("java.vm.name").toLowerCase().contains("openjdk");
+            return VIRTUAL_MACHINE_NAME.toLowerCase().contains("openjdk");
         }
 
         /**
@@ -156,7 +159,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          * @return true if JVM is J9
          */
         private boolean isJ9JVM() {
-            return System.getProperty("java.vm.name").toLowerCase().contains("j9");
+            return VIRTUAL_MACHINE_NAME.toLowerCase().contains("j9");
         }
 
         /**
