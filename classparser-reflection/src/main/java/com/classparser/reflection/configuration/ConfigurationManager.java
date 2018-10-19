@@ -24,7 +24,7 @@ public class ConfigurationManager {
     private final ConfigurationUtils utils;
 
     public ConfigurationManager() {
-        this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
+        this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
 
     /**

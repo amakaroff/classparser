@@ -125,6 +125,10 @@ public class ModifierParser {
             }
         }
 
+        if (isSynthetic(modifierMask)) {
+            modifiers.add("synthetic");
+        }
+
         return String.join(" ", modifiers);
     }
 
@@ -219,6 +223,10 @@ public class ModifierParser {
 
         if (Modifier.isStrict(modifierMask)) {
             modifiers.add("strictfp");
+        }
+
+        if (isSynthetic(modifierMask)) {
+            modifiers.add("synthetic");
         }
 
         if (Modifier.isStatic(modifierMask)) {

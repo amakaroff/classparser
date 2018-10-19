@@ -94,9 +94,11 @@ public class InheritanceParser {
      */
     private List<String> parseMultipleParentTypes(Type[] parentTypes, AnnotatedType[] annotatedTypes) {
         List<String> multipleParentTypes = new ArrayList<>();
+
         for (int index = 0; index < parentTypes.length; index++) {
             multipleParentTypes.add(genericTypeParser.parseType(parentTypes[index], ifEmpty(annotatedTypes, index)));
         }
+
         return multipleParentTypes;
     }
 

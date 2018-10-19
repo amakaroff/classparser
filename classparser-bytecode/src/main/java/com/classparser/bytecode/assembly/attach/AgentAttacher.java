@@ -208,7 +208,8 @@ public class AgentAttacher {
         if (toolsJarClassLoader == null) {
             synchronized (AgentAttacher.class) {
                 if (toolsJarClassLoader == null) {
-                    toolsJarClassLoader = new URLClassLoader(new URL[]{toolsPath.toUri().toURL()});
+                    toolsJarClassLoader = new URLClassLoader(new URL[]{toolsPath.toUri().toURL()},
+                            getClass().getClassLoader());
                 }
             }
         }

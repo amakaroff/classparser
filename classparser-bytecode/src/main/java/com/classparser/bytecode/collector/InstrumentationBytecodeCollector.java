@@ -3,7 +3,6 @@ package com.classparser.bytecode.collector;
 import com.classparser.bytecode.api.BytecodeCollector;
 import com.classparser.bytecode.api.JavaAgent;
 import com.classparser.bytecode.configuration.ConfigurationManager;
-import com.classparser.bytecode.exception.classes.IllegalClassException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -48,7 +47,7 @@ public class InstrumentationBytecodeCollector implements BytecodeCollector {
                     }
                 } catch (UnmodifiableClassException exception) {
                     String errorMessage = "Class: \"" + className + "\" is can't transform";
-                    throw new IllegalClassException(errorMessage, exception, clazz);
+                    throw new IllegalArgumentException(errorMessage, exception);
                 }
 
                 return getBytesOfClass(clazz);

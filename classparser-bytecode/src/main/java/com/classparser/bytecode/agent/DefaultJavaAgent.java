@@ -22,8 +22,6 @@ import java.util.jar.Manifest;
  */
 public final class DefaultJavaAgent implements JavaAgent {
 
-    private static final String AGENT_JAR_NAME = "agent.jar";
-
     private static final String TEMP_DIR_KEY = "java.io.tmpdir";
 
     private static Instrumentation instrumentation;
@@ -104,11 +102,6 @@ public final class DefaultJavaAgent implements JavaAgent {
     }
 
     @Override
-    public String getAgentJarName() {
-        return AGENT_JAR_NAME;
-    }
-
-    @Override
     public String getAgentLocationPath() {
         return System.getProperty(TEMP_DIR_KEY);
     }
@@ -130,7 +123,7 @@ public final class DefaultJavaAgent implements JavaAgent {
 
     @Override
     public Class<?>[] getAgentJarClasses() {
-        return new Class<?>[]{JavaAgent.class, getClass()};
+        return new Class<?>[]{JavaAgent.class, getAgentClass()};
     }
 
     /**
