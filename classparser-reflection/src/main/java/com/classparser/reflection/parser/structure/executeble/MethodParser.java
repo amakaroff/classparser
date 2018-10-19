@@ -110,8 +110,7 @@ public class MethodParser {
         String body = parseBody(method);
         String content = manager.joinNotEmptyContentBySpace(modifiers, generics, returnType);
 
-        return annotations + indent + content + " " + methodName + arguments +
-                defaultAnnotationValue + exceptions + body;
+        return annotations + indent + content + " " + methodName + arguments + defaultAnnotationValue + exceptions + body;
     }
 
     /**

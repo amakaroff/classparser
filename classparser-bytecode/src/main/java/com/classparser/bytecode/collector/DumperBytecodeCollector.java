@@ -49,6 +49,11 @@ public class DumperBytecodeCollector implements BytecodeCollector {
                 isDumpPropertiesEnabled();
     }
 
+    /**
+     * Checks if one property for dumping is enabled
+     *
+     * @return true if dump property is enabled
+     */
     private static boolean isDumpPropertiesEnabled() {
         return Boolean.getBoolean(DUMP_MH_PROPERTY) || System.getProperty(DUMP_LAMBDA_PROPERTY) != null;
     }

@@ -232,10 +232,10 @@ public class ClassNameConverter {
                 }
 
 
-                throw new ClassFormatError("Can't obtain class name from bytecode!");
+                throw new ByteCodeParserException("Can't obtain class name from bytecode!");
             }
 
-            throw new ClassFormatError("Invalid java bytecode of class");
+            throw new ByteCodeParserException("Invalid java bytecode of class");
         } catch (IOException exception) {
             throw new ByteCodeParserException("Constant pool is broken", exception);
         }

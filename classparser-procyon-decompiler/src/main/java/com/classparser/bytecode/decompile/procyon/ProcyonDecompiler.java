@@ -5,7 +5,7 @@ import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.collector.ChainBytecodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.decompile.procyon.configuration.ProcyonBuilderConfiguration;
-import com.classparser.bytecode.exception.decompile.DecompilationException;
+import com.classparser.bytecode.exception.DecompilationException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
 import com.strobel.assembler.metadata.Buffer;
@@ -23,7 +23,6 @@ import com.strobel.decompiler.languages.java.JavaFormattingOptions;
 import com.strobel.decompiler.languages.java.JavaLanguage;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +48,7 @@ public final class ProcyonDecompiler implements Decompiler {
      * Default constructor for creating {@link ProcyonDecompiler} instance
      */
     public ProcyonDecompiler() {
-        this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
+        this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
 
     @Override

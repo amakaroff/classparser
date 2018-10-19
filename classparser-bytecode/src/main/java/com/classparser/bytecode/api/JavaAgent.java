@@ -11,6 +11,8 @@ import java.util.jar.Manifest;
  */
 public interface JavaAgent {
 
+    String DEFAULT_AGENT_JAR_NAME = "agent.jar";
+
     /**
      * Gets instrumentation from premain or agentmain method
      * Execute initialize if java agent is not initialized
@@ -31,7 +33,9 @@ public interface JavaAgent {
      *
      * @return agent jar name
      */
-    String getAgentJarName();
+    default String getAgentJarName() {
+        return DEFAULT_AGENT_JAR_NAME;
+    }
 
     /**
      * Obtains agent jar file dir location
@@ -61,5 +65,7 @@ public interface JavaAgent {
      *
      * @return array of classes
      */
-    Class<?>[] getAgentJarClasses();
+    default Class<?>[] getAgentJarClasses() {
+        return new Class[0];
+    }
 }

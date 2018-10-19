@@ -2,8 +2,7 @@ package com.classparser.bytecode.assembly.build;
 
 import com.classparser.bytecode.api.BytecodeCollector;
 import com.classparser.bytecode.collector.ClassFileBytecodeCollector;
-import com.classparser.bytecode.exception.classes.ClassNotFoundException;
-import com.classparser.bytecode.exception.classes.IllegalClassException;
+import com.classparser.bytecode.exception.ByteCodeParserException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.exception.file.FileCreatingException;
 
@@ -101,7 +100,7 @@ public final class AgentBuilder {
         public AgentJarBuilder addAgentClass(Class<?> agentClass) {
             if (!isAgentClass(agentClass)) {
                 String className = ClassNameConverter.toJavaClassName(agentClass);
-                throw new IllegalClassException("Class \"" + className + "\" is can't be an agent class", agentClass);
+                throw new IllegalArgumentException("Class \"" + className + "\" is can't be an agent class");
             }
 
             this.agentClass = agentClass;
@@ -133,7 +132,7 @@ public final class AgentBuilder {
                         if (bytecode == null) {
                             String className = ClassNameConverter.toJavaClassName(attachedClass);
                             String exceptionMessage = "Can't find bytecode of class \"" + className + "\"";
-                            throw new ClassNotFoundException(exceptionMessage, className);
+                            throw new ByteCodeParserException(exceptionMessage);
                         }
 
                         jarStream.write(bytecode);

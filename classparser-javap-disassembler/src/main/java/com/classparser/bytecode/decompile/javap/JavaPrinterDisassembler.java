@@ -39,16 +39,13 @@ import static com.classparser.bytecode.decompile.javap.configuration.JavaPrinter
  */
 public final class JavaPrinterDisassembler implements Decompiler {
 
-    private static final DiagnosticListener<JavaFileObject> STUB = (empty) -> {
-    };
-
     private final ConfigurationUtils utils;
 
     /**
      * Default constructor for initialize {@link JavaPrinterDisassembler}
      */
     public JavaPrinterDisassembler() {
-        this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
+        this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
 
     @Override
@@ -65,7 +62,7 @@ public final class JavaPrinterDisassembler implements Decompiler {
 
         Context context = new Context();
         context.put(Messages.class, new JavaPrinterMessages());
-        context.put(Options.class, prepareOptions(context));
+        context.put(Options.class, prepareAndGetOptions(context));
 
         List<String> options = new ArrayList<>();
         if (!classes.isEmpty()) {
@@ -83,7 +80,7 @@ public final class JavaPrinterDisassembler implements Decompiler {
     /**
      * Parses and creates options for java printer disassembler
      */
-    private Options prepareOptions(Context context) {
+    private Options prepareAndGetOptions(Context context) {
         Options options = Options.instance(context);
 
         options.showAllAttrs = utils.getConfigOption(DISPLAY_ATTRIBUTES_OF_CODE_KEY, Boolean.class);
@@ -187,6 +184,9 @@ public final class JavaPrinterDisassembler implements Decompiler {
      */
     private static class BytecodeJavaPrinterTask extends JavapTask {
 
+        private static final DiagnosticListener<JavaFileObject> STUB = (empty) -> {
+        };
+
         private final Map<String, byte[]> bytecodeMap;
 
         /**
@@ -252,12 +252,12 @@ public final class JavaPrinterDisassembler implements Decompiler {
     private static class JavaPrinterMessages implements Messages {
 
         @Override
-        public String getMessage(String s, Object... objects) {
+        public String getMessage(String string, Object... objects) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public String getMessage(Locale locale, String s, Object... objects) {
+        public String getMessage(Locale locale, String string, Object... objects) {
             throw new UnsupportedOperationException();
         }
     }

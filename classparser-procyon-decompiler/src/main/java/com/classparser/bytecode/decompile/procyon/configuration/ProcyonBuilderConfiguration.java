@@ -32,9 +32,6 @@ public class ProcyonBuilderConfiguration {
 
         private final Map<String, Object> configuration;
 
-        /**
-         * Default constructor for initialize {@link Builder}
-         */
         public Builder() {
             this.configuration = new ConcurrentHashMap<>();
         }

@@ -3,7 +3,7 @@ package com.classparser.bytecode.decompile.jd;
 import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.decompile.jd.configuration.JDBuilderConfiguration;
-import com.classparser.bytecode.exception.decompile.DecompilationException;
+import com.classparser.bytecode.exception.DecompilationException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
 import jd.common.preferences.CommonPreferences;
@@ -43,11 +43,8 @@ public final class JDDecompiler implements Decompiler {
 
     private final ConfigurationUtils utils;
 
-    /**
-     * Default constructor for creating {@link JDDecompiler} instance
-     */
     public JDDecompiler() {
-        this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
+        this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
 
     @Override

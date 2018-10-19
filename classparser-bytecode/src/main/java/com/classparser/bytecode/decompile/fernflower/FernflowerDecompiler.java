@@ -4,7 +4,7 @@ import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.decompile.fernflower.configuration.FernflowerBuilderConfiguration;
 import com.classparser.bytecode.decompile.fernflower.configuration.FernflowerConfiguration;
-import com.classparser.bytecode.exception.decompile.DecompilationException;
+import com.classparser.bytecode.exception.DecompilationException;
 import com.classparser.configuration.Configuration;
 import org.jetbrains.java.decompiler.main.Fernflower;
 import org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler;
@@ -14,7 +14,6 @@ import org.jetbrains.java.decompiler.struct.StructClass;
 import org.jetbrains.java.decompiler.struct.StructContext;
 import org.jetbrains.java.decompiler.struct.lazy.LazyLoader;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -41,7 +40,7 @@ public final class FernflowerDecompiler implements Decompiler {
     @Override
     public String decompile(byte[] bytecode, Collection<byte[]> classes) {
         if (bytecode != null && classes != null) {
-            DecompiledCodeSaver decompiledCodeSaver = new DecompiledCodeSaver(null, null);
+            DecompiledCodeSaver decompiledCodeSaver = new DecompiledCodeSaver();
             IFernflowerLogger logger = new PrintStreamLogger(System.out);
             Map<String, Object> configuration = getConfiguration();
 
@@ -128,8 +127,8 @@ public final class FernflowerDecompiler implements Decompiler {
     /**
      * Uploads bytecode to current fernflower decompiler context
      *
-     * @param structContext  struct context
-     * @param bytecode bytecode of class
+     * @param structContext struct context
+     * @param bytecode      bytecode of class
      */
     private void uploadBytecode(StructContext structContext, byte[] bytecode) {
         StructClass structClass = createClassStruct(bytecode);
@@ -181,12 +180,9 @@ public final class FernflowerDecompiler implements Decompiler {
 
         /**
          * Default constructor for initialize of decompiled code saver
-         *
-         * @param destination destination stub
-         * @param options     options stub
          */
-        DecompiledCodeSaver(File destination, Map<String, Object> options) {
-            super(destination, options);
+        DecompiledCodeSaver() {
+            super(null, null);
         }
 
         @Override

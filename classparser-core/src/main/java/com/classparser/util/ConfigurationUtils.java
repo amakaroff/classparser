@@ -4,6 +4,7 @@ import com.classparser.configuration.Configuration;
 import com.classparser.exception.option.OptionNotFoundException;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class provides methods for usable working with Map configuration
@@ -22,12 +23,10 @@ public class ConfigurationUtils {
      */
     private final Map<String, Object> configuration;
 
-    /**
-     * Default constructor for initialize {@link ConfigurationUtils}
-     *
-     * @param configuration        any custom configuration
-     * @param defaultConfiguration map with all correctly options
-     */
+    public ConfigurationUtils(Map<String, Object> defaultConfiguration) {
+        this(new ConcurrentHashMap<>(), defaultConfiguration);
+    }
+
     public ConfigurationUtils(Map<String, Object> configuration, Map<String, Object> defaultConfiguration) {
         this.configuration = configuration;
         this.defaultConfiguration = defaultConfiguration;
@@ -63,7 +62,7 @@ public class ConfigurationUtils {
 
     /**
      * Obtain and check any option from configuration
-     * If option not exists, will use default option
+     * If option not exists or broken, will use default option
      *
      * @param config name of option
      * @param type   checking type for option

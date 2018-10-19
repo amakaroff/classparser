@@ -3,7 +3,7 @@ package com.classparser.bytecode.decompile.cfr;
 import com.classparser.bytecode.api.BytecodeCollector;
 import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.decompile.cfr.configuration.CFRBuilderConfiguration;
-import com.classparser.bytecode.exception.decompile.DecompilationException;
+import com.classparser.bytecode.exception.DecompilationException;
 import com.classparser.bytecode.collector.ChainBytecodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.utils.ClassNameConverter;
@@ -27,7 +27,6 @@ import org.benf.cfr.reader.util.output.StdIODumper;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +51,7 @@ public final class CFRDecompiler implements Decompiler {
     private volatile ConfigurationManager configurationManager;
 
     public CFRDecompiler() {
-        this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
+        this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
 
     @Override
@@ -204,7 +203,7 @@ public final class CFRDecompiler implements Decompiler {
     /**
      * Class extends {@link StdIODumper} and implements any fixes by correcting decompiled code
      */
-    private class CFRBuilderDumper extends StdIODumper {
+    private static class CFRBuilderDumper extends StdIODumper {
 
         private final StringBuilder builder;
 
@@ -309,7 +308,7 @@ public final class CFRDecompiler implements Decompiler {
          * @param bytecode        bytecode of based decompile class
          * @param innerClasses    collection of all inner classes
          */
-        private CFRDCCommonState(Options options, ClassFileSource classFileSource,
+         CFRDCCommonState(Options options, ClassFileSource classFileSource,
                                  byte[] bytecode, Collection<byte[]> innerClasses) {
             super(options, classFileSource);
             this.outerClassName = ClassNameConverter.toJavaClassName(bytecode);

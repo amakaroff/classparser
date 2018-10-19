@@ -6,7 +6,6 @@ import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.collector.ChainBytecodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.exception.ByteCodeParserException;
-import com.classparser.bytecode.exception.classes.IllegalClassException;
 import com.classparser.bytecode.saver.BytecodeFileSaver;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.bytecode.utils.InnerClassesCollector;
@@ -148,12 +147,12 @@ public class BytecodeParser implements ClassParser {
 
         if (clazz.isPrimitive()) {
             String className = ClassNameConverter.toJavaClassName(clazz);
-            throw new IllegalClassException("Primitive type: \"" + className + "\" can't be decompiled", clazz);
+            throw new IllegalArgumentException("Primitive type: \"" + className + "\" can't be decompiled");
         }
 
         if (clazz.isArray()) {
             String simpleName = ClassNameConverter.toJavaClassSimpleName(clazz);
-            throw new IllegalClassException("Array type: \"" + simpleName + "\" can't be decompiled", clazz);
+            throw new IllegalArgumentException("Array type: \"" + simpleName + "\" can't be decompiled");
         }
     }
 

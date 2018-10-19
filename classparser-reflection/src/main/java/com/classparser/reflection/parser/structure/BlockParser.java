@@ -27,7 +27,7 @@ public class BlockParser {
     public BlockParser(IndentParser indentParser, ReflectionParserManager manager) {
         this.indentParser = indentParser;
         this.configurationManager = manager.getConfigurationManager();
-        this.method = loadHasStaticInitializerHandle();
+        this.method = loadCheckerMethod();
     }
 
     /**
@@ -72,7 +72,7 @@ public class BlockParser {
      *
      * @return method #hasStaticInitializer() or null if method can't be a loaded
      */
-    private Method loadHasStaticInitializerHandle() {
+    private Method loadCheckerMethod() {
         try {
             return Reflection.getMethod(ObjectStreamClass.class, "hasStaticInitializer", Class.class);
         } catch (ParsingException exception) {

@@ -54,7 +54,7 @@ public class InnerClassesCollector {
                 Class<?> foundedClass = Class.forName(className);
                 anonymousOrSyntheticClasses.add(foundedClass);
                 anonymousOrSyntheticClasses.addAll(getInnerClasses(foundedClass));
-            } catch (java.lang.ClassNotFoundException | NoClassDefFoundError exception) {
+            } catch (ClassNotFoundException | NoClassDefFoundError exception) {
                 break;
             }
         }

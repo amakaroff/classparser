@@ -1,6 +1,4 @@
-package com.classparser.bytecode.exception.decompile;
-
-import com.classparser.bytecode.exception.ByteCodeParserException;
+package com.classparser.bytecode.exception;
 
 /**
  * Unchecked exception can be throws when decompilation process

@@ -289,7 +289,7 @@ public class GenericTypeParser {
      * @return annotated array type
      */
     private AnnotatedType getAnnotatedArrayType(AnnotatedType annotatedType) {
-        if (!configurationManager.isDisplayAnnotationOnTypes()) {
+        if (configurationManager.isDisplayAnnotationOnTypes()) {
             if (annotatedType instanceof AnnotatedArrayType) {
                 AnnotatedArrayType annotatedArrayType = (AnnotatedArrayType) annotatedType;
                 while (annotatedArrayType.getAnnotatedGenericComponentType() instanceof AnnotatedArrayType) {
