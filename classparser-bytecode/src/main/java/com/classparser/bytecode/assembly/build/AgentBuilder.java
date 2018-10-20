@@ -6,6 +6,7 @@ import com.classparser.bytecode.exception.ByteCodeParserException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.exception.file.FileCreatingException;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
@@ -116,6 +117,10 @@ public final class AgentBuilder {
 
             if (agentName == null) {
                 agentName = DEFAULT_AGENT_JAR_FILE_NAME;
+            }
+
+            if (!agentDirLocation.endsWith(File.separator)) {
+                agentDirLocation += File.separatorChar;
             }
 
             String agentPath = agentDirLocation + agentName;
