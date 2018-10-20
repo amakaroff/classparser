@@ -3,8 +3,8 @@ package com.classparser.util;
 import com.classparser.configuration.Configuration;
 import com.classparser.exception.option.OptionNotFoundException;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class provides methods for usable working with Map configuration
@@ -24,7 +24,7 @@ public class ConfigurationUtils {
     private final Map<String, Object> configuration;
 
     public ConfigurationUtils(Map<String, Object> defaultConfiguration) {
-        this(new ConcurrentHashMap<>(), defaultConfiguration);
+        this(new HashMap<>(), defaultConfiguration);
     }
 
     public ConfigurationUtils(Map<String, Object> configuration, Map<String, Object> defaultConfiguration) {
