@@ -139,8 +139,8 @@ public class ValueParser {
             int length = Array.getLength(object);
             Object[] objects = new Object[length];
 
-            for (int i = 0; i < length; i++) {
-                objects[i] = Array.get(object, i);
+            for (int index = 0; index < length; index++) {
+                objects[index] = Array.get(object, index);
             }
 
             return objects;

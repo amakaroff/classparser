@@ -7,16 +7,12 @@
 
     <groupId>com.classparser</groupId>
     <artifactId>classparser</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0.RELEASE</version>
     <packaging>pom</packaging>
 
     <description>
-        Root module for classparser
+        Root module of classparser
     </description>
-
-    <url>
-
-    </url>
 
     <scm>
         <url>https://github.com/amakaroff/...</url>
@@ -63,7 +59,6 @@
         <module>classparser-jd-decompiler</module>
         <module>classparser-procyon-decompiler</module>
         <module>classparser-javap-disassembler</module>
-        <module>classparser-test</module>
     </modules>
 
     <build>

@@ -8,14 +8,13 @@
     <parent>
         <artifactId>classparser</artifactId>
         <groupId>com.classparser</groupId>
-        <version>1.0.0</version>
+        <version>1.0.0.RELEASE</version>
     </parent>
 
     <artifactId>classparser-cfr-decompiler</artifactId>
-    <version>1.0.0</version>
 
     <repositories>
-        <!-- Maven repository on Github where storage artifact of CFR decompiler-->
+        <!-- Maven repository on Github where storage artifact of CFR decompiler -->
         <repository>
             <id>cfr-decompiler-maven-repository</id>
             <name>GitHub CFR Decompiler Repository</name>
@@ -35,12 +34,12 @@
             <version>${cfr.decompiler.version}</version>
         </dependency>
 
-        <!-- Modules-->
+        <!-- Modules -->
         <dependency>
             <groupId>com.classparser</groupId>
             <artifactId>classparser-bytecode</artifactId>
             <scope>provided</scope>
-            <version>1.0.0</version>
+            <version>1.0.0.RELEASE</version>
         </dependency>
     </dependencies>
 </project>

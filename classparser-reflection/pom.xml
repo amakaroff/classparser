@@ -6,9 +6,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>classparser</artifactId>
         <groupId>com.classparser</groupId>
-        <version>1.0.0</version>
+        <artifactId>classparser</artifactId>
+        <version>1.0.0.RELEASE</version>
     </parent>
 
     <description>
@@ -16,14 +16,13 @@
     </description>
 
     <artifactId>classparser-reflection</artifactId>
-    <version>1.0.0</version>
 
     <dependencies>
-        <!-- Modules-->
+        <!-- Modules -->
         <dependency>
             <groupId>com.classparser</groupId>
             <artifactId>classparser-core</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.0.RELEASE</version>
         </dependency>
     </dependencies>
 </project>

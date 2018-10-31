@@ -235,9 +235,9 @@ public final class JDDecompiler implements Decompiler {
          * @return index of first left condition
          */
         public static int getFirstLeftNonCharNumber(StringBuilder line, char character, int number) {
-            for (int i = number - 1; i > 0; i--) {
-                if (line.charAt(i) != character) {
-                    return i;
+            for (int index = number - 1; index > 0; index--) { // TODO: looks wrong
+                if (line.charAt(index) != character) {
+                    return index;
                 }
             }
 
@@ -252,9 +252,9 @@ public final class JDDecompiler implements Decompiler {
          * @return true if character constrains in char sequence
          */
         public static boolean contains(CharSequence charSequence, char character) {
-            int index = charSequence.length() - 1;
-            for (int i = 0; i < index; i++) {
-                if (charSequence.charAt(index) == character) {
+            int ending = charSequence.length() - 1; // TODO: looks wrong
+            for (int index = 0; index < ending; index++) {
+                if (charSequence.charAt(ending) == character) {
                     return true;
                 }
             }

@@ -200,9 +200,8 @@ public class ReflectionParser implements ClassParser {
         content.add(methodParser.parseMethods(clazz));
         content.add(classesParser.parseInnerClasses(clazz));
 
-        return content
-                .stream()
-                .filter(s -> !s.isEmpty())
+        return content.stream()
+                .filter(string -> !string.isEmpty())
                 .collect(Collectors.joining(configurationManager.getLineSeparator()));
     }
 

@@ -187,7 +187,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
 
         private final int size;
 
-        private int index = 1;
+        private int position = 1;
 
         BytecodeConstantPoolClassIterator(Class<?> clazz) {
             try {
@@ -195,10 +195,10 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
                 int constantPoolSize = stream.readUnsignedShort();
                 constantPool = new String[constantPoolSize];
                 indexes = new ArrayList<>();
-                for (int i = 1; i < constantPoolSize; ++i) {
+                for (int index = 1; index < constantPoolSize; ++index) {
                     switch (stream.readUnsignedByte()) {
                         case 1:
-                            constantPool[i] = stream.readUTF();
+                            constantPool[index] = stream.readUTF();
                             break;
                         case 2:
                         case 13:
@@ -218,7 +218,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
                         case 5:
                         case 6:
                             stream.skipBytes(8);
-                            ++i;
+                            ++position;
                             break;
                         case 7:
                             indexes.add(stream.readUnsignedShort());
@@ -249,14 +249,14 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          *
          * @return class or null if in constant pool no more exists classes
          */
-        Class<?> iterateToNextNotNull() {
-            while (index < size) {
-                Integer integer = indexes.get(index);
+        public Class<?> iterateToNextNotNull() {
+            while (position < size) {
+                Integer integer = indexes.get(position);
                 String className = ClassNameConverter.toJavaClassName(constantPool[integer]);
                 try {
                     return Class.forName(className, false, getClass().getClassLoader());
                 } catch (ClassNotFoundException ignore) {
-                    index++;
+                    position++;
                 }
             }
 
@@ -267,7 +267,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
         public Class<?> next() {
             if (hasNext()) {
                 Class<?> clazz = iterateToNextNotNull();
-                index++;
+                position++;
                 return clazz;
             }
 

@@ -8,11 +8,10 @@
     <parent>
         <artifactId>classparser</artifactId>
         <groupId>com.classparser</groupId>
-        <version>1.0.0</version>
+        <version>1.0.0.RELEASE</version>
     </parent>
 
     <artifactId>classparser-procyon-decompiler</artifactId>
-    <version>1.0.0</version>
 
     <description>
         Module provides procyon decompiler adapter
@@ -48,12 +47,12 @@
             <version>${procyon.decompiler.version}</version>
         </dependency>
 
-        <!-- Modules-->
+        <!-- Modules -->
         <dependency>
             <groupId>com.classparser</groupId>
             <artifactId>classparser-bytecode</artifactId>
             <scope>provided</scope>
-            <version>1.0.0</version>
+            <version>1.0.0.RELEASE</version>
         </dependency>
     </dependencies>
 </project>

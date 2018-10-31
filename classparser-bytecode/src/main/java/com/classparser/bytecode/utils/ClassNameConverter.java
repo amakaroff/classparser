@@ -190,10 +190,10 @@ public class ClassNameConverter {
                 int sizeOfPool = stream.readUnsignedShort();
                 Object[] constants = new Object[sizeOfPool];
 
-                for (int i = 1; i < sizeOfPool; i++) {
+                for (int index = 1; index < sizeOfPool; index++) {
                     switch (stream.readUnsignedByte()) {
                         case 1:
-                            constants[i] = stream.readUTF();
+                            constants[index] = stream.readUTF();
                             break;
                         case 3:
                         case 4:
@@ -207,10 +207,10 @@ public class ClassNameConverter {
                         case 5:
                         case 6:
                             stream.skipBytes(8);
-                            i++;
+                            index++;
                             break;
                         case 7:
-                            constants[i] = stream.readUnsignedShort();
+                            constants[index] = stream.readUnsignedShort();
                             break;
                         case 8:
                         case 16:

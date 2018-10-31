@@ -8,11 +8,10 @@
     <parent>
         <artifactId>classparser</artifactId>
         <groupId>com.classparser</groupId>
-        <version>1.0.0</version>
+        <version>1.0.0.RELEASE</version>
     </parent>
 
     <artifactId>classparser-jd-decompiler</artifactId>
-    <version>1.0.0</version>
 
     <description>
         Module provides jd decompiler adapter
@@ -23,7 +22,7 @@
     </properties>
 
     <repositories>
-        <!-- Maven repository on Github where storage artifact of JD decompiler-->
+        <!-- Maven repository on Github where storage artifact of JD decompiler -->
         <repository>
             <id>java-decompiler-mvn-repo</id>
             <name>GitHub JD Decompiler Repository</name>
@@ -32,7 +31,7 @@
     </repositories>
 
     <dependencies>
-        <!-- JD Decompiler-->
+        <!-- JD Decompiler -->
         <dependency>
             <groupId>jd</groupId>
             <artifactId>jd-core</artifactId>
@@ -45,12 +44,12 @@
             <version>${jd.decompiler.version}</version>
         </dependency>
 
-        <!-- Modules-->
+        <!-- Modules -->
         <dependency>
             <groupId>com.classparser</groupId>
             <artifactId>classparser-bytecode</artifactId>
             <scope>provided</scope>
-            <version>1.0.0</version>
+            <version>1.0.0.RELEASE</version>
         </dependency>
     </dependencies>
 </project>

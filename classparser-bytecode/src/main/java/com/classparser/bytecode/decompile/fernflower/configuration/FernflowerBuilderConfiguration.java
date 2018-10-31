@@ -205,7 +205,7 @@ public class FernflowerBuilderConfiguration {
         public FernflowerConfiguration setCountIndentSpaces(int indent) {
             StringBuilder builder = new StringBuilder();
 
-            for (int i = 0; i < indent; i++) {
+            for (int index = 0; index < indent; index++) {
                 builder.append(" ");
             }
 
