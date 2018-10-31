@@ -30,27 +30,29 @@ public class InstrumentationBytecodeCollector implements BytecodeCollector {
     @Override
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     public byte[] getBytecode(Class<?> clazz) {
-        if (clazz != null) {
-            synchronized (clazz) {
-                String className = ClassNameConverter.toJavaClassName(clazz);
-                Instrumentation instrumentation = configurationManager.getAgent().getInstrumentation();
-                try {
-                    if (instrumentation != null) {
-                        if (instrumentation.isRetransformClassesSupported() && instrumentation.isModifiableClass(clazz)) {
-                            initializeTransformer(configurationManager.getAgent());
-                            instrumentation.retransformClasses(clazz);
+        if (isEnable()) {
+            if (clazz != null) {
+                synchronized (clazz) {
+                    String className = ClassNameConverter.toJavaClassName(clazz);
+                    Instrumentation instrumentation = configurationManager.getAgent().getInstrumentation();
+                    try {
+                        if (instrumentation != null) {
+                            if (instrumentation.isRetransformClassesSupported() && instrumentation.isModifiableClass(clazz)) {
+                                initializeTransformer(configurationManager.getAgent());
+                                instrumentation.retransformClasses(clazz);
+                            } else {
+                                System.err.println("Class " + className + " is can't be transform.");
+                            }
                         } else {
-                            System.err.println("Class " + className + " is can't be transform.");
+                            System.err.println("Instrumentation instance is not initialize!");
                         }
-                    } else {
-                        System.err.println("Instrumentation instance is not initialize!");
+                    } catch (UnmodifiableClassException exception) {
+                        String errorMessage = "Class: \"" + className + "\" is can't transform";
+                        throw new IllegalArgumentException(errorMessage, exception);
                     }
-                } catch (UnmodifiableClassException exception) {
-                    String errorMessage = "Class: \"" + className + "\" is can't transform";
-                    throw new IllegalArgumentException(errorMessage, exception);
-                }
 
-                return getBytesOfClass(clazz);
+                    return getBytesOfClass(clazz);
+                }
             }
         }
 

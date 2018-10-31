@@ -13,8 +13,8 @@ public interface BytecodeCollector extends Comparable<BytecodeCollector> {
     /**
      * Tryings find bytecode of class
      *
-     * @param clazz - class for which is getting bytecode
-     * @return bytecode of class or null if bytecode is not found
+     * @param clazz class for which is getting bytecode
+     * @return bytecode of class or null if bytecode is not found or collector is disabled
      */
     byte[] getBytecode(Class<?> clazz);
 

@@ -45,8 +45,7 @@ public class DumperBytecodeCollector implements BytecodeCollector {
     public boolean isEnable() {
         ConfigurationManager configurationManager = this.configurationManager;
         return configurationManager != null &&
-                configurationManager.isEnableDumperByteCodeCollector() &&
-                isDumpPropertiesEnabled();
+                configurationManager.isEnableDumperByteCodeCollector();
     }
 
     /**
@@ -109,22 +108,40 @@ public class DumperBytecodeCollector implements BytecodeCollector {
 
     @Override
     public byte[] getBytecode(Class<?> clazz) {
-        if (clazz != null) {
-            String filePath = ClassNameConverter.toFileJavaClassName(clazz);
-            String fullClassDumpPath = DUMP_PATH + File.separator + filePath;
-            Path path = Paths.get(fullClassDumpPath);
-            if (Files.exists(path)) {
-                try {
-                    return Files.readAllBytes(path);
-                } catch (IOException exception) {
-                    System.out.println("Can't read file: " + fullClassDumpPath);
-                    exception.printStackTrace();
+        if (isEnable()) {
+            if (clazz != null) {
+                checkingDumpingPropertyForEnabling();
 
-                    return null;
+                String filePath = ClassNameConverter.toFileJavaClassName(clazz);
+                String fullClassDumpPath = DUMP_PATH + File.separator + filePath;
+                Path path = Paths.get(fullClassDumpPath);
+                if (Files.exists(path)) {
+                    try {
+                        return Files.readAllBytes(path);
+                    } catch (IOException exception) {
+                        System.out.println("Can't read file: " + fullClassDumpPath);
+                        exception.printStackTrace();
+
+                        return null;
+                    }
                 }
             }
         }
 
         return null;
+    }
+
+    private void checkingDumpingPropertyForEnabling() {
+        boolean isMethodHandleDumpEnabled = Boolean.getBoolean(DUMP_MH_PROPERTY);
+        if (!isMethodHandleDumpEnabled) {
+            System.err.println("Please add property -D" + DUMP_MH_PROPERTY +
+                    " for obtaining dump of method handle classes.");
+        }
+
+        String lambdaDumpPathProperty = System.getProperty(DUMP_LAMBDA_PROPERTY);
+        if (lambdaDumpPathProperty == null) {
+            System.err.println("Please add property -D" + DUMP_LAMBDA_PROPERTY +
+                    " for obtaining dump of lambda classes.");
+        }
     }
 }
