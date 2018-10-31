@@ -59,18 +59,19 @@ public class ValueParser {
         if (object != null) {
             Class<?> clazz = object.getClass();
             if (clazz.isArray()) {
-                List<String> listValues = new ArrayList<>();
-                for (Object listValue : getArrayValues(object)) {
-                    if (!isObjectValue(listValue)) {
+                Class<?> componentArrayType = getComponentArrayType(clazz);
+                if (isSupportedComponentType(componentArrayType)) {
+                    List<String> listValues = new ArrayList<>();
+                    for (Object listValue : getArrayValues(object)) {
                         listValues.add(getValue(listValue));
                     }
-                }
 
-                String values = String.join(", ", listValues);
-                if (values.isEmpty()) {
-                    return values;
-                } else {
-                    return '{' + values + '}';
+                    String values = String.join(", ", listValues);
+                    if (values.isEmpty()) {
+                        return values;
+                    } else {
+                        return '{' + values + '}';
+                    }
                 }
             }
 
@@ -102,6 +103,32 @@ public class ValueParser {
     }
 
     /**
+     * Checks is component type are supported for value parsing
+     *
+     * @param clazz array component type
+     * @return true if type is supported
+     */
+    private boolean isSupportedComponentType(Class<?> clazz) {
+        return String.class.isAssignableFrom(clazz) ||
+                isEnum(clazz) ||
+                Character.class.isAssignableFrom(clazz) ||
+                Number.class.isAssignableFrom(clazz) ||
+                Boolean.class.isAssignableFrom(clazz) ||
+                Class.class.isAssignableFrom(clazz) ||
+                clazz.isPrimitive();
+    }
+
+    /**
+     * Obtains component type from array
+     *
+     * @param clazz array class
+     * @return component type
+     */
+    private Class<?> getComponentArrayType(Class<?> clazz) {
+        return clazz.isArray() ? getComponentArrayType(clazz.getComponentType()) : clazz;
+    }
+
+    /**
      * Convert array object to really array
      *
      * @param object any object
@@ -120,16 +147,6 @@ public class ValueParser {
         }
 
         return EMPTY_OBJECT_ARRAY;
-    }
-
-    /**
-     * Checks if object is non string value
-     *
-     * @param object any object
-     * @return true if this not string value
-     */
-    private boolean isObjectValue(Object object) {
-        return object != null && !(object instanceof String) && object.toString().isEmpty();
     }
 
     /**
