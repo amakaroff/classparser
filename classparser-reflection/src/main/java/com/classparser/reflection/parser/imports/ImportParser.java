@@ -28,7 +28,7 @@ public final class ImportParser {
     public ImportParser(ReflectionParserManager manager) {
         this.manager = manager;
         this.configurationManager = manager.getConfigurationManager();
-        this.threadLocalClassesForImport = new ThreadLocal<>();
+        this.threadLocalClassesForImport = ThreadLocal.withInitial(HashSet::new);
         this.threadLocalClassesForImport.set(getImportClasses());
     }
 
@@ -38,13 +38,7 @@ public final class ImportParser {
      * @return import classes storage
      */
     private Set<Class<?>> getImportClasses() {
-        Set<Class<?>> classes = threadLocalClassesForImport.get();
-        if (classes == null) {
-            classes = new HashSet<>();
-            threadLocalClassesForImport.set(classes);
-        }
-
-        return classes;
+        return threadLocalClassesForImport.get();
     }
 
     /**

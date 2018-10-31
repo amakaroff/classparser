@@ -45,7 +45,7 @@ public final class DefaultJavaAgent implements JavaAgent {
     public DefaultJavaAgent(AgentAssembler agentAssembler) {
         this.agentAssembler = agentAssembler;
         this.lock = new Object();
-        this.retransformIndicator = new ThreadLocal<>();
+        this.retransformIndicator = ThreadLocal.withInitial(() -> Boolean.FALSE);
         this.proxyClassTransformer = new ProxyChainClassTransformer(this);
         this.proxyInstrumentation = createProxyInstrumentation();
         this.isInitialized = false;

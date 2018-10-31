@@ -12,16 +12,13 @@ import java.util.stream.Collectors;
  */
 public final class ReflectionParserManager {
 
-    private final ThreadLocal<Class<?>> threadLocalParsedClass;
-
-    private final ThreadLocal<Class<?>> threadLocalCurrentParsedClass;
+    private final ThreadLocal<ClassContextContainer> contextContainerThreadLocal;
 
     private final ConfigurationManager configurationManager;
 
     public ReflectionParserManager() {
         this.configurationManager = new ConfigurationManager();
-        this.threadLocalParsedClass = new ThreadLocal<>();
-        this.threadLocalCurrentParsedClass = new ThreadLocal<>();
+        this.contextContainerThreadLocal = ThreadLocal.withInitial(ClassContextContainer::new);
     }
 
     /**
@@ -30,7 +27,7 @@ public final class ReflectionParserManager {
      * @return based parsed class or null if parsing is not started
      */
     public Class<?> getBaseParsedClass() {
-        return threadLocalParsedClass.get();
+        return contextContainerThreadLocal.get().getBaseParsedClass();
     }
 
     /**
@@ -39,7 +36,7 @@ public final class ReflectionParserManager {
      * @param parsedClass based parsed class
      */
     public void setBaseParsedClass(Class<?> parsedClass) {
-        threadLocalParsedClass.set(parsedClass);
+        contextContainerThreadLocal.get().setBaseParsedClass(parsedClass);
     }
 
     /**
@@ -48,7 +45,7 @@ public final class ReflectionParserManager {
      * @return parsed class or null if parsing is not started
      */
     public Class<?> getCurrentParsedClass() {
-        return threadLocalCurrentParsedClass.get();
+        return contextContainerThreadLocal.get().getCurrentParsedClass();
     }
 
     /**
@@ -57,7 +54,7 @@ public final class ReflectionParserManager {
      * @param currentParsedClass parsed class
      */
     public void setCurrentParsedClass(Class<?> currentParsedClass) {
-        this.threadLocalCurrentParsedClass.set(currentParsedClass);
+        contextContainerThreadLocal.get().setCurrentParsedClass(currentParsedClass);
     }
 
     /**
@@ -83,8 +80,7 @@ public final class ReflectionParserManager {
      * Clears state for current parsed context
      */
     public void clearState() {
-        threadLocalCurrentParsedClass.remove();
-        threadLocalParsedClass.remove();
+        contextContainerThreadLocal.remove();
     }
 
     /**
@@ -110,5 +106,28 @@ public final class ReflectionParserManager {
      */
     public String joinNotEmptyContentBySpace(String... content) {
         return Arrays.stream(content).filter(s -> !s.isEmpty()).collect(Collectors.joining(" "));
+    }
+
+    private class ClassContextContainer {
+
+        private Class<?> baseParsedClass;
+
+        private Class<?> currentParsedClass;
+
+        Class<?> getBaseParsedClass() {
+            return baseParsedClass;
+        }
+
+        void setBaseParsedClass(Class<?> baseParsedClass) {
+            this.baseParsedClass = baseParsedClass;
+        }
+
+        Class<?> getCurrentParsedClass() {
+            return currentParsedClass;
+        }
+
+        void setCurrentParsedClass(Class<?> currentParsedClass) {
+            this.currentParsedClass = currentParsedClass;
+        }
     }
 }
