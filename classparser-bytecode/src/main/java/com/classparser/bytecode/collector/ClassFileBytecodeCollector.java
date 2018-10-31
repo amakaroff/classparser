@@ -9,7 +9,6 @@ import com.classparser.exception.file.FileReadingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 
 /**
  * Collector uses java class path try obtain bytecode from .class file
@@ -25,16 +24,19 @@ public class ClassFileBytecodeCollector implements BytecodeCollector {
 
     @Override
     public byte[] getBytecode(Class<?> clazz) {
-        String filePath = getFilePath(clazz);
+        if (isEnable()) {
+            if (clazz != null) {
+                ClassLoader loader = getClassLoader(clazz);
 
-        if (!filePath.isEmpty()) {
-            ClassLoader loader = getClassLoader(clazz);
-
-            if (loader != null && clazz != null) {
-                try (InputStream stream = loader.getResourceAsStream(ClassNameConverter.toJarJavaClassName(clazz))) {
-                    return readBytesFromInputStream(stream);
-                } catch (IOException exception) {
-                    throw new FileReadingException("Can't read bytecode by path : " + filePath, exception, filePath);
+                if (loader != null) {
+                    String className = ClassNameConverter.toJarJavaClassName(clazz);
+                    try (InputStream stream = loader.getResourceAsStream(className)) {
+                        if (stream != null) {
+                            return readBytesFromInputStream(stream);
+                        }
+                    } catch (IOException exception) {
+                        throw new FileReadingException("Can't read bytecode for class : " + className, exception, className);
+                    }
                 }
             }
         }
@@ -68,7 +70,7 @@ public class ClassFileBytecodeCollector implements BytecodeCollector {
      * @return byte array was read from input stream
      */
     private byte[] readBytesFromInputStream(InputStream stream) {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream(BYTE_BUFFER_SIZE);
         int batchSize;
         byte[] data = new byte[BYTE_BUFFER_SIZE];
         try {
@@ -84,26 +86,6 @@ public class ClassFileBytecodeCollector implements BytecodeCollector {
         }
 
         return buffer.toByteArray();
-    }
-
-
-    /**
-     * Obtains file path where storage java class
-     *
-     * @param clazz any class
-     * @return path to class or empty string if path is not found
-     */
-    private String getFilePath(Class<?> clazz) {
-        ClassLoader loader = getClassLoader(clazz);
-
-        if (loader != null && clazz != null) {
-            URL resource = loader.getResource(ClassNameConverter.toJarJavaClassName(clazz));
-            if (resource != null) {
-                return resource.getFile();
-            }
-        }
-
-        return "";
     }
 
     /**
