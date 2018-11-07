@@ -44,8 +44,7 @@ public class DumperBytecodeCollector implements BytecodeCollector {
     @Override
     public boolean isEnable() {
         ConfigurationManager configurationManager = this.configurationManager;
-        return configurationManager != null &&
-                configurationManager.isEnableDumperByteCodeCollector();
+        return configurationManager != null && configurationManager.isEnableDumperByteCodeCollector();
     }
 
     /**

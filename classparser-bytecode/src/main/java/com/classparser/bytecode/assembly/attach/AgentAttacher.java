@@ -79,10 +79,11 @@ public class AgentAttacher {
     private boolean isExistsInClassPathToolJar() {
         try {
             Class.forName(VIRTUAL_MACHINE_CLASS_NAME);
-            return true;
         } catch (ClassNotFoundException ignore) {
             return false;
         }
+
+        return true;
     }
 
     /**
@@ -110,7 +111,7 @@ public class AgentAttacher {
      *
      * @return current JVM process ID
      */
-    public String getCurrentJVMProcessID() {
+    private String getCurrentJVMProcessID() {
         String nameOfRunningVM = ManagementFactory.getRuntimeMXBean().getName();
         int processID = nameOfRunningVM.indexOf(JVM_NAME_ID_SEPARATOR);
         return nameOfRunningVM.substring(0, processID);
@@ -123,7 +124,7 @@ public class AgentAttacher {
      * @param agentPath  path to agent jar
      * @param parameters agent attach parameters
      */
-    private synchronized void findToolsJarAndAttach(String agentPath, String parameters) {
+    private void findToolsJarAndAttach(String agentPath, String parameters) {
         Path toolsPath = getToolsPath();
         if (toolsPath != null) {
             try {
@@ -208,8 +209,10 @@ public class AgentAttacher {
         if (toolsJarClassLoader == null) {
             synchronized (AgentAttacher.class) {
                 if (toolsJarClassLoader == null) {
-                    toolsJarClassLoader = new URLClassLoader(new URL[]{toolsPath.toUri().toURL()},
-                            getClass().getClassLoader());
+                    ClassLoader classLoader = getClass().getClassLoader();
+                    URL[] urls = {toolsPath.toUri().toURL()};
+
+                    toolsJarClassLoader = new URLClassLoader(urls, classLoader);
                 }
             }
         }

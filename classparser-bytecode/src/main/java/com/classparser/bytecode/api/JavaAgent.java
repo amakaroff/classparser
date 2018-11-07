@@ -42,7 +42,9 @@ public interface JavaAgent {
      *
      * @return agent jar location
      */
-    String getAgentLocationPath();
+    default String getAgentLocationPath() {
+        return System.getProperty("user.dir");
+    }
 
     /**
      * Obtains agent class implementation basic agent methods
@@ -58,7 +60,9 @@ public interface JavaAgent {
      *
      * @return path to manifest
      */
-    Manifest getManifestFileName();
+     default Manifest getManifestFileName() {
+         return new Manifest();
+     }
 
     /**
      * Obtains classes which will be store to agent jar
@@ -66,6 +70,6 @@ public interface JavaAgent {
      * @return array of classes
      */
     default Class<?>[] getAgentJarClasses() {
-        return new Class[0];
+        return new Class[]{getAgentClass()};
     }
 }

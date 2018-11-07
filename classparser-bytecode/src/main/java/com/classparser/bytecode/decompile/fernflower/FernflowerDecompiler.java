@@ -18,7 +18,6 @@ import org.jetbrains.java.decompiler.struct.lazy.LazyLoader;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Adapter of Fernflower decompiler for {@link Decompiler} API
@@ -35,7 +34,7 @@ public final class FernflowerDecompiler implements Decompiler {
     private final Map<String, Object> configurationMap;
 
     public FernflowerDecompiler() {
-        this.configurationMap = new ConcurrentHashMap<>();
+        this.configurationMap = getDefaultConfiguration();
     }
 
     @Override
@@ -44,9 +43,7 @@ public final class FernflowerDecompiler implements Decompiler {
             IResultSaver decompiledCodeSaver = new ConsoleDecompiler(null,  null);
             IFernflowerLogger logger = new PrintStreamLogger(System.out);
 
-            Map<String, Object> configuration = getConfiguration();
-
-            Fernflower fernflower = new Fernflower(null, decompiledCodeSaver, configuration, logger);
+            Fernflower fernflower = new Fernflower(null, decompiledCodeSaver, configurationMap, logger);
 
             StructContext structContext = fernflower.getStructContext();
             StructClass mainStructClass = createAndSetStructClass(structContext, bytecode);
@@ -58,19 +55,6 @@ public final class FernflowerDecompiler implements Decompiler {
         }
 
         throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
-    }
-
-    /**
-     * Obtains current configuration for decompiler
-     *
-     * @return decompiler configuration
-     */
-    private Map<String, Object> getConfiguration() {
-        if (configurationMap.isEmpty()) {
-            return getDefaultConfiguration();
-        } else {
-            return configurationMap;
-        }
     }
 
     /**
@@ -167,9 +151,9 @@ public final class FernflowerDecompiler implements Decompiler {
             if (configuration != null) {
                 Map<String, Object> configurationMap = configuration.getConfiguration();
                 if (configurationMap != null && !configurationMap.isEmpty()) {
-                    Map<String, Object> defaultConfiguration = getDefaultConfiguration();
-                    defaultConfiguration.putAll(configurationMap);
-                    this.configurationMap.putAll(defaultConfiguration);
+                    Map<String, Object> currentConfiguration = getDefaultConfiguration();
+                    currentConfiguration.putAll(configurationMap);
+                    this.configurationMap.putAll(currentConfiguration);
                 }
             }
         }

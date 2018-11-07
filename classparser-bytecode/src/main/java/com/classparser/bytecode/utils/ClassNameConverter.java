@@ -169,7 +169,7 @@ public class ClassNameConverter {
      * @return class file name
      */
     public static String toFileJavaClassName(Class<?> clazz) {
-        return toJavaClassName(clazz).replace('.', File.separatorChar) + CLASS_FILE_SUFFIX;
+        return toFileJavaClassName(toJavaClassName(clazz));
     }
 
     /**
@@ -230,7 +230,6 @@ public class ClassNameConverter {
                 if (className != null) {
                     return className.toString();
                 }
-
 
                 throw new ByteCodeParserException("Can't obtain class name from bytecode!");
             }

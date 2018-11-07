@@ -24,19 +24,17 @@ public class ClassFileBytecodeCollector implements BytecodeCollector {
 
     @Override
     public byte[] getBytecode(Class<?> clazz) {
-        if (isEnable()) {
-            if (clazz != null) {
-                ClassLoader loader = getClassLoader(clazz);
+        if (clazz != null) {
+            ClassLoader loader = getClassLoader(clazz);
 
-                if (loader != null) {
-                    String className = ClassNameConverter.toJarJavaClassName(clazz);
-                    try (InputStream stream = loader.getResourceAsStream(className)) {
-                        if (stream != null) {
-                            return readBytesFromInputStream(stream);
-                        }
-                    } catch (IOException exception) {
-                        throw new FileReadingException("Can't read bytecode for class : " + className, exception, className);
+            if (loader != null) {
+                String className = ClassNameConverter.toJarJavaClassName(clazz);
+                try (InputStream stream = loader.getResourceAsStream(className)) {
+                    if (stream != null) {
+                        return readBytesFromInputStream(stream);
                     }
+                } catch (IOException exception) {
+                    throw new FileReadingException("Can't read bytecode for class : " + className, exception, className);
                 }
             }
         }

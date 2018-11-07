@@ -110,22 +110,9 @@ public final class AgentBuilder {
 
         @Override
         public String build() {
-            findAgentClass();
-            if (agentClass == null) {
-                throw new NullPointerException("Java agent class can't be null");
-            }
-
-            if (agentName == null) {
-                agentName = DEFAULT_AGENT_JAR_FILE_NAME;
-            }
-
-            if (!agentDirLocation.endsWith(File.separator)) {
-                agentDirLocation += File.separatorChar;
-            }
+            prepareBuild();
 
             String agentPath = agentDirLocation + agentName;
-
-            this.attachedClasses.add(agentClass);
             try (JarOutputStream jarStream = new JarOutputStream(new FileOutputStream(agentPath), getManifest())) {
                 BytecodeCollector reader = new ClassFileBytecodeCollector();
 
@@ -154,14 +141,31 @@ public final class AgentBuilder {
             return agentPath;
         }
 
+        private void prepareBuild() {
+            findAgentClass();
+            if (agentClass == null) {
+                throw new NullPointerException("Java agent class can't be null");
+            }
+
+            if (agentName == null) {
+                agentName = DEFAULT_AGENT_JAR_FILE_NAME;
+            }
+
+            if (!agentDirLocation.endsWith(File.separator)) {
+                agentDirLocation += File.separatorChar;
+            }
+
+            attachedClasses.add(agentClass);
+        }
+
         /**
          * Tryings find agent class in all attach classes and set it to {@link Builder#agentClass}
          */
         private void findAgentClass() {
-            if (this.agentClass == null) {
-                for (Class<?> attachedClass : this.attachedClasses) {
+            if (agentClass == null) {
+                for (Class<?> attachedClass : attachedClasses) {
                     if (isAgentClass(attachedClass)) {
-                        this.agentClass = attachedClass;
+                        agentClass = attachedClass;
                         return;
                     }
                 }
