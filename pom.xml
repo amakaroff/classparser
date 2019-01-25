@@ -19,8 +19,8 @@
     </url>
 
     <scm>
-        <url>https://github.com/amakaroff/...</url>
-        <connection>scm:git:https://github.com/amakaroff/....git</connection>
+        <url>https://github.com/amakaroff/classparser.git</url>
+        <connection>scm:git:https://github.com/amakaroff/classparser.git</connection>
     </scm>
 
     <issueManagement>
@@ -63,7 +63,6 @@
         <module>classparser-jd-decompiler</module>
         <module>classparser-procyon-decompiler</module>
         <module>classparser-javap-disassembler</module>
-        <module>classparser-test</module>
     </modules>
 
     <build>

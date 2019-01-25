@@ -11,10 +11,8 @@
         <version>1.0.0</version>
     </parent>
 
-    <groupId>com.classparser.bytecode.decompile.cfr</groupId>
     <artifactId>classparser-cfr-decompiler</artifactId>
     <version>1.0.0</version>
-    <packaging>jar</packaging>
 
     <repositories>
         <!-- Maven repository on Github where storage artifact of CFR decompiler-->

@@ -206,7 +206,7 @@ public final class JDDecompiler implements Decompiler {
          * @param builder any builder instance
          * @return normalized string
          */
-        public static String normalizeOpenBlockCharacter(StringBuilder builder) {
+        private static String normalizeOpenBlockCharacter(StringBuilder builder) {
             int index = 1;
             while (index != 0) {
                 int openBlock = builder.indexOf("{", index);
@@ -230,7 +230,7 @@ public final class JDDecompiler implements Decompiler {
          * @param character select character
          * @return index of first left condition
          */
-        public static int getFirstLeftNonCharNumber(StringBuilder builder, char character) {
+        private static int getFirstLeftNonCharNumber(StringBuilder builder, char character) {
             return getFirstLeftNonCharNumber(builder, character, builder.length());
         }
 
@@ -242,7 +242,7 @@ public final class JDDecompiler implements Decompiler {
          * @param number    index from start search
          * @return index of first left condition
          */
-        public static int getFirstLeftNonCharNumber(StringBuilder line, char character, int number) {
+        private static int getFirstLeftNonCharNumber(StringBuilder line, char character, int number) {
             for (int i = number - 1; i > 0; i--) {
                 if (line.charAt(i) != character) {
                     return i;
@@ -259,7 +259,7 @@ public final class JDDecompiler implements Decompiler {
          * @param character    any character
          * @return true if character constrains in char sequence
          */
-        public static boolean contains(CharSequence charSequence, char character) {
+        private static boolean contains(CharSequence charSequence, char character) {
             int index = charSequence.length() - 1;
             for (int i = 0; i < index; i++) {
                 if (charSequence.charAt(index) == character) {
@@ -276,7 +276,7 @@ public final class JDDecompiler implements Decompiler {
          * @param builder any string builder
          * @return first left index
          */
-        public static int getNumberLeftOfLineSeparator(StringBuilder builder) {
+        private static int getNumberLeftOfLineSeparator(StringBuilder builder) {
             int index = builder.length() - 1;
             while (builder.charAt(index) != '\n') {
                 index--;

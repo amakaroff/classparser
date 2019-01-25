@@ -6,8 +6,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>classparser</artifactId>
         <groupId>com.classparser</groupId>
+        <artifactId>classparser</artifactId>
         <version>1.0.0</version>
     </parent>
 
@@ -15,9 +15,7 @@
         Module store classes for reflection parsing mechanism
     </description>
 
-    <groupId>com.classparser.reflection</groupId>
     <artifactId>classparser-reflection</artifactId>
-    <packaging>jar</packaging>
     <version>1.0.0</version>
 
     <dependencies>

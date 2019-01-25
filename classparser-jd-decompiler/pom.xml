@@ -11,10 +11,8 @@
         <version>1.0.0</version>
     </parent>
 
-    <groupId>com.classparser.bytecode.decompile.jd</groupId>
     <artifactId>classparser-jd-decompiler</artifactId>
     <version>1.0.0</version>
-    <packaging>jar</packaging>
 
     <description>
         Module provides jd decompiler adapter
