@@ -31,7 +31,7 @@ import static com.classparser.bytecode.decompile.procyon.configuration.ProcyonCo
 /**
  * Adapter of Procyon decompiler for {@link Decompiler} API
  * This decompiler was written of Mike Strobel
- * Decompiler version: 0.5.32 (Oct, 2015)
+ * Decompiler version: 0.5.32 (Jul 26, 2018)
  * <p>
  * Procyon decompiler supports java 8 syntax
  *

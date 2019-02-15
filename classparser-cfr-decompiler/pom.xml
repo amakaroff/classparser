@@ -12,26 +12,17 @@
     </parent>
 
     <artifactId>classparser-cfr-decompiler</artifactId>
-    <version>1.0.1</version>
-
-    <repositories>
-        <!-- Maven repository on Github where storage artifact of CFR decompiler-->
-        <repository>
-            <id>cfr-decompiler-maven-repository</id>
-            <name>GitHub CFR Decompiler Repository</name>
-            <url>https://raw.github.com/amakaroff/CFR-decompiler-maven-repository/master</url>
-        </repository>
-    </repositories>
+    <version>1.0.2</version>
 
     <properties>
-        <cfr.decompiler.version>0.132</cfr.decompiler.version>
+        <cfr.decompiler.version>0.139</cfr.decompiler.version>
     </properties>
 
     <dependencies>
         <!-- CFR Decompiler -->
         <dependency>
-            <groupId>org.benf.cfr</groupId>
-            <artifactId>cfr-decompiler</artifactId>
+            <groupId>org.benf</groupId>
+            <artifactId>cfr</artifactId>
             <version>${cfr.decompiler.version}</version>
         </dependency>
 
@@ -40,7 +31,7 @@
             <groupId>com.classparser</groupId>
             <artifactId>classparser-bytecode</artifactId>
             <scope>provided</scope>
-            <version>1.0.0</version>
+            <version>1.0.8</version>
         </dependency>
     </dependencies>
 </project>

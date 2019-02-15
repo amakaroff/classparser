@@ -42,7 +42,7 @@ import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguratio
 /**
  * Adapter of JD decompiler for {@link Decompiler} API
  * This decompiler was written of Emmanuel Dupuy
- * Decompiler version: 0.7.1
+ * Decompiler version: 0.7.1 (Sep 2, 2015)
  * <p>
  * This decompiler support java 7 syntax and can't decompiler local classes
  *

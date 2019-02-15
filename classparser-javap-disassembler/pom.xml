@@ -20,7 +20,7 @@
             <groupId>com.classparser</groupId>
             <artifactId>classparser-bytecode</artifactId>
             <scope>provided</scope>
-            <version>1.0.0</version>
+            <version>1.0.8</version>
         </dependency>
     </dependencies>
 </project>

@@ -23,7 +23,7 @@
         <dependency>
             <groupId>com.classparser</groupId>
             <artifactId>classparser-core</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
     </dependencies>
 </project>

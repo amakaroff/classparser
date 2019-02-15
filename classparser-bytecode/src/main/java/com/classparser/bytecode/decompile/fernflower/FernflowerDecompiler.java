@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Adapter of Fernflower decompiler for {@link Decompiler} API
  * This decompiler was written of Egor Ushakov
- * Decompiler version: ? (18.10.2017)
+ * Decompiler version: 4.2.0.Final (Oct 26, 2018)
  * <p>
  * Fernflower decompiler support java 8 syntax and can decompile all inner classes
  *

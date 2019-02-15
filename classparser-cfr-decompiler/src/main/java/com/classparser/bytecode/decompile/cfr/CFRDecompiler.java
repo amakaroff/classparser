@@ -14,6 +14,7 @@ import org.benf.cfr.reader.entities.ClassFile;
 import org.benf.cfr.reader.state.ClassFileSourceImpl;
 import org.benf.cfr.reader.state.DCCommonState;
 import org.benf.cfr.reader.state.TypeUsageCollector;
+import org.benf.cfr.reader.state.TypeUsageCollectorImpl;
 import org.benf.cfr.reader.state.TypeUsageInformation;
 import org.benf.cfr.reader.util.CannotLoadClassException;
 import org.benf.cfr.reader.util.bytestream.BaseByteData;
@@ -37,7 +38,7 @@ import static com.classparser.bytecode.decompile.cfr.configuration.CFRConfigurat
 /**
  * Adapter of CFR decompiler for {@link Decompiler} API
  * This decompiler was written of Lee Benfield
- * Decompiler version: 0.132
+ * Decompiler version: 0.132 (Jan 09, 2019)
  * <p>
  * CFR decompiler supports java 8 syntax
  *
@@ -68,7 +69,7 @@ public final class CFRDecompiler implements Decompiler {
             DCCommonState dcCommonState = new CFRDCCommonState(options, classFileSource, bytecode, classes);
 
             ClassFile classFile = dcCommonState.getClassFileMaybePath(className);
-            TypeUsageCollector collectingDumper = new TypeUsageCollector(classFile);
+            TypeUsageCollector collectingDumper = new TypeUsageCollectorImpl(classFile);
             IllegalIdentifierDump illegalIdentifierDump = IllegalIdentifierDump.Factory.get(options);
             dcCommonState.configureWith(classFile);
 
