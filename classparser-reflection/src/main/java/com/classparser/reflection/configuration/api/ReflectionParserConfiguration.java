@@ -27,6 +27,8 @@ public interface ReflectionParserConfiguration extends Configuration {
 
     String DISPLAY_VALUE_IN_STATIC_FIELDS_KEY = "dvf";
 
+    String ENABLED_STATIC_BLOCK_DISPLAYING = "sbd";
+
     String DISPLAY_IMPORT_SECTION_KEY = "dim";
 
     String DISPLAY_DEFAULT_INHERITANCE_KEY = "doi";
@@ -115,6 +117,17 @@ public interface ReflectionParserConfiguration extends Configuration {
      * @return builder instance
      */
     ReflectionParserConfiguration displayValueForFields(boolean flag);
+
+    /**
+     * Set is should be try checks existing static block in class or not
+     * <p>
+     * Default value: true
+     * </p>
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    ReflectionParserConfiguration enableStaticBlockDisplaying(boolean flag);
 
     /**
      * Set enable parsing import section for class

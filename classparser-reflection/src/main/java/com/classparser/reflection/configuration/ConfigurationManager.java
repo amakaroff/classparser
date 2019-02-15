@@ -1,10 +1,9 @@
 package com.classparser.reflection.configuration;
 
 import com.classparser.configuration.Configuration;
-import com.classparser.util.ConfigurationUtils;
 import com.classparser.reflection.ReflectionParser;
+import com.classparser.util.ConfigurationUtils;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.classparser.reflection.configuration.api.ReflectionParserConfiguration.*;
@@ -38,6 +37,7 @@ public class ConfigurationManager {
      *      <li>{@link #isDisplayGenericSignatures()} - yes</li>
      *      <li>{@link #isDisplayVarArgs()} - yes</li>
      *      <li>{@link #isDisplayDefaultInheritance()} - false</li>
+     *      <li>{@link #isEnabledStaticBlockDisplaying()} - true</li>
      *      <li>{@link #hideExhaustiveModifiers()} - true</li>
      *      <li>{@link #isEnabledImports()} - yes</li>
      *      <li>{@link #getIndentSpaces()} - 4 spaces</li>
@@ -56,6 +56,7 @@ public class ConfigurationManager {
                 .displayValueForFields(true)
                 .displayGenericSignatures(true)
                 .displayVarArgs(true)
+                .enableStaticBlockDisplaying(true)
                 .enableImportSection(true)
                 .hideExhaustiveModifiers(true)
                 .displayDefaultInheritance(false)
@@ -147,6 +148,15 @@ public class ConfigurationManager {
      */
     public boolean isDisplayFieldValue() {
         return utils.getConfigOption(DISPLAY_VALUE_IN_STATIC_FIELDS_KEY, Boolean.class);
+    }
+
+    /**
+     * Checks if generic signatures for types displaying is necessary
+     *
+     * @return true if enable process of checking existing static block in class
+     */
+    public boolean isEnabledStaticBlockDisplaying() {
+        return utils.getConfigOption(ENABLED_STATIC_BLOCK_DISPLAYING, Boolean.class);
     }
 
     /**

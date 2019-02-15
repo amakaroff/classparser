@@ -83,6 +83,12 @@ public class ReflectionParserBuilderConfiguration {
         }
 
         @Override
+        public ReflectionParserConfiguration enableStaticBlockDisplaying(boolean flag) {
+            configuration.put(ENABLED_STATIC_BLOCK_DISPLAYING, flag);
+            return this;
+        }
+
+        @Override
         public ReflectionParserConfiguration enableImportSection(boolean flag) {
             configuration.put(DISPLAY_IMPORT_SECTION_KEY, flag);
             return this;
@@ -114,7 +120,12 @@ public class ReflectionParserBuilderConfiguration {
 
         @Override
         public ReflectionParserConfiguration defineLineSeparator(String character) {
-            configuration.put(LINE_SEPARATOR_KEY, character);
+            if (character != null) {
+                configuration.put(LINE_SEPARATOR_KEY, character);
+            } else {
+                throw new NullPointerException("Line separator is can't be a null!");
+            }
+
             return this;
         }
     }
