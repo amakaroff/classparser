@@ -20,7 +20,7 @@ public class ClassFileBytecodeCollector implements BytecodeCollector {
 
     private static final int BYTE_BUFFER_SIZE = 1024 * 8;
 
-    private ConfigurationManager configurationManager;
+    private volatile ConfigurationManager configurationManager;
 
     @Override
     public byte[] getBytecode(Class<?> clazz) {
@@ -37,6 +37,8 @@ public class ClassFileBytecodeCollector implements BytecodeCollector {
                     throw new FileReadingException("Can't read bytecode for class : " + className, exception, className);
                 }
             }
+        } else {
+            throw new NullPointerException("Class can't be a null!");
         }
 
         return null;
@@ -57,6 +59,8 @@ public class ClassFileBytecodeCollector implements BytecodeCollector {
     public void setConfigurationManager(ConfigurationManager configurationManager) {
         if (configurationManager != null) {
             this.configurationManager = configurationManager;
+        } else {
+            throw new NullPointerException("Configuration Manager is can't be null!");
         }
     }
 

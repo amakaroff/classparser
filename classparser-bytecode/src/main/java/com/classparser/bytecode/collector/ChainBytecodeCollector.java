@@ -71,7 +71,7 @@ public class ChainBytecodeCollector implements BytecodeCollector {
      * @return list contains chain of collectors
      */
     private List<BytecodeCollector> getCollectors() {
-        List<BytecodeCollector> collectors = new ArrayList<>();
+        List<BytecodeCollector> collectors = new ArrayList<>(3);
 
         if (configurationManager != null) {
             ServiceLoader<BytecodeCollector> load = ServiceLoader.load(BytecodeCollector.class);
@@ -83,6 +83,8 @@ public class ChainBytecodeCollector implements BytecodeCollector {
             }
 
             Collections.sort(collectors);
+        } else {
+            throw new NullPointerException("Configuration Manager is not initialized for collector!");
         }
 
         return collectors;
