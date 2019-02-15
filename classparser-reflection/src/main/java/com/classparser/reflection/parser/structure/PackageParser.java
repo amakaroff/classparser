@@ -34,12 +34,16 @@ public class PackageParser {
      * @return string line with package meta information
      */
     public String parsePackage(Class<?> clazz) {
-        if (isShouldBeDisplayed(clazz)) {
-            Package classPackage = clazz.getPackage();
-            String packageAnnotations = annotationParser.parseAnnotationsAsBlock(classPackage);
-            String lineSeparator = configurationManager.getLineSeparator();
+        if (clazz != null) {
+            if (isShouldBeDisplayed(clazz)) {
+                Package classPackage = clazz.getPackage();
+                String packageAnnotations = annotationParser.parseAnnotationsAsBlock(classPackage);
+                String lineSeparator = configurationManager.getLineSeparator();
 
-            return packageAnnotations + "package " + classPackage.getName() + ';' + lineSeparator + lineSeparator;
+                return packageAnnotations + "package " + classPackage.getName() + ';' + lineSeparator + lineSeparator;
+            }
+        } else {
+            throw new NullPointerException("Class can't be a null!");
         }
 
         return "";

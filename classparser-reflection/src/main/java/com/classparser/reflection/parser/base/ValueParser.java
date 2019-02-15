@@ -198,7 +198,7 @@ public class ValueParser {
      */
     private String getFieldValue(Field field) {
         if (isDisplayFieldValue(field)) {
-            Object value = Reflection.getStatic(field);
+            Object value = getStaticFieldValue(field);
             if (!isField(value)) {
                 String fieldValue = getValue(value);
                 if (!"".equals(fieldValue)) {
@@ -208,6 +208,24 @@ public class ValueParser {
         }
 
         return "";
+    }
+
+    /**
+     * Obtains static accessible field value
+     *
+     * @param field any field
+     * @return static field value
+     */
+    private Object getStaticFieldValue(Field field) {
+        try {
+            if (field.isAccessible()) {
+                return field.get(null);
+            }
+        } catch (ReflectiveOperationException exception) {
+            System.err.println("Can't access to field" + field + " from class ValueParser!");
+        }
+
+        return null;
     }
 
     /**
