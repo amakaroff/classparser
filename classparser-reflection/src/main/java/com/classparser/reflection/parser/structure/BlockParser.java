@@ -1,10 +1,8 @@
 package com.classparser.reflection.parser.structure;
 
-import com.classparser.exception.ParsingException;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.reflection.parser.base.IndentParser;
-import com.classparser.util.Reflection;
 
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Method;
@@ -18,8 +16,6 @@ import java.lang.reflect.Method;
  */
 public class BlockParser {
 
-    private final Method method;
-
     private final IndentParser indentParser;
 
     private final ConfigurationManager configurationManager;
@@ -27,7 +23,6 @@ public class BlockParser {
     public BlockParser(IndentParser indentParser, ReflectionParserManager manager) {
         this.indentParser = indentParser;
         this.configurationManager = manager.getConfigurationManager();
-        this.method = loadCheckerMethod();
     }
 
     /**
@@ -56,11 +51,16 @@ public class BlockParser {
      * @return true if static init block is exists
      */
     private boolean hasStaticInitializer(Class<?> clazz) {
-        if (method != null) {
-            try {
-                return (boolean) Reflection.invokeStatic(method, clazz);
-            } catch (Exception exception) {
-                return false;
+        if (configurationManager.isEnabledStaticBlockDisplaying()) {
+            Method method = loadCheckerMethod();
+            if (method != null) {
+                try {
+                    if (method.isAccessible()) {
+                        return (boolean) method.invoke(clazz);
+                    }
+                } catch (Exception exception) {
+                    return false;
+                }
             }
         }
 
@@ -74,8 +74,11 @@ public class BlockParser {
      */
     private Method loadCheckerMethod() {
         try {
-            return Reflection.getMethod(ObjectStreamClass.class, "hasStaticInitializer", Class.class);
-        } catch (ParsingException exception) {
+            Method method = ObjectStreamClass.class.getDeclaredMethod("hasStaticInitializer", Class.class);
+            method.setAccessible(true);
+
+            return method;
+        } catch (NoSuchMethodException exception) {
             return null;
         }
     }
