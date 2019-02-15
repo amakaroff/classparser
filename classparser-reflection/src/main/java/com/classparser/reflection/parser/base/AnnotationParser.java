@@ -152,7 +152,7 @@ public class AnnotationParser {
      * Parse annotation meta information and collecting it to {@link String}
      *
      * @param annotation   any annotation
-     * @param isAboveClass flag uses for mark if this annotation locaed above class
+     * @param isAboveClass flag uses for mark if this annotation located above class
      * @return string meta information about annotation
      */
     private String parseAnnotation(Annotation annotation, boolean isAboveClass) {

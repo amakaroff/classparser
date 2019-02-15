@@ -63,7 +63,7 @@ public final class ReflectionParserManager implements Clearance {
      * Obtains current configuration manager
      * Configuration manager is not tied to context
      *
-     * @return {@link ConfigurationManager} object
+     * @return configuration manager instance
      */
     public ConfigurationManager getConfigurationManager() {
         return configurationManager;

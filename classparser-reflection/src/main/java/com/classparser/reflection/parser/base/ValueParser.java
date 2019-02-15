@@ -2,7 +2,6 @@ package com.classparser.reflection.parser.base;
 
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.configuration.ReflectionParserManager;
-import com.classparser.util.Reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;

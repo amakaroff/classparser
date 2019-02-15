@@ -2,7 +2,6 @@ package com.classparser.util;
 
 import com.classparser.exception.ParsingException;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**

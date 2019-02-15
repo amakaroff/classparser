@@ -62,7 +62,6 @@ public class ConfigurationUtils {
         }
     }
 
-
     /**
      * Obtain and check any option from configuration
      * If option not exists or broken, will use default option
