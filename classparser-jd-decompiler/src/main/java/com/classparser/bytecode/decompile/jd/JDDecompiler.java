@@ -25,9 +25,19 @@ import jd.core.process.writer.ClassFileWriter;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.*;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.COUNT_INDENT_SPACES_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.MERGE_EMPTY_LINES_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.REALIGNMENT_LINE_NUMBER_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.SHOW_DEFAULT_CONSTRUCTOR_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.SHOW_LINE_NUMBERS_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.SHOW_PREFIX_THIS_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.UNICODE_ESCAPE_KEY;
 
 /**
  * Adapter of JD decompiler for {@link Decompiler} API
@@ -66,14 +76,13 @@ public final class JDDecompiler implements Decompiler {
                 CommonPreferences preferences = getCommonPreferences();
                 JDPrinter jdPrinter = new JDPrinter();
                 Printer printer = new InstructionPrinter(new PlainTextPrinter(preferences, jdPrinter));
-                ArrayList<LayoutBlock> layoutBlockList = new ArrayList<>();
+                ArrayList<LayoutBlock> list = new ArrayList<>();
 
-                int maxLineNumber = ClassFileLayouter.Layout(preferences, referenceMap, classFile, layoutBlockList);
+                int maxLineNumber = ClassFileLayouter.Layout(preferences, referenceMap, classFile, list);
                 int minorVersion = classFile.getMinorVersion();
                 int majorVersion = classFile.getMajorVersion();
 
-                ClassFileWriter.Write(loader, printer, referenceMap, maxLineNumber,
-                        majorVersion, minorVersion, layoutBlockList);
+                ClassFileWriter.Write(loader, printer, referenceMap, maxLineNumber, majorVersion, minorVersion, list);
 
                 return jdPrinter.getSource();
             } catch (ClassFormatException | NullPointerException | StringIndexOutOfBoundsException exception) {
@@ -83,14 +92,19 @@ public final class JDDecompiler implements Decompiler {
             } catch (Throwable throwable) {
                 throw new DecompilationException("Some shit happens with JD decompiler!", throwable);
             }
+        } else {
+            throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
         }
 
-        throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
     }
 
     @Override
     public void setConfigurationManager(ConfigurationManager configurationManager) {
-        this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
+        if (configurationManager != null) {
+            this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
+        } else {
+            throw new NullPointerException("Configuration manager is can't be a null!");
+        }
     }
 
     /**
@@ -179,103 +193,6 @@ public final class JDDecompiler implements Decompiler {
                 .displayLineNumbers(false)
                 .setCountIndentSpaces(4)
                 .getConfiguration();
-    }
-
-    /**
-     * Class provides functionality for correcting decompile code to Java convention standard
-     */
-    private static class StringUtils {
-
-        /**
-         * Process of normalize open block condition and condition it to
-         * egyptian standard
-         * For example
-         * <code>
-         * code {
-         * }
-         * </code>
-         *
-         * @param builder any builder instance
-         * @return normalized string
-         */
-        public static String normalizeOpenBlockCharacter(StringBuilder builder) {
-            int index = 1;
-            while (index != 0) {
-                int openBlock = builder.indexOf("{", index);
-                int nonSpace = getFirstLeftNonCharNumber(builder, ' ', openBlock);
-                if (nonSpace != -1 && builder.charAt(nonSpace) == '\n') {
-                    builder.delete(nonSpace, openBlock);
-                    builder.insert(nonSpace, ' ');
-                    index = openBlock;
-                } else {
-                    index = openBlock + 1;
-                }
-            }
-
-            return builder.toString();
-        }
-
-        /**
-         * Obtains index of first left non select character from right side
-         *
-         * @param builder   any string builder instance
-         * @param character select character
-         * @return index of first left condition
-         */
-        public static int getFirstLeftNonCharNumber(StringBuilder builder, char character) {
-            return getFirstLeftNonCharNumber(builder, character, builder.length());
-        }
-
-        /**
-         * Obtains index of first left non select character from select index
-         *
-         * @param line      any string builder instance
-         * @param character select character
-         * @param number    index from start search
-         * @return index of first left condition
-         */
-        public static int getFirstLeftNonCharNumber(StringBuilder line, char character, int number) {
-            for (int i = number - 1; i > 0; i--) {
-                if (line.charAt(i) != character) {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        /**
-         * Checks contains char in any {@link CharSequence} object
-         *
-         * @param charSequence any char sequence
-         * @param character    any character
-         * @return true if character constrains in char sequence
-         */
-        public static boolean contains(CharSequence charSequence, char character) {
-            int index = charSequence.length() - 1;
-            for (int i = 0; i < index; i++) {
-                if (charSequence.charAt(index) == character) {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /**
-         * Obtains first left index of line separator
-         *
-         * @param builder any string builder
-         * @return first left index
-         */
-        public static int getNumberLeftOfLineSeparator(StringBuilder builder) {
-            int index = builder.length() - 1;
-            while (builder.charAt(index) != '\n') {
-                index--;
-            }
-
-            return index + 1;
-        }
     }
 
     /**
