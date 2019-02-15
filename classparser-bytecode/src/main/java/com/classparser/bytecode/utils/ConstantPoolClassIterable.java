@@ -169,9 +169,23 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          * @return constant pool instance
          */
         private ConstantPool getJ9ConstantPool(Class<?> clazz) {
-            Class<?> access = Reflection.forName("java.lang.Access");
+            Class<?> access = loadAccessClass();
             Method constantPoolMethod = Reflection.getMethod(access, "getConstantPool", Object.class);
             return (ConstantPool) Reflection.invokeStatic(constantPoolMethod, clazz);
+        }
+
+        /**
+         * Tryings load package private Access class for ibm J9 jvm
+         *
+         * @return java.lang.Access class
+         */
+        private Class<?> loadAccessClass() {
+            String className = "java.lang.Access";
+            try {
+                return Class.forName(className);
+            } catch (ClassNotFoundException exception) {
+                throw new ConstantPoolNotSupportedException();
+            }
         }
     }
 

@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>classparser-bytecode</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
 
     <description>
         Module store classes for bytecode decompile parsing mechanism
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.classparser</groupId>
             <artifactId>classparser-core</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
     </dependencies>
 
@@ -86,30 +86,4 @@
             </properties>
         </profile>
     </profiles>
-
-    <!--<build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <finalName>${project.artifactId}-${project.version}-with-decompiler</finalName>
-                    <appendAssemblyId>false</appendAssemblyId>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>-->
 </project>

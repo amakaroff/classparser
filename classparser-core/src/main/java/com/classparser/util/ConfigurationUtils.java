@@ -21,7 +21,7 @@ public class ConfigurationUtils {
     /**
      * Fully, correctly configuration
      */
-    private final Map<String, Object> configuration;
+    private volatile Map<String, Object> configuration;
 
     public ConfigurationUtils(Map<String, Object> defaultConfiguration) {
         this(new HashMap<>(), defaultConfiguration);
@@ -52,10 +52,13 @@ public class ConfigurationUtils {
     public void reloadConfiguration(Configuration newConfiguration) {
         if (newConfiguration != null) {
             Map<String, Object> configurationMap = newConfiguration.getConfiguration();
-            if (configurationMap != null && !configurationMap.isEmpty()) {
-                this.configuration.clear();
-                this.configuration.putAll(configurationMap);
+            if (configurationMap != null) {
+                this.configuration = configurationMap;
+            } else {
+                throw new NullPointerException("Parameters map is can't be a null!");
             }
+        } else {
+            throw new NullPointerException("Configuration instance is can't be a null!");
         }
     }
 
@@ -71,6 +74,7 @@ public class ConfigurationUtils {
      * @throws OptionNotFoundException if option is not defined in basic and default configuration
      */
     public <T> T getConfigOption(String config, Class<T> type) throws OptionNotFoundException {
+        Map<String, Object> configuration = this.configuration;
         Object option = configuration.get(config);
         if (configuration.containsKey(config)) {
             if (isInstance(option, type)) {
