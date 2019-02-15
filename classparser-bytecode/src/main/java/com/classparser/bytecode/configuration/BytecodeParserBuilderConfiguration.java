@@ -59,7 +59,10 @@ public class BytecodeParserBuilderConfiguration {
         public BytecodeParserConfiguration setDirectoryToSaveByteCode(String path) {
             if (path != null) {
                 configuration.put(DIRECTORY_FOR_SAVING_BYTECODE_KEY, path);
+            } else {
+                throw new NullPointerException("Saving directory path is can't be null!");
             }
+
             return this;
         }
 
@@ -67,7 +70,10 @@ public class BytecodeParserBuilderConfiguration {
         public BytecodeParserConfiguration setDecompilerConfiguration(Configuration configuration) {
             if (configuration != null) {
                 this.configuration.put(DECOMPILER_CONFIGURATION_KEY, configuration);
+            } else {
+                throw new NullPointerException("Configuration is can't be a null!");
             }
+
             return this;
         }
 
@@ -75,6 +81,8 @@ public class BytecodeParserBuilderConfiguration {
         public BytecodeParserConfiguration setDecompiler(Decompiler decompiler) {
             if (decompiler != null) {
                 configuration.put(DECOMPILER_KEY, decompiler);
+            } else {
+                throw new NullPointerException("Decompiler is can't be a null!");
             }
             return this;
         }
@@ -107,7 +115,10 @@ public class BytecodeParserBuilderConfiguration {
         public BytecodeParserConfiguration setAgentClass(JavaAgent agent) {
             if (agent != null) {
                 configuration.put(AGENT_KEY, agent);
+            } else {
+                throw new NullPointerException("Java Agent is can't be a null!");
             }
+
             return this;
         }
 
@@ -115,7 +126,10 @@ public class BytecodeParserBuilderConfiguration {
         public BytecodeParserConfiguration setToolsJarPath(String path) {
             if (path != null) {
                 configuration.put(TOOLS_JAR_PATH_KEY, path);
+            } else {
+                throw new NullPointerException("Tools jar path is can't be a null!");
             }
+
             return this;
         }
     }

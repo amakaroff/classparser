@@ -29,10 +29,17 @@ public class InnerClassesCollector {
     public Collection<Class<?>> getInnerClasses(Class<?> clazz) {
         Set<Class<?>> classes = new HashSet<>();
 
-        if (clazz != null && !clazz.isArray() && !clazz.isPrimitive()) {
-            classes.addAll(getAnonymousOrSyntheticClasses(clazz));
-            classes.addAll(getInnerAndNestedClasses(clazz));
-            classes.addAll(getLocalClasses(clazz));
+        if (clazz != null) {
+            if (!clazz.isArray() && !clazz.isPrimitive()) {
+                classes.addAll(getAnonymousOrSyntheticClasses(clazz));
+                classes.addAll(getInnerAndNestedClasses(clazz));
+                classes.addAll(getLocalClasses(clazz));
+            } else {
+                String simpleName = ClassNameConverter.toJavaClassSimpleName(clazz);
+                throw new IllegalArgumentException("Class " + simpleName + " can't be primitive or array!");
+            }
+        } else {
+            throw new NullPointerException("Class can't be a null!");
         }
 
         return classes;
