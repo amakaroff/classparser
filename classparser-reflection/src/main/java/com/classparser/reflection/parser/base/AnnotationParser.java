@@ -323,8 +323,8 @@ public class AnnotationParser {
             if (!value.getClass().isArray()) {
                 return value.equals(defaultValue);
             } else {
-                Object[] arrayValue = getValueParser().getArrayValues(value);
-                Object[] arrayDefaultValue = getValueParser().getArrayValues(defaultValue);
+                Object[] arrayValue = getValueParser().toObjectArray(value);
+                Object[] arrayDefaultValue = getValueParser().toObjectArray(defaultValue);
                 return Arrays.deepEquals(arrayValue, arrayDefaultValue);
             }
         }

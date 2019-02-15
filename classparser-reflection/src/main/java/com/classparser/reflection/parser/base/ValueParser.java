@@ -61,7 +61,7 @@ public class ValueParser {
                 Class<?> componentArrayType = getComponentArrayType(clazz);
                 if (isSupportedComponentType(componentArrayType)) {
                     List<String> listValues = new ArrayList<>();
-                    for (Object listValue : getArrayValues(object)) {
+                    for (Object listValue : toObjectArray(object)) {
                         listValues.add(getValue(listValue));
                     }
 
@@ -88,9 +88,10 @@ public class ValueParser {
             } else if (object instanceof Class) {
                 return genericTypeParser.parseType((Class) object) + ".class";
             } else if (object instanceof Annotation) {
-                Class<? extends Annotation> annotationType = ((Annotation) object).annotationType();
+                Annotation annotation = (Annotation) object;
+                Class<? extends Annotation> annotationType = annotation.annotationType();
                 if (annotationType != null && annotationType.isAnnotation()) {
-                    return annotationParser.parseAnnotation((Annotation) object);
+                    return annotationParser.parseAnnotation(annotation);
                 }
             }
 
@@ -133,7 +134,7 @@ public class ValueParser {
      * @param object any object
      * @return array or empty array if object is not array
      */
-    public Object[] getArrayValues(Object object) {
+    public Object[] toObjectArray(Object object) {
         if (object != null && object.getClass().isArray()) {
             int length = Array.getLength(object);
             Object[] objects = new Object[length];
