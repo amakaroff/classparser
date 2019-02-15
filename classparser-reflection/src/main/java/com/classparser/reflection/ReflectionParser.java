@@ -4,6 +4,7 @@ import com.classparser.api.ClassParser;
 import com.classparser.configuration.Configuration;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.configuration.ReflectionParserManager;
+import com.classparser.reflection.configuration.api.Clearance;
 import com.classparser.reflection.exception.ReflectionParserException;
 import com.classparser.reflection.parser.ClassTypeParser;
 import com.classparser.reflection.parser.InheritanceParser;
@@ -68,6 +69,8 @@ public class ReflectionParser implements ClassParser {
 
     private final ConfigurationManager configurationManager;
 
+    private final List<Clearance> clearances;
+
     public ReflectionParser() {
         manager = new ReflectionParserManager();
         configurationManager = manager.getConfigurationManager();
@@ -77,11 +80,10 @@ public class ReflectionParser implements ClassParser {
         classesParser = new ClassesParser(this, manager);
         importParser = new ImportParser(manager);
         classNameParser = new ClassNameParser(importParser, manager);
-        genericTypeParser = new GenericTypeParser(classNameParser, manager);
-        annotationParser = new AnnotationParser(indentParser, genericTypeParser, manager, modifierParser);
+        annotationParser = new AnnotationParser(indentParser, manager, modifierParser, classNameParser);
+        genericTypeParser = new GenericTypeParser(classNameParser, annotationParser, manager);
         ValueParser valueParser = new ValueParser(genericTypeParser, annotationParser, manager);
         annotationParser.setValueParser(valueParser);
-        genericTypeParser.setAnnotationParser(annotationParser);
         blockParser = new BlockParser(indentParser, manager);
         inheritanceParser = new InheritanceParser(genericTypeParser, manager);
         packageParser = new PackageParser(annotationParser, manager);
@@ -93,6 +95,11 @@ public class ReflectionParser implements ClassParser {
                 indentParser, exceptionParser, classNameParser, valueParser);
         fieldParser = new FieldParser(manager, annotationParser, indentParser, modifierParser, genericTypeParser,
                 classNameParser, valueParser);
+
+        clearances = new ArrayList<>();
+        clearances.add(manager);
+        clearances.add(importParser);
+        clearances.add(classNameParser);
     }
 
     @Override
@@ -123,12 +130,12 @@ public class ReflectionParser implements ClassParser {
      * @param clazz class to be parsed
      */
     private void setUp(Class<?> clazz) {
+        manager.setCurrentParsedClass(clazz);
+
         if (manager.getBaseParsedClass() == null) {
             manager.setBaseParsedClass(clazz);
             importParser.initBeforeParsing();
         }
-
-        manager.setCurrentParsedClass(clazz);
     }
 
     /**
@@ -137,9 +144,8 @@ public class ReflectionParser implements ClassParser {
      * @param clazz parsed class
      */
     private void tearDown(Class<?> clazz) {
-        if (clazz.equals(manager.getBaseParsedClass())) {
-            manager.clearState();
-            importParser.tearDownAfterParsing();
+        if (clazz == manager.getBaseParsedClass()) {
+            clearances.forEach(Clearance::clear);
         }
 
         manager.popCurrentClass();
@@ -152,7 +158,7 @@ public class ReflectionParser implements ClassParser {
      * @return parsed import section or empty string if {@link ConfigurationManager#isEnabledImports()} disable
      */
     private String getImports(Class<?> clazz) {
-        if (clazz.equals(manager.getBaseParsedClass()) && configurationManager.isEnabledImports()) {
+        if (clazz == manager.getBaseParsedClass() && configurationManager.isEnabledImports()) {
             return importParser.getImports();
         }
 
@@ -167,7 +173,7 @@ public class ReflectionParser implements ClassParser {
      * @return parsed signature of class
      */
     private String getClassSignature(Class<?> clazz) {
-        String annotations = annotationParser.parseAnnotationsAsBlock(clazz);
+        String annotations = annotationParser.parseAnnotationsAsBlockAboveClass(clazz);
         String indent = indentParser.getIndent(clazz);
         String modifiers = modifierParser.parseModifiers(clazz);
         String name = classNameParser.parseTypeName(clazz);

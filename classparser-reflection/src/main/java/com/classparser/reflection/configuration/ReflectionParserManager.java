@@ -1,5 +1,7 @@
 package com.classparser.reflection.configuration;
 
+import com.classparser.reflection.configuration.api.Clearance;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,7 +12,7 @@ import java.util.stream.Collectors;
  * @author Aleksey Makarov
  * @since 1.0.0
  */
-public final class ReflectionParserManager {
+public final class ReflectionParserManager implements Clearance {
 
     private final ThreadLocal<ClassContextContainer> contextContainerThreadLocal;
 
@@ -79,7 +81,8 @@ public final class ReflectionParserManager {
     /**
      * Clears state for current parsed context
      */
-    public void clearState() {
+    @Override
+    public void clear() {
         contextContainerThreadLocal.remove();
     }
 

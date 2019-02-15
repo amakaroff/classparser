@@ -2,8 +2,11 @@ package com.classparser.reflection.parser.imports;
 
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.configuration.ReflectionParserManager;
+import com.classparser.reflection.configuration.api.Clearance;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -15,11 +18,11 @@ import java.util.TreeSet;
  * @author Aleksey Makarov
  * @since 1.0.0
  */
-public final class ImportParser {
+public final class ImportParser implements Clearance {
 
     private static final String DEFAULT_JAVA_PACKAGE = "java.lang";
 
-    private final ThreadLocal<Set<Class<?>>> threadLocalClassesForImport;
+    private final ThreadLocal<ContextContainer> threadLocalClassesForImport;
 
     private final ReflectionParserManager manager;
 
@@ -28,8 +31,7 @@ public final class ImportParser {
     public ImportParser(ReflectionParserManager manager) {
         this.manager = manager;
         this.configurationManager = manager.getConfigurationManager();
-        this.threadLocalClassesForImport = ThreadLocal.withInitial(HashSet::new);
-        this.threadLocalClassesForImport.set(getImportClasses());
+        this.threadLocalClassesForImport = ThreadLocal.withInitial(ContextContainer::new);
     }
 
     /**
@@ -38,7 +40,7 @@ public final class ImportParser {
      * @return import classes storage
      */
     private Set<Class<?>> getImportClasses() {
-        return threadLocalClassesForImport.get();
+        return threadLocalClassesForImport.get().getClasses();
     }
 
     /**
@@ -46,7 +48,10 @@ public final class ImportParser {
      */
     public void initBeforeParsing() {
         if (manager.getBaseParsedClass() == manager.getCurrentParsedClass()) {
-            getImportClasses().addAll(getAllInnerAndNestedClasses(manager.getBaseParsedClass()));
+            ContextContainer contextContainer = threadLocalClassesForImport.get();
+            for (Class<?> clazz : getAllInnerAndNestedClasses(manager.getBaseParsedClass())) {
+                contextContainer.addClass(clazz);
+            }
         }
     }
 
@@ -73,14 +78,15 @@ public final class ImportParser {
      * @param classForImport any class contains in meta information of based parsed class
      * @return true if class added to import section
      */
-    public boolean addToImportSection(Class<?> classForImport) {
+    public boolean isCanUseSimpleName(Class<?> classForImport) {
         if (manager.getBaseParsedClass() != null) {
             classForImport = resolveClass(classForImport);
 
-            if (!configurationManager.isEnabledImports() || isNeedFullName(classForImport)) {
+            ContextContainer contextContainer = threadLocalClassesForImport.get();
+            if (!configurationManager.isEnabledImports() || isNeedFullName(classForImport, contextContainer)) {
                 return false;
             } else {
-                getImportClasses().add(classForImport);
+                contextContainer.addClass(classForImport);
                 return true;
             }
         }
@@ -109,7 +115,8 @@ public final class ImportParser {
     /**
      * Clear current import context
      */
-    public void tearDownAfterParsing() {
+    @Override
+    public void clear() {
         this.threadLocalClassesForImport.remove();
     }
 
@@ -119,10 +126,10 @@ public final class ImportParser {
      * @param classForImport any class
      * @return true if for class necessary full name displayed
      */
-    private boolean isNeedFullName(Class<?> classForImport) {
+    private boolean isNeedFullName(Class<?> classForImport, ContextContainer contextContainer) {
         Set<Class<?>> classes = getImportClasses();
         for (Class<?> clazz : classes) {
-            if (areEqualBySimpleName(clazz, classForImport) && !areEqualByName(clazz, classForImport)) {
+            if (areEqualBySimpleName(clazz, classForImport, contextContainer) && !areEqualByName(clazz, classForImport)) {
                 return !classes.contains(classForImport);
             }
         }
@@ -170,8 +177,8 @@ public final class ImportParser {
      * @param target other class
      * @return true if simple name of classes is equal
      */
-    private boolean areEqualBySimpleName(Class<?> source, Class<?> target) {
-        return getSimpleName(source).equals(getSimpleName(target));
+    private boolean areEqualBySimpleName(Class<?> source, Class<?> target, ContextContainer contextContainer) {
+        return contextContainer.getSimpleName(source).equals(contextContainer.getSimpleName(target));
     }
 
     /**
@@ -212,20 +219,52 @@ public final class ImportParser {
         return clazz.isMemberClass() ? resolveMemberClass(clazz.getEnclosingClass()) : clazz;
     }
 
-    /**
-     * Obtains simple name of class
-     *
-     * @param clazz any class
-     * @return class simple name
-     */
-    public String getSimpleName(Class<?> clazz) {
-        String typeName = clazz.getSimpleName();
-        if (typeName.isEmpty()) {
-            typeName = clazz.getName();
-            if (typeName.contains(".")) {
-                typeName = typeName.substring(typeName.lastIndexOf('.') + 1);
-            }
+
+    private static class ContextContainer {
+
+        private final Map<Class<?>, String> simpleNameCache;
+
+        private final Set<Class<?>> classes;
+
+        private ContextContainer() {
+            this.simpleNameCache = new HashMap<>();
+            this.classes = new HashSet<>();
         }
-        return typeName;
+
+        private String getSimpleName(Class<?> clazz) {
+            String simpleName = simpleNameCache.get(clazz);
+            if (simpleName == null) {
+                simpleName = parseSimpleName(clazz);
+                simpleNameCache.put(clazz, simpleName);
+            }
+
+            return simpleName;
+        }
+
+        /**
+         * Obtains simple name of class
+         *
+         * @param clazz any class
+         * @return class simple name
+         */
+        private String parseSimpleName(Class<?> clazz) {
+            String typeName = clazz.getSimpleName();
+            if (typeName.isEmpty()) {
+                typeName = clazz.getName();
+                int pointLastIndex = typeName.lastIndexOf('.');
+                if (pointLastIndex != -1) {
+                    typeName = typeName.substring(pointLastIndex + 1);
+                }
+            }
+            return typeName;
+        }
+
+        private void addClass(Class<?> clazz) {
+            classes.add(clazz);
+        }
+
+        private Set<Class<?>> getClasses() {
+            return classes;
+        }
     }
 }
