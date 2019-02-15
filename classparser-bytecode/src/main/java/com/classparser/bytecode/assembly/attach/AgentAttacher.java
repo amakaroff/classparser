@@ -2,11 +2,9 @@ package com.classparser.bytecode.assembly.attach;
 
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.exception.ByteCodeParserException;
-import com.classparser.util.Reflection;
 import com.sun.tools.attach.VirtualMachine;
 
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -128,41 +126,21 @@ public class AgentAttacher {
         Path toolsPath = getToolsPath();
         if (toolsPath != null) {
             try {
-                Class<?> virtualMachineClass = getToolsJarClassLoader(toolsPath).loadClass(VIRTUAL_MACHINE_CLASS_NAME);
-                attachUsesDynamicallyTools(virtualMachineClass, agentPath, parameters);
+                ClassLoader toolsJarClassLoader = getToolsJarClassLoader(toolsPath);
+                ClassLoader classLoader = getClass().getClassLoader();
+
+                Thread thread = Thread.currentThread();
+                try {
+                    thread.setContextClassLoader(toolsJarClassLoader);
+                    attachUsesToolJar(agentPath, parameters);
+                } finally {
+                    thread.setContextClassLoader(classLoader);
+                }
             } catch (MalformedURLException exception) {
                 throw new ByteCodeParserException("Can't resolve url path to tools jar!", exception);
-            } catch (ClassNotFoundException exception) {
-                throw new ByteCodeParserException("Can't find class: " + VIRTUAL_MACHINE_CLASS_NAME + " in tools jar!",
-                        exception);
             }
         } else {
             throw new ByteCodeParserException("Can't find tools.jar for attach java agent!");
-        }
-    }
-
-    /**
-     * Dynamics attach java agent to JVM uses founded tools.jar
-     *
-     * @param virtualMachineClass virtual machine class
-     * @param agentPath           path to agent jar
-     * @param parameters          agent attach parameters
-     */
-    private void attachUsesDynamicallyTools(Class<?> virtualMachineClass, String agentPath, String parameters) {
-        Method attachMethod = Reflection.getMethod(virtualMachineClass, "attach", String.class);
-        Method loadAgentMethod = Reflection.getMethod(virtualMachineClass, "loadAgent", String.class, String.class);
-        Method detachMethod = Reflection.getMethod(virtualMachineClass, "detach");
-
-        String currentJVMProcessID = getCurrentJVMProcessID();
-        try {
-            Object virtualMachineInstance = Reflection.invokeStatic(attachMethod, currentJVMProcessID);
-            try {
-                Reflection.invoke(loadAgentMethod, virtualMachineInstance, agentPath, parameters);
-            } finally {
-                Reflection.invoke(detachMethod, virtualMachineInstance);
-            }
-        } catch (Exception exception) {
-            throw new ByteCodeParserException("Can't attach java agent to JVM process!", exception);
         }
     }
 

@@ -65,6 +65,8 @@ public final class AgentBuilder {
         public AgentJarBuilder addAgentName(String agentName) {
             if (agentName != null) {
                 this.agentName = appendJarSuffixIfNeeded(agentName);
+            } else {
+                throw new NullPointerException("Agent name is can't be a null!");
             }
 
             return this;
@@ -74,6 +76,8 @@ public final class AgentBuilder {
         public AgentJarBuilder addAgentDirLocation(String dirLocation) {
             if (dirLocation != null) {
                 this.agentDirLocation = dirLocation;
+            } else {
+                throw new NullPointerException("Agent dir location is can't be a null!");
             }
 
             return this;
@@ -83,6 +87,8 @@ public final class AgentBuilder {
         public AgentJarBuilder addClasses(Class<?>... attachedClasses) {
             if (attachedClasses != null) {
                 this.attachedClasses.addAll(Arrays.asList(attachedClasses));
+            } else {
+                throw new NullPointerException("Attached classes is can't be a null!");
             }
 
             return this;
@@ -92,6 +98,8 @@ public final class AgentBuilder {
         public AgentJarBuilder addManifest(Manifest manifest) {
             if (manifest != null) {
                 this.manifest = manifest;
+            } else {
+                throw new NullPointerException("Manifest is can't be a null!");
             }
 
             return this;
