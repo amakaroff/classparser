@@ -31,7 +31,7 @@ import static com.classparser.bytecode.decompile.procyon.configuration.ProcyonCo
 /**
  * Adapter of Procyon decompiler for {@link Decompiler} API
  * This decompiler was written of Mike Strobel
- * Decompiler version: 0.5.32
+ * Decompiler version: 0.5.32 (Oct, 2015)
  * <p>
  * Procyon decompiler supports java 8 syntax
  *
@@ -77,9 +77,9 @@ public final class ProcyonDecompiler implements Decompiler {
             settings.getLanguage().decompileType(resolvedType, output, options);
 
             return output.toString();
+        } else {
+            throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
         }
-
-        throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
     }
 
     /**
@@ -169,9 +169,11 @@ public final class ProcyonDecompiler implements Decompiler {
 
     @Override
     public void setConfigurationManager(ConfigurationManager configurationManager) {
-        this.configurationManager = configurationManager;
         if (configurationManager != null) {
+            this.configurationManager = configurationManager;
             this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
+        } else {
+            throw new NullPointerException("Configuration manager is can't be a null!");
         }
     }
 
@@ -196,7 +198,7 @@ public final class ProcyonDecompiler implements Decompiler {
          * @param outerClassName name of main decompiled class
          * @param bytecodeMap    map of all inner classes for outer class
          */
-        public ProcyonTypeLoader(String outerClassName, Map<String, byte[]> bytecodeMap) {
+        ProcyonTypeLoader(String outerClassName, Map<String, byte[]> bytecodeMap) {
             this.outerClassName = outerClassName;
             this.bytecodeMap = bytecodeMap;
             this.isLoadReferenceOnClass = utils.getConfigOption(UPLOAD_CLASS_REFERENCE_KEY, Boolean.class);
