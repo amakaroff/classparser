@@ -4,9 +4,14 @@ import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.decompile.javap.configuration.JavaPrinterBuilderConfiguration;
 import com.classparser.bytecode.decompile.javap.configuration.JavaPrinterConfiguration;
+import com.classparser.bytecode.exception.DecompilationException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
-import com.sun.tools.javap.*;
+import com.sun.tools.javap.Context;
+import com.sun.tools.javap.InstructionDetailWriter;
+import com.sun.tools.javap.JavapTask;
+import com.sun.tools.javap.Messages;
+import com.sun.tools.javap.Options;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
@@ -50,31 +55,35 @@ public final class JavaPrinterDisassembler implements Decompiler {
 
     @Override
     public String decompile(byte[] bytecode, Collection<byte[]> classes) {
-        Map<String, byte[]> bytecodeMap = new HashMap<>();
-        String className = ClassNameConverter.getClassName(bytecode);
-        bytecodeMap.put(className, bytecode);
-        for (byte[] innerClassByteCode : classes) {
-            bytecodeMap.put(ClassNameConverter.getClassName(innerClassByteCode), innerClassByteCode);
+        if (bytecode != null && classes != null) {
+            Map<String, byte[]> bytecodeMap = new HashMap<>();
+            String className = ClassNameConverter.getClassName(bytecode);
+            bytecodeMap.put(className, bytecode);
+            for (byte[] innerClassByteCode : classes) {
+                bytecodeMap.put(ClassNameConverter.getClassName(innerClassByteCode), innerClassByteCode);
+            }
+
+            List<String> classesList = new ArrayList<>();
+            classesList.add(className);
+
+            Context context = new Context();
+            context.put(Messages.class, new JavaPrinterMessages());
+            context.put(Options.class, prepareAndGetOptions(context));
+
+            List<String> options = new ArrayList<>();
+            if (!classes.isEmpty()) {
+                options.add("-XDinner");
+            }
+
+            StringPrintWriter stringPrintWriter = new StringPrintWriter();
+            JavapTask task = new BytecodeJavaPrinterTask(stringPrintWriter, options, classesList, bytecodeMap, context);
+
+            task.run();
+
+            return stringPrintWriter.getDisassembledCode();
+        } else {
+            throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
         }
-
-        List<String> classesList = new ArrayList<>();
-        classesList.add(className);
-
-        Context context = new Context();
-        context.put(Messages.class, new JavaPrinterMessages());
-        context.put(Options.class, prepareAndGetOptions(context));
-
-        List<String> options = new ArrayList<>();
-        if (!classes.isEmpty()) {
-            options.add("-XDinner");
-        }
-
-        StringPrintWriter stringPrintWriter = new StringPrintWriter();
-        JavapTask task = new BytecodeJavaPrinterTask(stringPrintWriter, options, classesList, bytecodeMap, context);
-
-        task.run();
-
-        return stringPrintWriter.getDisassembledCode();
     }
 
     /**
@@ -114,7 +123,11 @@ public final class JavaPrinterDisassembler implements Decompiler {
 
     @Override
     public void setConfigurationManager(ConfigurationManager configurationManager) {
-        this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
+        if (configurationManager != null) {
+            this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
+        } else {
+            throw new NullPointerException("Configuration manager is can't be a null!");
+        }
     }
 
     /**
@@ -233,7 +246,7 @@ public final class JavaPrinterDisassembler implements Decompiler {
 
         @Override
         public void println(Object obj) {
-            stringBuilder.append(String.valueOf(obj)).append("\n");
+            stringBuilder.append(obj).append("\n");
         }
 
         /**

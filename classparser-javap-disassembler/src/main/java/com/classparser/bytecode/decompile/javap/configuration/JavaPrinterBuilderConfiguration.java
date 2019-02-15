@@ -76,6 +76,8 @@ public class JavaPrinterBuilderConfiguration {
             if (accessModifier != null) {
                 Set<AccessModifier> accessModifiers = getOrCreateSetByKey(DISPLAY_MODIFIER_ACCESSOR_KEY);
                 accessModifiers.add(accessModifier);
+            } else {
+                throw new NullPointerException("Access modifier is can't be a null!");
             }
 
             return this;
@@ -86,6 +88,7 @@ public class JavaPrinterBuilderConfiguration {
             if (count > 0) {
                 configuration.put(INDENT_COUNT_SPACES_KEY, count);
             }
+
             return this;
         }
 
@@ -100,6 +103,8 @@ public class JavaPrinterBuilderConfiguration {
             if (kind != null) {
                 Set<InstructionDetailWriter.Kind> kinds = getOrCreateSetByKey(APPEND_DISPLAY_DETAILS_KEY);
                 kinds.add(kind);
+            } else {
+                throw new NullPointerException("Kind is can't be a null!");
             }
 
             return this;
