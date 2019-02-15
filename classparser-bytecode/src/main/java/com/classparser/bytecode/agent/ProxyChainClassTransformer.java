@@ -52,10 +52,12 @@ final class ProxyChainClassTransformer implements ClassFileTransformer {
         if (defaultJavaAgent.isCurrentAgentUsed()) {
             byte[] currentBytecode = bytecode;
             for (ClassFileTransformerWrapper classFileTransformer : transformersQueue) {
-                byte[] transformedBytecode = classFileTransformer.transform(loader, className,
-                        classBeingRedefined, protectionDomain, currentBytecode);
-                if (transformedBytecode != null && classFileTransformer.isCanRetransformClasses()) {
-                    currentBytecode = transformedBytecode;
+                if (classFileTransformer.isCanRetransformClasses()) {
+                    byte[] transformedBytecode = classFileTransformer.transform(loader, className,
+                            classBeingRedefined, protectionDomain, currentBytecode);
+                    if (transformedBytecode != null) {
+                        currentBytecode = transformedBytecode;
+                    }
                 }
             }
 

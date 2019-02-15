@@ -161,12 +161,12 @@ public final class DefaultJavaAgent implements JavaAgent {
      */
     private Instrumentation createProxyInstrumentation() {
         Supplier<Instrumentation> supplier = () -> instrumentation;
-        InvocationHandler invocationHandler = new InstrumentationInvocationHandler(this, supplier, proxyTransformer);
+        InvocationHandler handler = new InstrumentationInvocationHandler(this, supplier, proxyTransformer);
 
         ClassLoader classLoader = getClass().getClassLoader();
         Class[] classes = {Instrumentation.class};
 
-        return (Instrumentation) Proxy.newProxyInstance(classLoader, classes, invocationHandler);
+        return (Instrumentation) Proxy.newProxyInstance(classLoader, classes, handler);
     }
 
     //Package private section uses for proxy instrumentation access

@@ -42,6 +42,11 @@ final class ClassFileTransformerWrapper implements ClassFileTransformer {
     }
 
     @Override
+    public int hashCode() {
+        return classFileTransformer.hashCode();
+    }
+
+    @Override
     public boolean equals(Object object) {
         if (object != null && object.getClass() == getClass()) {
             ClassFileTransformerWrapper transformerWrapper = (ClassFileTransformerWrapper) object;

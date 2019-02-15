@@ -67,11 +67,12 @@ final class InstrumentationInvocationHandler implements InvocationHandler {
      * @throws Exception if method throws any exceptions
      */
     private Object retransformClasses(Method method, Object[] args) throws Exception {
-        defaultJavaAgent.startRetransform();
-        Object returnValue = method.invoke(instrumentationSupplier.get(), args);
-        defaultJavaAgent.finishRetransform();
-
-        return returnValue;
+        try {
+            defaultJavaAgent.startRetransform();
+            return method.invoke(instrumentationSupplier.get(), args);
+        } finally {
+            defaultJavaAgent.finishRetransform();
+        }
     }
 
     /**
