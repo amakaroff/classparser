@@ -2,10 +2,10 @@ package com.classparser.bytecode.decompile.cfr;
 
 import com.classparser.bytecode.api.BytecodeCollector;
 import com.classparser.bytecode.api.Decompiler;
-import com.classparser.bytecode.decompile.cfr.configuration.CFRBuilderConfiguration;
-import com.classparser.bytecode.exception.DecompilationException;
 import com.classparser.bytecode.collector.ChainBytecodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
+import com.classparser.bytecode.decompile.cfr.configuration.CFRBuilderConfiguration;
+import com.classparser.bytecode.exception.DecompilationException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
 import org.benf.cfr.reader.api.ClassFileSource;
@@ -81,9 +81,9 @@ public final class CFRDecompiler implements Decompiler {
             classFile.dump(dumper);
 
             return dumper.toString();
+        } else {
+            throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
         }
-
-        throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
     }
 
     /**
@@ -196,8 +196,12 @@ public final class CFRDecompiler implements Decompiler {
 
     @Override
     public void setConfigurationManager(ConfigurationManager configurationManager) {
-        this.configurationManager = configurationManager;
-        this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
+        if (configurationManager != null) {
+            this.configurationManager = configurationManager;
+            this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
+        } else {
+            throw new NullPointerException("Configuration manager is can't be a null!");
+        }
     }
 
     /**
@@ -308,8 +312,8 @@ public final class CFRDecompiler implements Decompiler {
          * @param bytecode        bytecode of based decompile class
          * @param innerClasses    collection of all inner classes
          */
-         CFRDCCommonState(Options options, ClassFileSource classFileSource,
-                                 byte[] bytecode, Collection<byte[]> innerClasses) {
+        CFRDCCommonState(Options options, ClassFileSource classFileSource,
+                         byte[] bytecode, Collection<byte[]> innerClasses) {
             super(options, classFileSource);
             this.outerClassName = ClassNameConverter.toJavaClassName(bytecode);
             this.codeCollector = new ChainBytecodeCollector(configurationManager);
