@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public final class FernflowerDecompiler implements Decompiler {
 
-    private final Map<String, Object> configurationMap;
+    private volatile Map<String, Object> configurationMap;
 
     public FernflowerDecompiler() {
         this.configurationMap = getDefaultConfiguration();
@@ -40,7 +40,7 @@ public final class FernflowerDecompiler implements Decompiler {
     @Override
     public String decompile(byte[] bytecode, Collection<byte[]> classes) {
         if (bytecode != null && classes != null) {
-            IResultSaver decompiledCodeSaver = new ConsoleDecompiler(null,  null);
+            IResultSaver decompiledCodeSaver = new ConsoleDecompiler(null, null);
             IFernflowerLogger logger = new PrintStreamLogger(System.out);
 
             Fernflower fernflower = new Fernflower(null, decompiledCodeSaver, configurationMap, logger);
@@ -52,9 +52,9 @@ public final class FernflowerDecompiler implements Decompiler {
             }
 
             return decompile(fernflower, mainStructClass);
+        } else {
+            throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
         }
-
-        throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
     }
 
     /**
@@ -150,12 +150,18 @@ public final class FernflowerDecompiler implements Decompiler {
             Configuration configuration = configurationManager.getCustomDecompilerConfiguration();
             if (configuration != null) {
                 Map<String, Object> configurationMap = configuration.getConfiguration();
-                if (configurationMap != null && !configurationMap.isEmpty()) {
+                if (configurationMap != null) {
                     Map<String, Object> currentConfiguration = getDefaultConfiguration();
                     currentConfiguration.putAll(configurationMap);
-                    this.configurationMap.putAll(currentConfiguration);
+                    this.configurationMap = currentConfiguration;
+                } else {
+                    throw new NullPointerException("Configuration Map is can't be null!");
                 }
+            } else {
+                throw new NullPointerException("Decompiler configuration is can't be null!");
             }
+        } else {
+            throw new NullPointerException("Configuration manager is can't be null!");
         }
     }
 }
