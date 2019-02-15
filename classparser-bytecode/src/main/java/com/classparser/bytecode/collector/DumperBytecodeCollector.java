@@ -140,13 +140,13 @@ public class DumperBytecodeCollector implements BytecodeCollector {
     private void checkingDumpingPropertyForEnabling() {
         boolean isMethodHandleDumpEnabled = Boolean.getBoolean(DUMP_MH_PROPERTY);
         if (!isMethodHandleDumpEnabled) {
-            System.err.println("Please add property -D" + DUMP_MH_PROPERTY +
+            System.err.println("Please add property \"-D" + DUMP_MH_PROPERTY + "=true\"" +
                     " for obtaining dump of method handle classes.");
         }
 
         String lambdaDumpPathProperty = System.getProperty(DUMP_LAMBDA_PROPERTY);
         if (lambdaDumpPathProperty == null) {
-            System.err.println("Please add property -D" + DUMP_LAMBDA_PROPERTY +
+            System.err.println("Please add property \"-D" + DUMP_LAMBDA_PROPERTY + "=DUMP_CLASS_FILES\"" +
                     " for obtaining dump of lambda classes.");
         }
     }
