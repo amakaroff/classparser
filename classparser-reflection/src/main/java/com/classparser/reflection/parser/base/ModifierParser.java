@@ -51,6 +51,10 @@ public class ModifierParser {
             modifiers.add("private");
         }
 
+        if (Modifier.isFinal(modifierMask)) {
+            modifiers.add("final");
+        }
+
         if (isSynthetic(modifierMask)) {
             modifiers.add("synthetic");
         }
