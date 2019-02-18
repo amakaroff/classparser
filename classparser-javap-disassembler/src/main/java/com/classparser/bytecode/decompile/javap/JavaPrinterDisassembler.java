@@ -16,11 +16,7 @@ import com.sun.tools.javap.Options;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
-import java.io.ByteArrayInputStream;
-import java.io.CharArrayWriter;
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.Writer;
+import java.io.*;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,9 +42,6 @@ public final class JavaPrinterDisassembler implements Decompiler {
 
     private final ConfigurationUtils utils;
 
-    /**
-     * Default constructor for initialize {@link JavaPrinterDisassembler}
-     */
     public JavaPrinterDisassembler() {
         this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
@@ -240,13 +233,13 @@ public final class JavaPrinterDisassembler implements Decompiler {
          * Default constructor for initialize of {@link StringPrintWriter}
          */
         StringPrintWriter() {
-            super(new CharArrayWriter());
+            super(new StringWriter());
             this.stringBuilder = new StringBuilder();
         }
 
         @Override
-        public void println(Object obj) {
-            stringBuilder.append(obj).append("\n");
+        public void println(Object object) {
+            stringBuilder.append(object).append("\n");
         }
 
         /**

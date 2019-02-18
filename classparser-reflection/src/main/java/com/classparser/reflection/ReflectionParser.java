@@ -5,6 +5,7 @@ import com.classparser.configuration.Configuration;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.reflection.configuration.api.Clearance;
+import com.classparser.reflection.configuration.api.ReflectionParserConfiguration;
 import com.classparser.reflection.exception.ReflectionParserException;
 import com.classparser.reflection.parser.ClassTypeParser;
 import com.classparser.reflection.parser.InheritanceParser;
@@ -141,6 +142,10 @@ public class ReflectionParser implements ClassParser {
 
     @Override
     public void setConfiguration(Configuration configuration) {
-        configurationManager.reloadConfiguration(configuration);
+        if (configuration instanceof ReflectionParserConfiguration) {
+            configurationManager.reloadConfiguration(configuration);
+        } else {
+            throw new ReflectionParserException("Configuration should be type ReflectionParserConfiguration");
+        }
     }
 }

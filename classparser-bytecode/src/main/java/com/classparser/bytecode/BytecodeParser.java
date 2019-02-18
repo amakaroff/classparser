@@ -5,6 +5,7 @@ import com.classparser.bytecode.api.BytecodeCollector;
 import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.collector.ChainBytecodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
+import com.classparser.bytecode.configuration.api.BytecodeParserConfiguration;
 import com.classparser.bytecode.exception.ByteCodeParserException;
 import com.classparser.bytecode.saver.BytecodeFileSaver;
 import com.classparser.bytecode.utils.ClassNameConverter;
@@ -149,7 +150,11 @@ public class BytecodeParser implements ClassParser {
 
     @Override
     public void setConfiguration(Configuration configuration) {
-        configurationManager.reloadConfiguration(configuration);
+        if (configuration instanceof BytecodeParserConfiguration) {
+            configurationManager.reloadConfiguration(configuration);
+        } else {
+            throw new ByteCodeParserException("Configuration should be type BytecodeParserConfiguration");
+        }
     }
 
     private static class VerificationPrintStream extends PrintStream {
