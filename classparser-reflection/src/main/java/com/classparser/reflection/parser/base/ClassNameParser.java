@@ -147,7 +147,7 @@ public class ClassNameParser implements Clearance {
      * Checks if necessary annotation full name for inner class
      *
      * @param declaringClass any class in hierarchy to top class of annotation
-     * @param isAboveClass    is annotation set on class or not
+     * @param isAboveClass   is annotation set on class or not
      * @return true if annotation should have full name
      */
     private boolean isNeedAnnotationNameForInnerClass(Class<?> declaringClass,
@@ -160,9 +160,9 @@ public class ClassNameParser implements Clearance {
     /**
      * Checks is class exists in visibility zone for current parsed class
      * For example:
-     *    Top class
+     * Top class
      * 1 /        \ 2
-     *  /\         /\
+     * /\         /\
      * 3 4         5 6
      * <p>Class 3 in visibility zone for class 1 and not requires full name</p>
      * <p>
@@ -210,11 +210,10 @@ public class ClassNameParser implements Clearance {
      * Checks if annotation in visibility of current zone for displaying full name
      *
      * @param declaringClass any class in hierarchy to top class of annotation
-     * @param isAboveClass    is annotation set on class or not
+     * @param isAboveClass   is annotation set on class or not
      * @return true if annotation in visibility zone and full name is not necessary
      */
-    private boolean isAnnotationVisibilityZone(Class<?> declaringClass,
-                                               boolean isAboveClass) {
+    private boolean isAnnotationVisibilityZone(Class<?> declaringClass, boolean isAboveClass) {
         Class<?> currentClass = manager.getCurrentParsedClass();
 
         if (Arrays.asList(declaringClass.getDeclaredClasses()).contains(currentClass)) {
