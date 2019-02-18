@@ -156,7 +156,7 @@ public class BytecodeParser implements ClassParser {
 
         private final ClassContextCaller caller;
 
-        public VerificationPrintStream(OutputStream out) {
+        VerificationPrintStream(OutputStream out) {
             super(out);
             this.caller = new ClassContextCaller();
         }

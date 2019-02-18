@@ -67,15 +67,17 @@ public class ClassNameParser implements Clearance {
             }
 
             Class<?> declaringClass = annotation.getDeclaringClass();
-            StringBuilder annotationNameBuilder = new StringBuilder(annotationName);
-            do {
-                annotationNameBuilder.insert(0, getSimpleName(declaringClass) + ".");
-                declaringClass = declaringClass.getDeclaringClass();
-            } while (isNeedAnnotationNameForInnerClass(declaringClass, isAboveClass));
+            if (declaringClass != null) {
+                StringBuilder annotationNameBuilder = new StringBuilder(annotationName);
+                do {
+                    annotationNameBuilder.insert(0, getSimpleName(declaringClass) + ".");
+                    declaringClass = declaringClass.getDeclaringClass();
+                } while (declaringClass != null && isNeedAnnotationNameForInnerClass(declaringClass, isAboveClass));
 
-            annotationNameBuilder.insert(0, getSimpleName(declaringClass) + ".");
+                return packageName + annotationNameBuilder.toString();
+            }
 
-            return packageName + annotationNameBuilder.toString();
+            return packageName + annotationName;
         }
 
         return annotationName;
@@ -92,7 +94,7 @@ public class ClassNameParser implements Clearance {
      * @param clazz any class
      * @return parsed simple name of class
      */
-    public String getSimpleName(Class<?> clazz) {
+    String getSimpleName(Class<?> clazz) {
         String typeName = clazz.getSimpleName();
         if (typeName.isEmpty()) {
             typeName = clazz.getName();
@@ -144,23 +146,24 @@ public class ClassNameParser implements Clearance {
     /**
      * Checks if necessary annotation full name for inner class
      *
-     * @param annotationClass any annotation
+     * @param declaringClass any class in hierarchy to top class of annotation
      * @param isAboveClass    is annotation set on class or not
      * @return true if annotation should have full name
      */
-    private boolean isNeedAnnotationNameForInnerClass(Class<?> annotationClass, boolean isAboveClass) {
-        return annotationClass != null &&
-                annotationClass.isMemberClass() &&
-                isIAnnotationVisibilityZone(annotationClass, isAboveClass);
+    private boolean isNeedAnnotationNameForInnerClass(Class<?> declaringClass,
+                                                      boolean isAboveClass) {
+        return declaringClass.isMemberClass() &&
+                !getTopClass(declaringClass).equals(getTopClass(manager.getBaseParsedClass())) ||
+                !isAnnotationVisibilityZone(declaringClass, isAboveClass);
     }
 
     /**
      * Checks is class exists in visibility zone for current parsed class
      * For example:
-     * Top class
+     *    Top class
      * 1 /        \ 2
-     * /\         /\
-     * 3 4        5 6
+     *  /\         /\
+     * 3 4         5 6
      * <p>Class 3 in visibility zone for class 1 and not requires full name</p>
      * <p>
      * Class 4 and 5 in not visibility zone and if we used class 4 in 5 then we should
@@ -206,17 +209,34 @@ public class ClassNameParser implements Clearance {
     /**
      * Checks if annotation in visibility of current zone for displaying full name
      *
-     * @param annotationClass any annotation class
+     * @param declaringClass any class in hierarchy to top class of annotation
      * @param isAboveClass    is annotation set on class or not
      * @return true if annotation in visibility zone and full name is not necessary
      */
-    private boolean isIAnnotationVisibilityZone(Class<?> annotationClass, boolean isAboveClass) {
-        if (getTopClass(annotationClass) == getTopClass(manager.getBaseParsedClass())) {
-            //Holy shit happens
-            //I don't know what i write here
-        }
+    private boolean isAnnotationVisibilityZone(Class<?> declaringClass,
+                                               boolean isAboveClass) {
+        Class<?> currentClass = manager.getCurrentParsedClass();
 
-        return true;
+        if (Arrays.asList(declaringClass.getDeclaredClasses()).contains(currentClass)) {
+            return true;
+        } else {
+            if (declaringClass == currentClass) {
+                if (currentClass.isAnnotation()) {
+                    return true;
+                } else {
+                    return !isAboveClass;
+                }
+            } else {
+                Class<?> outerClass = declaringClass.getDeclaringClass();
+                if (outerClass != null) {
+                    if (Arrays.asList(outerClass.getDeclaredClasses()).contains(currentClass)) {
+                        return !isAboveClass;
+                    }
+                }
+            }
+
+            return false;
+        }
     }
 
     /**

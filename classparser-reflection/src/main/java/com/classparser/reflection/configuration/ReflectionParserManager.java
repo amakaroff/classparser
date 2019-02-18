@@ -108,7 +108,7 @@ public final class ReflectionParserManager implements Clearance {
      * @return joined class content
      */
     public String joinNotEmptyContentBySpace(String... content) {
-        return Arrays.stream(content).filter(s -> !s.isEmpty()).collect(Collectors.joining(" "));
+        return Arrays.stream(content).filter(string -> !string.isEmpty()).collect(Collectors.joining(" "));
     }
 
     private class ClassContextContainer {

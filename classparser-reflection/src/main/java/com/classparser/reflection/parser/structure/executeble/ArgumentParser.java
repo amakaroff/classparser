@@ -36,8 +36,10 @@ public class ArgumentParser {
 
     private final ReflectionParserManager manager;
 
-    public ArgumentParser(ReflectionParserManager manager, GenericTypeParser genericTypeParser,
-                          ModifierParser modifierParser, AnnotationParser annotationParser) {
+    public ArgumentParser(ReflectionParserManager manager,
+                          GenericTypeParser genericTypeParser,
+                          ModifierParser modifierParser,
+                          AnnotationParser annotationParser) {
         this.configurationManager = manager.getConfigurationManager();
         this.genericTypeParser = genericTypeParser;
         this.modifierParser = modifierParser;
@@ -71,7 +73,7 @@ public class ArgumentParser {
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
             if (isShouldBeDisplayed(parameter, index)) {
-                strings.add(getArgument(parameter, annotatedParameterTypes[index]));
+                strings.add(parseArgument(parameter, annotatedParameterTypes[index]));
             }
         }
 
@@ -140,7 +142,7 @@ public class ArgumentParser {
      * @param annotatedType annotation type on parameter
      * @return parsed string line with information about argument
      */
-    public String getArgument(Parameter parameter, AnnotatedType annotatedType) {
+    public String parseArgument(Parameter parameter, AnnotatedType annotatedType) {
         String annotations = annotationParser.parseAnnotationsAsInline(parameter);
         String type = resolveVariableArguments(parameter, annotatedType);
         String modifiers = modifierParser.parseModifiers(parameter);

@@ -207,7 +207,7 @@ public final class JDDecompiler implements Decompiler {
          *
          * @param bytecode bytecode of class
          */
-        public JDLoader(byte[] bytecode) {
+        JDLoader(byte[] bytecode) {
             this.bytecode = bytecode;
         }
 
@@ -239,7 +239,7 @@ public final class JDDecompiler implements Decompiler {
         /**
          * Default constructor for create {@link JDPrinter} instance
          */
-        public JDPrinter() {
+        JDPrinter() {
             super(System.out);
             this.indent = utils.getConfigOption(COUNT_INDENT_SPACES_KEY, String.class);
             this.builder = new StringBuilder();
@@ -270,7 +270,7 @@ public final class JDDecompiler implements Decompiler {
          *
          * @return decompiled code
          */
-        private String getSource() {
+        String getSource() {
             return StringUtils.normalizeOpenBlockCharacter(builder);
         }
     }

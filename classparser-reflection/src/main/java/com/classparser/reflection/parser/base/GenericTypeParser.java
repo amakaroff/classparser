@@ -32,7 +32,8 @@ public class GenericTypeParser {
 
     private final AnnotationParser annotationParser;
 
-    public GenericTypeParser(ClassNameParser classNameParser, AnnotationParser annotationParser,
+    public GenericTypeParser(ClassNameParser classNameParser,
+                             AnnotationParser annotationParser,
                              ReflectionParserManager manager) {
         this.classNameParser = classNameParser;
         this.annotationParser = annotationParser;

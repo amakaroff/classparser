@@ -30,7 +30,8 @@ public class ValueParser {
 
     private final ConfigurationManager configurationManager;
 
-    public ValueParser(GenericTypeParser genericTypeParser, AnnotationParser annotationParser,
+    public ValueParser(GenericTypeParser genericTypeParser,
+                       AnnotationParser annotationParser,
                        ReflectionParserManager manager) {
         this.genericTypeParser = genericTypeParser;
         this.annotationParser = annotationParser;
@@ -134,7 +135,7 @@ public class ValueParser {
      * @param object any object
      * @return array or empty array if object is not array
      */
-    public Object[] toObjectArray(Object object) {
+    Object[] toObjectArray(Object object) {
         if (object != null && object.getClass().isArray()) {
             int length = Array.getLength(object);
             Object[] objects = new Object[length];
@@ -220,9 +221,17 @@ public class ValueParser {
         try {
             if (field.isAccessible()) {
                 return field.get(null);
+            } else {
+                field.setAccessible(true);
+                try {
+                    return field.get(null);
+                } finally {
+                    field.setAccessible(false);
+                }
             }
         } catch (ReflectiveOperationException exception) {
             System.err.println("Can't access to field" + field + " from class ValueParser!");
+            exception.printStackTrace();
         }
 
         return null;

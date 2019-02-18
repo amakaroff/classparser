@@ -72,34 +72,37 @@ public class ReflectionParser implements ClassParser {
     private final List<Clearance> clearances;
 
     public ReflectionParser() {
-        manager = new ReflectionParserManager();
-        configurationManager = manager.getConfigurationManager();
-        classTypeParser = new ClassTypeParser();
-        modifierParser = new ModifierParser(manager);
-        indentParser = new IndentParser(manager);
-        classesParser = new ClassesParser(this, manager);
-        importParser = new ImportParser(manager);
-        classNameParser = new ClassNameParser(importParser, manager);
-        annotationParser = new AnnotationParser(indentParser, manager, modifierParser, classNameParser);
-        genericTypeParser = new GenericTypeParser(classNameParser, annotationParser, manager);
+        this.manager = new ReflectionParserManager();
+
+        this.configurationManager = manager.getConfigurationManager();
+        this.classTypeParser = new ClassTypeParser();
+        this.modifierParser = new ModifierParser(manager);
+        this.indentParser = new IndentParser(manager);
+        this.classesParser = new ClassesParser(this, manager);
+        this.importParser = new ImportParser(manager);
+        this.classNameParser = new ClassNameParser(importParser, manager);
+        this.annotationParser = new AnnotationParser(indentParser, manager, modifierParser, classNameParser);
+        this.genericTypeParser = new GenericTypeParser(classNameParser, annotationParser, manager);
         ValueParser valueParser = new ValueParser(genericTypeParser, annotationParser, manager);
-        annotationParser.setValueParser(valueParser);
-        blockParser = new BlockParser(indentParser, manager);
-        inheritanceParser = new InheritanceParser(genericTypeParser, manager);
-        packageParser = new PackageParser(annotationParser, manager);
+        this.annotationParser.setValueParser(valueParser);
+
+        this.blockParser = new BlockParser(indentParser, manager);
+        this.inheritanceParser = new InheritanceParser(genericTypeParser, manager);
+        this.packageParser = new PackageParser(annotationParser, manager);
+
         ArgumentParser argumentParser = new ArgumentParser(manager, genericTypeParser, modifierParser, annotationParser);
         ExceptionParser exceptionParser = new ExceptionParser(genericTypeParser, manager);
-        constructorParser = new ConstructorParser(manager, genericTypeParser, modifierParser, annotationParser,
-                argumentParser, indentParser, exceptionParser);
-        methodParser = new MethodParser(manager, genericTypeParser, modifierParser, annotationParser, argumentParser,
-                indentParser, exceptionParser, classNameParser, valueParser);
-        fieldParser = new FieldParser(manager, annotationParser, indentParser, modifierParser, genericTypeParser,
-                classNameParser, valueParser);
+        this.constructorParser = new ConstructorParser(manager, genericTypeParser, modifierParser,
+                annotationParser, argumentParser, indentParser, exceptionParser);
+        this.methodParser = new MethodParser(manager, genericTypeParser, modifierParser, annotationParser,
+                argumentParser, indentParser, exceptionParser, classNameParser, valueParser);
+        this.fieldParser = new FieldParser(manager, annotationParser, indentParser, modifierParser,
+                genericTypeParser, classNameParser, valueParser);
 
-        clearances = new ArrayList<>();
-        clearances.add(manager);
-        clearances.add(importParser);
-        clearances.add(classNameParser);
+        this.clearances = new ArrayList<>();
+        this.clearances.add(manager);
+        this.clearances.add(importParser);
+        this.clearances.add(classNameParser);
     }
 
     @Override

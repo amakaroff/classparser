@@ -38,8 +38,10 @@ public class AnnotationParser {
 
     private ValueParser valueParser;
 
-    public AnnotationParser(IndentParser indentParser, ReflectionParserManager manager,
-                            ModifierParser modifierParser, ClassNameParser classNameParser) {
+    public AnnotationParser(IndentParser indentParser,
+                            ReflectionParserManager manager,
+                            ModifierParser modifierParser,
+                            ClassNameParser classNameParser) {
         this.indentParser = indentParser;
         this.configurationManager = manager.getConfigurationManager();
         this.modifierParser = modifierParser;
@@ -287,6 +289,13 @@ public class AnnotationParser {
         try {
             if (method.isAccessible()) {
                 return method.invoke(instance);
+            } else {
+                method.setAccessible(true);
+                try {
+                    return method.invoke(instance);
+                } finally {
+                    method.setAccessible(false);
+                }
             }
         } catch (ReflectiveOperationException exception) {
             System.err.println("Can't access to method " + method + " from AnnotationParser!");

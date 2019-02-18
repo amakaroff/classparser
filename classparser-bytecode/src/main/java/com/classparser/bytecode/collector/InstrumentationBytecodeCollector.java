@@ -36,11 +36,13 @@ public class InstrumentationBytecodeCollector implements BytecodeCollector {
     public byte[] getBytecode(Class<?> clazz) {
         if (clazz != null) {
             String className = ClassNameConverter.toJavaClassName(clazz);
-            Instrumentation instrumentation = configurationManager.getAgent().getInstrumentation();
+            JavaAgent javaAgent = configurationManager.getAgent();
+
+            Instrumentation instrumentation = javaAgent.getInstrumentation();
             try {
                 if (instrumentation != null) {
                     if (instrumentation.isRetransformClassesSupported() && instrumentation.isModifiableClass(clazz)) {
-                        initializeTransformer(configurationManager.getAgent());
+                        initializeTransformer(javaAgent);
                         instrumentation.retransformClasses(clazz);
                     } else {
                         System.err.println("Class " + className + " is can't be transform.");

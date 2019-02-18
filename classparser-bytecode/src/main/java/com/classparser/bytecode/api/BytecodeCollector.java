@@ -43,6 +43,6 @@ public interface BytecodeCollector extends Comparable<BytecodeCollector> {
 
     @Override
     default int compareTo(BytecodeCollector collector) {
-        return Integer.compare(this.getOrder(), collector.getOrder());
+        return Integer.compare(getOrder(), collector.getOrder());
     }
 }

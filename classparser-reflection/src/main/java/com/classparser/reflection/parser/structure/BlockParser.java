@@ -20,9 +20,12 @@ public class BlockParser {
 
     private final ConfigurationManager configurationManager;
 
+    private final Method staticInitializerCheckerMethod;
+
     public BlockParser(IndentParser indentParser, ReflectionParserManager manager) {
         this.indentParser = indentParser;
         this.configurationManager = manager.getConfigurationManager();
+        this.staticInitializerCheckerMethod = loadCheckerMethod();
     }
 
     /**
@@ -52,11 +55,17 @@ public class BlockParser {
      */
     private boolean hasStaticInitializer(Class<?> clazz) {
         if (configurationManager.isEnabledStaticBlockDisplaying()) {
-            Method method = loadCheckerMethod();
-            if (method != null) {
+            if (staticInitializerCheckerMethod != null) {
                 try {
-                    if (method.isAccessible()) {
-                        return (boolean) method.invoke(clazz);
+                    if (staticInitializerCheckerMethod.isAccessible()) {
+                        return (boolean) staticInitializerCheckerMethod.invoke(clazz);
+                    } else {
+                        staticInitializerCheckerMethod.setAccessible(true);
+                        try {
+                            return (boolean) staticInitializerCheckerMethod.invoke(clazz);
+                        } finally {
+                            staticInitializerCheckerMethod.setAccessible(false);
+                        }
                     }
                 } catch (Exception exception) {
                     return false;
@@ -74,10 +83,7 @@ public class BlockParser {
      */
     private Method loadCheckerMethod() {
         try {
-            Method method = ObjectStreamClass.class.getDeclaredMethod("hasStaticInitializer", Class.class);
-            method.setAccessible(true);
-
-            return method;
+            return ObjectStreamClass.class.getDeclaredMethod("hasStaticInitializer", Class.class);
         } catch (NoSuchMethodException exception) {
             return null;
         }

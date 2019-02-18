@@ -37,9 +37,12 @@ public class ConstructorParser {
 
     private final ExceptionParser exceptionParser;
 
-    public ConstructorParser(ReflectionParserManager manager, GenericTypeParser genericParser,
-                             ModifierParser modifierParser, AnnotationParser annotationParser,
-                             ArgumentParser argumentParser, IndentParser indentParser,
+    public ConstructorParser(ReflectionParserManager manager,
+                             GenericTypeParser genericParser,
+                             ModifierParser modifierParser,
+                             AnnotationParser annotationParser,
+                             ArgumentParser argumentParser,
+                             IndentParser indentParser,
                              ExceptionParser exceptionParser) {
         this.manager = manager;
         this.configurationManager = manager.getConfigurationManager();
