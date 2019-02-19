@@ -7,7 +7,7 @@
 
     <groupId>com.classparser</groupId>
     <artifactId>classparser</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0.RELEASE</version>
     <packaging>pom</packaging>
 
     <description>
@@ -19,12 +19,12 @@
     </url>
 
     <scm>
-        <url>https://github.com/amakaroff/classparser.git</url>
+        <url>https://github.com/amakaroff/classparser</url>
         <connection>scm:git:https://github.com/amakaroff/classparser.git</connection>
     </scm>
 
     <issueManagement>
-        <url>https://github.com/amakaroff/.../issues</url>
+        <url>https://github.com/amakaroff/classparser/issues</url>
         <system>GitHub Issues</system>
     </issueManagement>
 
@@ -63,7 +63,6 @@
         <module>classparser-jd-decompiler</module>
         <module>classparser-procyon-decompiler</module>
         <module>classparser-javap-disassembler</module>
-        <module>classparser-test</module>
     </modules>
 
     <build>

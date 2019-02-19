@@ -8,11 +8,11 @@
     <parent>
         <groupId>com.classparser</groupId>
         <artifactId>classparser</artifactId>
-        <version>1.0.0</version>
+        <version>1.1.0.RELEASE</version>
     </parent>
 
     <artifactId>classparser-bytecode</artifactId>
-    <version>1.0.10</version>
+    <version>1.1.0.RELEASE</version>
 
     <description>
         Module store classes for bytecode decompile parsing mechanism
@@ -47,7 +47,7 @@
         <dependency>
             <groupId>com.classparser</groupId>
             <artifactId>classparser-core</artifactId>
-            <version>1.0.1</version>
+            <version>1.1.0.RELEASE</version>
         </dependency>
     </dependencies>
 

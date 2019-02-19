@@ -8,11 +8,11 @@
     <parent>
         <artifactId>classparser</artifactId>
         <groupId>com.classparser</groupId>
-        <version>1.0.0</version>
+        <version>1.1.0.RELEASE</version>
     </parent>
 
     <artifactId>classparser-cfr-decompiler</artifactId>
-    <version>1.0.2</version>
+    <version>1.1.0.RELEASE</version>
 
     <properties>
         <cfr.decompiler.version>0.139</cfr.decompiler.version>
@@ -31,7 +31,7 @@
             <groupId>com.classparser</groupId>
             <artifactId>classparser-bytecode</artifactId>
             <scope>provided</scope>
-            <version>1.0.10</version>
+            <version>1.1.0.RELEASE</version>
         </dependency>
     </dependencies>
 </project>
