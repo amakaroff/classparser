@@ -11,10 +11,8 @@
         <version>1.0.0</version>
     </parent>
 
-    <groupId>com.classparser.bytecode.decompile.procyon</groupId>
     <artifactId>classparser-procyon-decompiler</artifactId>
     <version>1.0.0</version>
-    <packaging>jar</packaging>
 
     <description>
         Module provides procyon decompiler adapter
@@ -52,7 +50,7 @@
 
         <!-- Modules-->
         <dependency>
-            <groupId>com.classparser.bytecode</groupId>
+            <groupId>com.classparser</groupId>
             <artifactId>classparser-bytecode</artifactId>
             <scope>provided</scope>
             <version>1.0.0</version>

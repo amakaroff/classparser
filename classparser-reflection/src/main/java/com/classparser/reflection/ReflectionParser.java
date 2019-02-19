@@ -192,16 +192,16 @@ public class ReflectionParser implements ClassParser {
      * @return parsed class context
      */
     private String getClassContent(Class<?> clazz) {
-        List<String> content = new ArrayList<>();
+        List<String> contents = new ArrayList<>();
 
-        content.add(fieldParser.parseFields(clazz));
-        content.add(blockParser.parseStaticBlock(clazz));
-        content.add(constructorParser.parseConstructors(clazz));
-        content.add(methodParser.parseMethods(clazz));
-        content.add(classesParser.parseInnerClasses(clazz));
+        contents.add(fieldParser.parseFields(clazz));
+        contents.add(blockParser.parseStaticBlock(clazz));
+        contents.add(constructorParser.parseConstructors(clazz));
+        contents.add(methodParser.parseMethods(clazz));
+        contents.add(classesParser.parseInnerClasses(clazz));
         String lineSeparator = configurationManager.getLineSeparator();
 
-        return content.stream().filter(s -> !s.isEmpty()).collect(Collectors.joining(lineSeparator));
+        return contents.stream().filter(content -> !content.isEmpty()).collect(Collectors.joining(lineSeparator));
     }
 
     @Override
