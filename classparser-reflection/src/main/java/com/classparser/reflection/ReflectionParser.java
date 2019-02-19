@@ -119,11 +119,11 @@ public class ReflectionParser implements ClassParser {
      * @param clazz parsed class
      */
     private void tearDown(Class<?> clazz) {
+        manager.popCurrentClass();
+
         if (clazz == manager.getBaseParsedClass()) {
             clearances.forEach(Clearance::clear);
         }
-
-        manager.popCurrentClass();
     }
 
     /**
