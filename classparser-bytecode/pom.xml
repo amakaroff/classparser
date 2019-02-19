@@ -23,14 +23,14 @@
         <tools.jar.jdk.location>${java.home}/lib/tools.jar</tools.jar.jdk.location>
         <tools.jar.mac.location>${java.home}/../Classes/classes.jar</tools.jar.mac.location>
         <tools.jar.location>/</tools.jar.location>
-        <fernflower.decompiler.version>4.2.0.Final</fernflower.decompiler.version>
+        <fernflower.decompiler.version>1.0.0.20171018</fernflower.decompiler.version>
     </properties>
 
     <dependencies>
         <!-- FernFlower Decompiler -->
         <dependency>
-            <groupId>org.jboss.windup.decompiler</groupId>
-            <artifactId>decompiler-fernflower</artifactId>
+            <groupId>org.jboss.windup.decompiler.fernflower</groupId>
+            <artifactId>windup-fernflower</artifactId>
             <version>${fernflower.decompiler.version}</version>
         </dependency>
 
