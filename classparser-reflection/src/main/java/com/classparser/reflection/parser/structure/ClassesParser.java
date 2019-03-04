@@ -1,6 +1,6 @@
 package com.classparser.reflection.parser.structure;
 
-import com.classparser.api.ClassParser;
+import com.classparser.reflection.ReflectionParser;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.configuration.ReflectionParserManager;
 
@@ -17,13 +17,13 @@ import java.util.List;
  */
 public class ClassesParser {
 
-    private final ClassParser classParser;
+    private final ReflectionParser classParser;
 
     private final ReflectionParserManager manager;
 
     private final ConfigurationManager configurationManager;
 
-    public ClassesParser(ClassParser classParser, ReflectionParserManager manager) {
+    public ClassesParser(ReflectionParser classParser, ReflectionParserManager manager) {
         this.classParser = classParser;
         this.manager = manager;
         this.configurationManager = manager.getConfigurationManager();

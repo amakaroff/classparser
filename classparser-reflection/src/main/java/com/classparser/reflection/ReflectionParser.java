@@ -71,10 +71,13 @@ public class ReflectionParser implements ClassParser {
         this.classSignatureParser = new ClassSignatureParser(annotationParser, genericTypeParser, indentParser,
                 modifierParser, classTypeParser, classNameParser, inheritanceParser, manager);
 
-        this.clearances = new ArrayList<>();
-        this.clearances.add(manager);
-        this.clearances.add(importParser);
-        this.clearances.add(classNameParser);
+        List<Clearance> clearances = new ArrayList<>();
+
+        clearances.add(manager);
+        clearances.add(importParser);
+        clearances.add(classNameParser);
+
+        this.clearances = clearances;
     }
 
     @Override
