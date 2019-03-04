@@ -299,8 +299,11 @@ public class GenericTypeParser {
                 WildcardType wildcardType = (WildcardType) actualTypeArguments[index];
                 AnnotatedType annotatedType = ifEmpty(annotatedActualTypeArguments, index);
 
+                String annotations = "";
                 AnnotatedWildcardType annotatedWildcardType = (AnnotatedWildcardType) annotatedType;
-                String annotations = annotationParser.parseAnnotationsAsInline(annotatedWildcardType);
+                if (annotatedWildcardType != null) {
+                    annotations = annotationParser.parseAnnotationsAsInline(annotatedWildcardType);
+                }
                 String wildcard = getCorrectAnnotations(annotations) + "?";
 
                 AnnotatedType[] upper = ifNullUpper(annotatedWildcardType);
