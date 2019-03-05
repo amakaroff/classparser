@@ -8,11 +8,13 @@ import java.util.function.Supplier;
 
 /**
  * Proxy invocation handler uses for redirect any methods by bounded agent
+ * <p>
+ * Non public API
  *
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-class InstrumentationInvocationHandler implements InvocationHandler {
+final class InstrumentationInvocationHandler implements InvocationHandler {
 
     private final DefaultJavaAgent defaultJavaAgent;
 
@@ -20,9 +22,9 @@ class InstrumentationInvocationHandler implements InvocationHandler {
 
     private final ProxyChainClassTransformer proxyChainClassTransformer;
 
-    public InstrumentationInvocationHandler(DefaultJavaAgent defaultJavaAgent,
-                                            Supplier<Instrumentation> instrumentationSupplier,
-                                            ProxyChainClassTransformer proxyChainClassTransformer) {
+    InstrumentationInvocationHandler(DefaultJavaAgent defaultJavaAgent,
+                                     Supplier<Instrumentation> instrumentationSupplier,
+                                     ProxyChainClassTransformer proxyChainClassTransformer) {
         this.defaultJavaAgent = defaultJavaAgent;
         this.instrumentationSupplier = instrumentationSupplier;
         this.proxyChainClassTransformer = proxyChainClassTransformer;
@@ -65,11 +67,12 @@ class InstrumentationInvocationHandler implements InvocationHandler {
      * @throws Exception if method throws any exceptions
      */
     private Object retransformClasses(Method method, Object[] args) throws Exception {
-        defaultJavaAgent.startRetransform();
-        Object returnValue = method.invoke(instrumentationSupplier.get(), args);
-        defaultJavaAgent.finishRetransform();
-
-        return returnValue;
+        try {
+            defaultJavaAgent.startRetransform();
+            return method.invoke(instrumentationSupplier.get(), args);
+        } finally {
+            defaultJavaAgent.finishRetransform();
+        }
     }
 
     /**
@@ -81,7 +84,7 @@ class InstrumentationInvocationHandler implements InvocationHandler {
     private Void addTransformer(Object[] args) {
         ClassFileTransformer classFileTransformer = (ClassFileTransformer) args[0];
         boolean isRetransformEnable = (args.length == 2) && (boolean) args[1];
-        ClassFileTransformerImpl transformer = new ClassFileTransformerImpl(classFileTransformer, isRetransformEnable);
+        ClassFileTransformerWrapper transformer = new ClassFileTransformerWrapper(classFileTransformer, isRetransformEnable);
 
         proxyChainClassTransformer.addTransformer(transformer);
 

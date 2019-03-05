@@ -6,6 +6,8 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class provides functionality by converting class name
@@ -19,6 +21,16 @@ public class ClassNameConverter {
     private static final int MAGIC = 0xCAFEBABE;
 
     private static final String CLASS_FILE_SUFFIX = ".class";
+
+    private static final Map<String, String> PRIMITIVE_NAMES = new HashMap<String, String>() {{
+        put("B", "byte");
+        put("S", "short");
+        put("I", "int");
+        put("F", "float");
+        put("C", "char");
+        put("D", "double");
+        put("J", "long");
+    }};
 
     /**
      * Obtains full java class name from class instance
@@ -75,7 +87,39 @@ public class ClassNameConverter {
      */
     public static String toJavaClassSimpleName(String className) {
         String fullName = toJavaClassName(className);
+
+        String simpleName;
+        if (className.startsWith("[")) {
+            int countBlocks = className.lastIndexOf('[') + 1;
+            if (className.endsWith(";")) {
+                simpleName = className.substring(countBlocks + 1, className.length() - 1);
+                if (simpleName.contains(".")) {
+                    simpleName = simpleName.substring(simpleName.lastIndexOf('.') + 1);
+                }
+            } else {
+                simpleName = PRIMITIVE_NAMES.get(className.substring(countBlocks));
+            }
+
+            return simpleName + createBlocks(countBlocks);
+        }
+
         return fullName.substring(fullName.lastIndexOf('.') + 1);
+    }
+
+    /**
+     * Create array blocks by input count
+     *
+     * @param count count of blocks
+     * @return string of array blocks
+     */
+    private static String createBlocks(int count) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (int i = 0; i < count; i++) {
+            stringBuilder.append("[]");
+        }
+
+        return stringBuilder.toString();
     }
 
     /**
@@ -85,11 +129,7 @@ public class ClassNameConverter {
      * @return class simple name
      */
     public static String toJavaClassSimpleName(Class<?> clazz) {
-        String simpleName = clazz.getSimpleName();
-        if (simpleName.isEmpty() || simpleName.contains("/")) {
-            return toJavaClassSimpleName(clazz.getName());
-        }
-        return simpleName;
+        return toJavaClassSimpleName(clazz.getName());
     }
 
     /**
@@ -129,7 +169,7 @@ public class ClassNameConverter {
      * @return class file name
      */
     public static String toFileJavaClassName(Class<?> clazz) {
-        return toJavaClassName(clazz).replace('.', File.separatorChar) + CLASS_FILE_SUFFIX;
+        return toFileJavaClassName(toJavaClassName(clazz));
     }
 
     /**
@@ -155,17 +195,25 @@ public class ClassNameConverter {
                         case 1:
                             constants[i] = stream.readUTF();
                             break;
-                        case 3: case 4: case 9: case 10: case 11: case 12: case 18:
+                        case 3:
+                        case 4:
+                        case 9:
+                        case 10:
+                        case 11:
+                        case 12:
+                        case 18:
                             stream.skipBytes(4);
                             break;
-                        case 5: case 6:
+                        case 5:
+                        case 6:
                             stream.skipBytes(8);
                             i++;
                             break;
                         case 7:
                             constants[i] = stream.readUnsignedShort();
                             break;
-                        case 8: case 16:
+                        case 8:
+                        case 16:
                             stream.skipBytes(2);
                             break;
                         case 15:
@@ -183,11 +231,10 @@ public class ClassNameConverter {
                     return className.toString();
                 }
 
-
-                throw new ClassFormatError("Can't obtain class name from bytecode!");
+                throw new ByteCodeParserException("Can't obtain class name from bytecode!");
             }
 
-            throw new ClassFormatError("Invalid java bytecode of class");
+            throw new ByteCodeParserException("Invalid java bytecode of class");
         } catch (IOException exception) {
             throw new ByteCodeParserException("Constant pool is broken", exception);
         }

@@ -41,17 +41,16 @@ public class AgentAssembler {
      * {@link JavaAgent#getManifestFileName()}
      * and dynamically attach this jar to JVM
      * <p>
-     * If agent already init, then method was skip
+     * If agent already init, then method will be skipped
      *
      * @param agent java agent instance
      */
     public void assembly(JavaAgent agent) {
-        if (!agent.isInitialize()) {
-            String agentPath = agent.getAgentLocationPath() + agent.getAgentJarName();
+        if (!agent.isInitialized()) {
             if (configurationManager.isCacheAgentJar()) {
-                cachedAssembly(agent, agentPath);
+                cachedAssembly(agent);
             } else {
-                nonCachedAssembly(agent, agentPath);
+                nonCachedAssembly(agent);
             }
         }
     }
@@ -59,10 +58,12 @@ public class AgentAssembler {
     /**
      * Performs assembly java agent uses cache agent jar
      *
-     * @param agentPath path to agent jar
+     * @param agent java agent instance
      */
-    protected void cachedAssembly(JavaAgent agent, String agentPath) {
+    protected void cachedAssembly(JavaAgent agent) {
+        String agentPath = agent.getAgentLocationPath() + agent.getAgentJarName();
         Path agentJarPath = Paths.get(agentPath);
+
         if (Files.notExists(agentJarPath)) {
             agentPath = createAgent(agent);
         }
@@ -73,10 +74,12 @@ public class AgentAssembler {
     /**
      * Performs assembly java agent and removes jar after attach processes
      *
-     * @param agentPath path to agent jar
+     * @param agent java agent instance
      */
-    protected void nonCachedAssembly(JavaAgent agent, String agentPath) {
+    protected void nonCachedAssembly(JavaAgent agent) {
+        String agentPath = agent.getAgentLocationPath() + agent.getAgentJarName();
         Path agentJarPath = Paths.get(agentPath);
+
         if (Files.exists(agentJarPath)) {
             removeAgentJar(agentJarPath);
         }
@@ -105,7 +108,7 @@ public class AgentAssembler {
      * @return absolute path to path to agent jar
      */
     private String createAgent(JavaAgent agent) {
-        return AgentBuilder.getBuilder()
+        return AgentBuilder.createBuilder()
                 .addAgentName(agent.getAgentJarName())
                 .addAgentDirLocation(agent.getAgentLocationPath())
                 .addAgentClass(agent.getAgentClass())

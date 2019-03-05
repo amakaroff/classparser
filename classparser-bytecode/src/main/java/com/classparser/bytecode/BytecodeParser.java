@@ -5,13 +5,14 @@ import com.classparser.bytecode.api.BytecodeCollector;
 import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.collector.ChainBytecodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
+import com.classparser.bytecode.configuration.api.BytecodeParserConfiguration;
 import com.classparser.bytecode.exception.ByteCodeParserException;
-import com.classparser.bytecode.exception.classes.IllegalClassException;
 import com.classparser.bytecode.saver.BytecodeFileSaver;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.bytecode.utils.InnerClassesCollector;
 import com.classparser.configuration.Configuration;
 
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,7 +37,7 @@ public class BytecodeParser implements ClassParser {
 
     private final ConfigurationManager configurationManager;
 
-    private final BytecodeFileSaver saver;
+    private final BytecodeFileSaver bytecodeFileSaver;
 
     private final InnerClassesCollector classesCollector;
 
@@ -44,19 +45,7 @@ public class BytecodeParser implements ClassParser {
 
     static {
         if (Boolean.getBoolean(DUMP_PROPERTY)) {
-            System.setOut(new PrintStream(System.out) {
-                @Override
-                public void println(String data) {
-                    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                    if (!isInvokeFromDumper(stackTrace)) {
-                        super.println(data);
-                    }
-                }
-
-                private boolean isInvokeFromDumper(StackTraceElement[] stackTrace) {
-                    return stackTrace.length > 3 && stackTrace[2].getClassName().startsWith(DUMPER_CLASS);
-                }
-            });
+            System.setOut(new VerificationPrintStream(System.out));
         }
     }
 
@@ -64,12 +53,12 @@ public class BytecodeParser implements ClassParser {
         this.configurationManager = new ConfigurationManager();
         this.bytecodeCollector = new ChainBytecodeCollector(configurationManager);
         this.classesCollector = new InnerClassesCollector(configurationManager);
-        this.saver = new BytecodeFileSaver(configurationManager);
+        this.bytecodeFileSaver = new BytecodeFileSaver(configurationManager);
     }
 
     @Override
     public String parseClass(Class<?> clazz) throws ByteCodeParserException {
-        checkToCorrectClass(clazz);
+        validateCorrectnessOfClass(clazz);
 
         byte[] bytecode = getBytecodeOfClass(clazz);
         List<byte[]> bytecodeOfInnerClasses = getBytecodeOfInnerClasses(clazz);
@@ -91,9 +80,9 @@ public class BytecodeParser implements ClassParser {
      * @param bytecodeOfInnerClasses bytecode of inner classes
      */
     private void saveByteCodeToFile(byte[] bytecode, List<byte[]> bytecodeOfInnerClasses) {
-        saver.saveToFile(bytecode);
+        bytecodeFileSaver.saveToFile(bytecode);
         for (byte[] bytecodeOfInnerClass : bytecodeOfInnerClasses) {
-            saver.saveToFile(bytecodeOfInnerClass);
+            bytecodeFileSaver.saveToFile(bytecodeOfInnerClass);
         }
     }
 
@@ -104,13 +93,15 @@ public class BytecodeParser implements ClassParser {
      * @return list with bytecode of inner classes
      */
     private List<byte[]> getBytecodeOfInnerClasses(Class<?> clazz) {
-        if (configurationManager.isDecompileInnerClasses()) {
+        if (configurationManager.isNeedToDecompileInnerClasses()) {
             List<byte[]> bytecodeOfInnerClasses = new ArrayList<>();
 
             for (Class<?> innerClass : classesCollector.getInnerClasses(clazz)) {
-                byte[] bytecodeOfInnerClass = bytecodeCollector.getBytecode(innerClass);
-                if (bytecodeOfInnerClass != null) {
-                    bytecodeOfInnerClasses.add(bytecodeOfInnerClass);
+                if (innerClass != null) {
+                    byte[] bytecodeOfInnerClass = bytecodeCollector.getBytecode(innerClass);
+                    if (bytecodeOfInnerClass != null) {
+                        bytecodeOfInnerClasses.add(bytecodeOfInnerClass);
+                    }
                 }
             }
 
@@ -141,24 +132,71 @@ public class BytecodeParser implements ClassParser {
      *
      * @param clazz any class
      */
-    private void checkToCorrectClass(Class<?> clazz) {
+    private void validateCorrectnessOfClass(Class<?> clazz) {
         if (clazz == null) {
-            throw new NullPointerException("Class for parsing is can't be a null!");
+            throw new NullPointerException("Class for parsing can't be a null!");
         }
 
         if (clazz.isPrimitive()) {
             String className = ClassNameConverter.toJavaClassName(clazz);
-            throw new IllegalClassException("Primitive type: \"" + className + "\" can'tbe decompiled", clazz);
+            throw new IllegalArgumentException("Primitive type: \"" + className + "\" can't be decompiled");
         }
 
         if (clazz.isArray()) {
             String simpleName = ClassNameConverter.toJavaClassSimpleName(clazz);
-            throw new IllegalClassException("Array type: \"" + simpleName + "\" can't be decompiled", clazz);
+            throw new IllegalArgumentException("Array type: \"" + simpleName + "\" can't be decompiled");
         }
     }
 
     @Override
     public void setConfiguration(Configuration configuration) {
-        configurationManager.reloadConfiguration(configuration);
+        if (configuration instanceof BytecodeParserConfiguration) {
+            configurationManager.reloadConfiguration(configuration);
+        } else {
+            throw new ByteCodeParserException("Configuration should be type BytecodeParserConfiguration");
+        }
+    }
+
+    private static class VerificationPrintStream extends PrintStream {
+
+        private final ClassContextCaller caller;
+
+        VerificationPrintStream(OutputStream out) {
+            super(out);
+            this.caller = new ClassContextCaller();
+        }
+
+        @Override
+        public void println(String data) {
+            if (!isInvokeFromDumper()) {
+                super.println(data);
+            }
+        }
+
+        private boolean isInvokeFromDumper() {
+            Class<?> callerClass = caller.getCallerClass();
+            if (callerClass != null) {
+                return callerClass.getName().startsWith(DUMPER_CLASS);
+            } else {
+                return false;
+            }
+        }
+
+        private class ClassContextCaller extends SecurityManager {
+
+            @Override
+            protected Class[] getClassContext() {
+                return super.getClassContext();
+            }
+
+            Class<?> getCallerClass() {
+                Class[] classContext = getClassContext();
+                if (classContext.length > 4) {
+                    return classContext[4];
+                }
+
+                return null;
+            }
+        }
     }
 }

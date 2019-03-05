@@ -22,7 +22,7 @@ public class FernflowerBuilderConfiguration {
      *
      * @return {@link FernflowerConfiguration} instance
      */
-    public static FernflowerConfiguration getBuilderConfiguration() {
+    public static FernflowerConfiguration createBuilder() {
         return new Builder();
     }
 
@@ -174,7 +174,12 @@ public class FernflowerBuilderConfiguration {
 
         @Override
         public FernflowerConfiguration setNewIIdentifierRenamer(Class<? extends IIdentifierRenamer> renamer) {
-            configuration.put("urc", ClassNameConverter.toJavaClassName(renamer));
+            if (renamer != null) {
+                configuration.put("urc", ClassNameConverter.toJavaClassName(renamer));
+            } else {
+                throw new NullPointerException("Identifier Renamer is can't be null!");
+            }
+
             return this;
         }
 
@@ -191,11 +196,25 @@ public class FernflowerBuilderConfiguration {
         }
 
         @Override
-        public FernflowerConfiguration defineLineSeparator(String character) {
-            if (character.equals("\n")) {
-                configuration.put("nls", ONE);
-            } else if (character.equals("\r\n")) {
-                configuration.put("nls", ZERO);
+        public FernflowerConfiguration defineLineSeparator(LineSeparator separator) {
+            if (separator != null) {
+                switch (separator) {
+                    case LINUX: {
+                        configuration.put("nls", ONE);
+                        break;
+                    }
+
+                    case WINDOWS: {
+                        configuration.put("nls", ZERO);
+                        break;
+                    }
+
+                    default: {
+                        throw new IllegalArgumentException(separator + " is not supported!");
+                    }
+                }
+            } else {
+                throw new NullPointerException("Line Separator is can't be null!");
             }
 
             return this;
@@ -215,7 +234,12 @@ public class FernflowerBuilderConfiguration {
 
         @Override
         public FernflowerConfiguration setLogLevel(IFernflowerLogger.Severity level) {
-            configuration.put("log", level.name());
+            if (level != null) {
+                configuration.put("log", level.name());
+            } else {
+                throw new NullPointerException("Logger Level is can't be null!");
+            }
+
             return this;
         }
     }

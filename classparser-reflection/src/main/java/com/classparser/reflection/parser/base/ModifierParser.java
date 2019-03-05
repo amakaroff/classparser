@@ -11,7 +11,7 @@ import java.util.List;
  * Class provides functionality by resolving masks with modifiers information
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class ModifierParser {
@@ -49,6 +49,10 @@ public class ModifierParser {
 
         if (Modifier.isPrivate(modifierMask)) {
             modifiers.add("private");
+        }
+
+        if (Modifier.isFinal(modifierMask)) {
+            modifiers.add("final");
         }
 
         if (isSynthetic(modifierMask)) {
@@ -123,6 +127,10 @@ public class ModifierParser {
             if (isDisplayExhaustiveModifiers() || !constructor.getDeclaringClass().isEnum()) {
                 modifiers.add("private");
             }
+        }
+
+        if (isSynthetic(modifierMask)) {
+            modifiers.add("synthetic");
         }
 
         return String.join(" ", modifiers);
@@ -219,6 +227,10 @@ public class ModifierParser {
 
         if (Modifier.isStrict(modifierMask)) {
             modifiers.add("strictfp");
+        }
+
+        if (isSynthetic(modifierMask)) {
+            modifiers.add("synthetic");
         }
 
         if (Modifier.isStatic(modifierMask)) {

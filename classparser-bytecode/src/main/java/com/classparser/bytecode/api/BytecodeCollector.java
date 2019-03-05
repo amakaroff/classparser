@@ -13,8 +13,8 @@ public interface BytecodeCollector extends Comparable<BytecodeCollector> {
     /**
      * Tryings find bytecode of class
      *
-     * @param clazz - class for which is getting bytecode
-     * @return bytecode of class or null if bytecode is not found
+     * @param clazz class for which is getting bytecode
+     * @return bytecode of class or null if bytecode is not found or collector is disabled
      */
     byte[] getBytecode(Class<?> clazz);
 
@@ -43,6 +43,6 @@ public interface BytecodeCollector extends Comparable<BytecodeCollector> {
 
     @Override
     default int compareTo(BytecodeCollector collector) {
-        return Integer.compare(this.getOrder(), collector.getOrder());
+        return Integer.compare(getOrder(), collector.getOrder());
     }
 }

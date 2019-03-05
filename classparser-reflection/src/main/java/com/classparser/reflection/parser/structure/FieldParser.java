@@ -19,7 +19,7 @@ import java.util.List;
  * Parsing includes annotation, generics and values for static fields
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class FieldParser {
@@ -40,9 +40,13 @@ public class FieldParser {
 
     private final ValueParser valueParser;
 
-    public FieldParser(ReflectionParserManager manager, AnnotationParser annotationParser, IndentParser indentParser,
-                       ModifierParser modifierParser, GenericTypeParser genericTypeParser,
-                       ClassNameParser classNameParser, ValueParser valueParser) {
+    public FieldParser(ReflectionParserManager manager,
+                       AnnotationParser annotationParser,
+                       IndentParser indentParser,
+                       ModifierParser modifierParser,
+                       GenericTypeParser genericTypeParser,
+                       ClassNameParser classNameParser,
+                       ValueParser valueParser) {
         this.manager = manager;
         this.configurationManager = manager.getConfigurationManager();
         this.annotationParser = annotationParser;

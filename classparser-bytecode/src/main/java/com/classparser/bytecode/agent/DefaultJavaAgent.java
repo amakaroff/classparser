@@ -6,7 +6,9 @@ import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.utils.ClassNameConverter;
 
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.util.function.Supplier;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -22,23 +24,23 @@ import java.util.jar.Manifest;
  */
 public final class DefaultJavaAgent implements JavaAgent {
 
-    private static final String AGENT_JAR_NAME = "agent.jar";
-
     private static final String TEMP_DIR_KEY = "java.io.tmpdir";
 
-    private static volatile Instrumentation instrumentation;
+    private static final Object GLOBAL_LOCK = new Object();
+
+    private static Instrumentation instrumentation;
+
+    private final Object localLock;
 
     private final ThreadLocal<Boolean> retransformIndicator;
 
     private final AgentAssembler agentAssembler;
 
-    private final Object lock;
-
     private final Instrumentation proxyInstrumentation;
 
-    private final ProxyChainClassTransformer proxyClassTransformer;
+    private final ProxyChainClassTransformer proxyTransformer;
 
-    private volatile boolean isInitialize;
+    private volatile boolean isInitialized;
 
     public DefaultJavaAgent(ConfigurationManager configurationManager) {
         this(new AgentAssembler(configurationManager));
@@ -46,12 +48,11 @@ public final class DefaultJavaAgent implements JavaAgent {
 
     public DefaultJavaAgent(AgentAssembler agentAssembler) {
         this.agentAssembler = agentAssembler;
-        this.lock = new Object();
-        this.retransformIndicator = new ThreadLocal<>();
-        this.proxyClassTransformer = new ProxyChainClassTransformer(this);
+        this.localLock = new Object();
+        this.retransformIndicator = ThreadLocal.withInitial(() -> Boolean.FALSE);
+        this.proxyTransformer = new ProxyChainClassTransformer(this);
         this.proxyInstrumentation = createProxyInstrumentation();
-        this.isInitialize = false;
-        finishRetransform();
+        this.isInitialized = false;
     }
 
     /**
@@ -85,38 +86,52 @@ public final class DefaultJavaAgent implements JavaAgent {
      * If agent already init, do nothing
      */
     private void ensureInitialize() {
-        if (!isInitialize()) {
-            synchronized (lock) {
-                if (!isInitialize()) {
+        if (!isGlobalInitialized()) {
+            synchronized (GLOBAL_LOCK) {
+                if (!isGlobalInitialized()) {
                     if (instrumentation == null) {
                         agentAssembler.assembly(this);
                     }
+                }
+            }
+        }
 
-                    instrumentation.addTransformer(proxyClassTransformer, true);
-                    isInitialize = true;
+        if (!isLocalInitialized()) {
+            synchronized (localLock) {
+                if (!isLocalInitialized()) {
+                    instrumentation.addTransformer(proxyTransformer, true);
+                    isInitialized = true;
                 }
             }
         }
     }
 
-    @Override
-    public boolean isInitialize() {
-        return instrumentation != null && isInitialize;
+    /**
+     * Checks if instrumentation instance is not loaded
+     *
+     * @return true if instrumentation instance had exists
+     */
+    private boolean isGlobalInitialized() {
+        return instrumentation != null;
+    }
+
+    /**
+     * Checks if local agent instance on initialize
+     *
+     * @return true if agent instance already initialized
+     */
+    private boolean isLocalInitialized() {
+        return isInitialized;
     }
 
     @Override
-    public String getAgentJarName() {
-        return AGENT_JAR_NAME;
+    public boolean isInitialized() {
+        return isGlobalInitialized() && isLocalInitialized();
     }
 
     @Override
     public String getAgentLocationPath() {
         return System.getProperty(TEMP_DIR_KEY);
-    }
-
-    @Override
-    public Class<? extends JavaAgent> getAgentClass() {
-        return getClass();
     }
 
     @Override
@@ -136,7 +151,7 @@ public final class DefaultJavaAgent implements JavaAgent {
 
     @Override
     public Class<?>[] getAgentJarClasses() {
-        return new Class<?>[]{JavaAgent.class, getClass()};
+        return new Class<?>[]{JavaAgent.class, getAgentClass()};
     }
 
     /**
@@ -145,12 +160,13 @@ public final class DefaultJavaAgent implements JavaAgent {
      * @return instrumentation proxy instance
      */
     private Instrumentation createProxyInstrumentation() {
-        Object proxyInstrumentation = Proxy.newProxyInstance(
-                getClass().getClassLoader(), new Class[]{Instrumentation.class},
-                new InstrumentationInvocationHandler(this, () -> instrumentation, proxyClassTransformer)
-        );
+        Supplier<Instrumentation> supplier = () -> instrumentation;
+        InvocationHandler handler = new InstrumentationInvocationHandler(this, supplier, proxyTransformer);
 
-        return (Instrumentation) proxyInstrumentation;
+        ClassLoader classLoader = getClass().getClassLoader();
+        Class[] classes = {Instrumentation.class};
+
+        return (Instrumentation) Proxy.newProxyInstance(classLoader, classes, handler);
     }
 
     //Package private section uses for proxy instrumentation access
@@ -161,7 +177,8 @@ public final class DefaultJavaAgent implements JavaAgent {
      * @return true if uses this agent
      */
     boolean isCurrentAgentUsed() {
-        return retransformIndicator.get();
+        Boolean value = retransformIndicator.get();
+        return value != null && value;
     }
 
     /**

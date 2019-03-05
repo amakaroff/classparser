@@ -3,6 +3,7 @@ package com.classparser.util;
 import com.classparser.configuration.Configuration;
 import com.classparser.exception.option.OptionNotFoundException;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -20,14 +21,12 @@ public class ConfigurationUtils {
     /**
      * Fully, correctly configuration
      */
-    private final Map<String, Object> configuration;
+    private volatile Map<String, Object> configuration;
 
-    /**
-     * Default constructor for initialize {@link ConfigurationUtils}
-     *
-     * @param configuration        any custom configuration
-     * @param defaultConfiguration map with all correctly options
-     */
+    public ConfigurationUtils(Map<String, Object> defaultConfiguration) {
+        this(new HashMap<>(), defaultConfiguration);
+    }
+
     public ConfigurationUtils(Map<String, Object> configuration, Map<String, Object> defaultConfiguration) {
         this.configuration = configuration;
         this.defaultConfiguration = defaultConfiguration;
@@ -53,17 +52,19 @@ public class ConfigurationUtils {
     public void reloadConfiguration(Configuration newConfiguration) {
         if (newConfiguration != null) {
             Map<String, Object> configurationMap = newConfiguration.getConfiguration();
-            if (configurationMap != null && !configurationMap.isEmpty()) {
-                this.configuration.clear();
-                this.configuration.putAll(configurationMap);
+            if (configurationMap != null) {
+                this.configuration = configurationMap;
+            } else {
+                throw new NullPointerException("Parameters map is can't be a null!");
             }
+        } else {
+            throw new NullPointerException("Configuration instance is can't be a null!");
         }
     }
 
-
     /**
      * Obtain and check any option from configuration
-     * If option not exists, will use default option
+     * If option not exists or broken, will use default option
      *
      * @param config name of option
      * @param type   checking type for option
@@ -72,6 +73,7 @@ public class ConfigurationUtils {
      * @throws OptionNotFoundException if option is not defined in basic and default configuration
      */
     public <T> T getConfigOption(String config, Class<T> type) throws OptionNotFoundException {
+        Map<String, Object> configuration = this.configuration;
         Object option = configuration.get(config);
         if (configuration.containsKey(config)) {
             if (isInstance(option, type)) {

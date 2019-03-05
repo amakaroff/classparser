@@ -5,7 +5,7 @@ import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.collector.ChainBytecodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.decompile.procyon.configuration.ProcyonBuilderConfiguration;
-import com.classparser.bytecode.exception.decompile.DecompilationException;
+import com.classparser.bytecode.exception.DecompilationException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
 import com.strobel.assembler.metadata.Buffer;
@@ -23,7 +23,6 @@ import com.strobel.decompiler.languages.java.JavaFormattingOptions;
 import com.strobel.decompiler.languages.java.JavaLanguage;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +31,7 @@ import static com.classparser.bytecode.decompile.procyon.configuration.ProcyonCo
 /**
  * Adapter of Procyon decompiler for {@link Decompiler} API
  * This decompiler was written of Mike Strobel
- * Decompiler version: 0.5.32
+ * Decompiler version: 0.5.32 (Jul 26, 2018)
  * <p>
  * Procyon decompiler supports java 8 syntax
  *
@@ -49,12 +48,7 @@ public final class ProcyonDecompiler implements Decompiler {
      * Default constructor for creating {@link ProcyonDecompiler} instance
      */
     public ProcyonDecompiler() {
-        this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
-    }
-
-    @Override
-    public String decompile(byte[] bytecode) {
-        return decompile(bytecode, Collections.emptyList());
+        this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
 
     @Override
@@ -83,9 +77,9 @@ public final class ProcyonDecompiler implements Decompiler {
             settings.getLanguage().decompileType(resolvedType, output, options);
 
             return output.toString();
+        } else {
+            throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
         }
-
-        throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
     }
 
     /**
@@ -151,7 +145,7 @@ public final class ProcyonDecompiler implements Decompiler {
         options.EnumBraceStyle = BraceStyle.EndOfLine;
 
         return ProcyonBuilderConfiguration
-                .getBuilderConfiguration()
+                .createBuilder()
                 .uploadClassReference(true)
                 .excludeNestedTypes(false)
                 .flattenSwitchBlocks(true)
@@ -175,9 +169,11 @@ public final class ProcyonDecompiler implements Decompiler {
 
     @Override
     public void setConfigurationManager(ConfigurationManager configurationManager) {
-        this.configurationManager = configurationManager;
         if (configurationManager != null) {
+            this.configurationManager = configurationManager;
             this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
+        } else {
+            throw new NullPointerException("Configuration manager is can't be a null!");
         }
     }
 
@@ -202,7 +198,7 @@ public final class ProcyonDecompiler implements Decompiler {
          * @param outerClassName name of main decompiled class
          * @param bytecodeMap    map of all inner classes for outer class
          */
-        public ProcyonTypeLoader(String outerClassName, Map<String, byte[]> bytecodeMap) {
+        ProcyonTypeLoader(String outerClassName, Map<String, byte[]> bytecodeMap) {
             this.outerClassName = outerClassName;
             this.bytecodeMap = bytecodeMap;
             this.isLoadReferenceOnClass = utils.getConfigOption(UPLOAD_CLASS_REFERENCE_KEY, Boolean.class);

@@ -11,17 +11,19 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * Proxy class file transformer uses for redirect calls of
  * {@link Instrumentation#retransformClasses(Class[])} for different java agents
+ * <p>
+ * Non public API
  *
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-class ProxyChainClassTransformer implements ClassFileTransformer {
+final class ProxyChainClassTransformer implements ClassFileTransformer {
 
     private final DefaultJavaAgent defaultJavaAgent;
 
-    private final Queue<ClassFileTransformerImpl> transformersQueue;
+    private final Queue<ClassFileTransformerWrapper> transformersQueue;
 
-    public ProxyChainClassTransformer(DefaultJavaAgent defaultJavaAgent) {
+    ProxyChainClassTransformer(DefaultJavaAgent defaultJavaAgent) {
         this.defaultJavaAgent = defaultJavaAgent;
         this.transformersQueue = new ConcurrentLinkedQueue<>();
     }
@@ -31,7 +33,7 @@ class ProxyChainClassTransformer implements ClassFileTransformer {
      *
      * @param classFileTransformer any class file transformer
      */
-    public void addTransformer(ClassFileTransformerImpl classFileTransformer) {
+    void addTransformer(ClassFileTransformerWrapper classFileTransformer) {
         transformersQueue.add(classFileTransformer);
     }
 
@@ -40,8 +42,8 @@ class ProxyChainClassTransformer implements ClassFileTransformer {
      *
      * @param classFileTransformer any class file transformer
      */
-    public boolean removeTransformer(ClassFileTransformer classFileTransformer) {
-        return transformersQueue.remove(new ClassFileTransformerImpl(classFileTransformer, false));
+    boolean removeTransformer(ClassFileTransformer classFileTransformer) {
+        return transformersQueue.remove(new ClassFileTransformerWrapper(classFileTransformer, false));
     }
 
     @Override
@@ -49,17 +51,17 @@ class ProxyChainClassTransformer implements ClassFileTransformer {
                                   ProtectionDomain protectionDomain, byte[] bytecode) throws IllegalClassFormatException {
         if (defaultJavaAgent.isCurrentAgentUsed()) {
             byte[] currentBytecode = bytecode;
-            for (ClassFileTransformerImpl classFileTransformer : transformersQueue) {
-                byte[] transformedBytecode = classFileTransformer.transform(loader, className,
-                        classBeingRedefined, protectionDomain, currentBytecode);
-                if (transformedBytecode != null && classFileTransformer.isRetransformClass()) {
-                    currentBytecode = transformedBytecode;
+            for (ClassFileTransformerWrapper classFileTransformer : transformersQueue) {
+                if (classFileTransformer.isCanRetransformClasses()) {
+                    byte[] transformedBytecode = classFileTransformer.transform(loader, className,
+                            classBeingRedefined, protectionDomain, currentBytecode);
+                    if (transformedBytecode != null) {
+                        currentBytecode = transformedBytecode;
+                    }
                 }
             }
 
-            if (Arrays.equals(bytecode, currentBytecode)) {
-                return null;
-            } else {
+            if (!Arrays.equals(bytecode, currentBytecode)) {
                 return currentBytecode;
             }
         }

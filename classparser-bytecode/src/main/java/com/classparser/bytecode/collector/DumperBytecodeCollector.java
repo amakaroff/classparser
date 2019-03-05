@@ -7,13 +7,18 @@ import com.classparser.bytecode.utils.ClassNameConverter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Dumper collector collects bytecode of classes uses jdk dumper mechanism
  * Dumper supports lambda expression and method handle for HotSpot/J9
- * <p>
+ *
  * <code>-Djdk.internal.lambda.dumpProxyClasses=DUMP_CLASS_FILES</code>
  * <code>-Djava.lang.invoke.MethodHandle.DUMP_CLASS_FILES=true</code>
  * <p>
@@ -27,8 +32,6 @@ public class DumperBytecodeCollector implements BytecodeCollector {
 
     private static final String DUMP_PATH;
 
-    private ConfigurationManager configurationManager;
-
     static {
         DUMP_PATH = System.getProperty("user.dir") + File.separatorChar + "DUMP_CLASS_FILES";
         if (isDumpPropertiesEnabled()) {
@@ -36,25 +39,15 @@ public class DumperBytecodeCollector implements BytecodeCollector {
         }
     }
 
-    @Override
-    public int getOrder() {
-        return 500;
-    }
+    private volatile ConfigurationManager configurationManager;
 
-    @Override
-    public boolean isEnable() {
-        return configurationManager.isEnableDumperByteCodeCollector() && isDumpPropertiesEnabled();
-    }
-
+    /**
+     * Checks if one property for dumping is enabled
+     *
+     * @return true if dump property is enabled
+     */
     private static boolean isDumpPropertiesEnabled() {
         return Boolean.getBoolean(DUMP_MH_PROPERTY) || System.getProperty(DUMP_LAMBDA_PROPERTY) != null;
-    }
-
-    @Override
-    public void setConfigurationManager(ConfigurationManager configurationManager) {
-        if (configurationManager != null) {
-            this.configurationManager = configurationManager;
-        }
     }
 
     /**
@@ -100,8 +93,30 @@ public class DumperBytecodeCollector implements BytecodeCollector {
     }
 
     @Override
+    public int getOrder() {
+        return 500;
+    }
+
+    @Override
+    public boolean isEnable() {
+        ConfigurationManager configurationManager = this.configurationManager;
+        return configurationManager != null && configurationManager.isEnableDumperByteCodeCollector();
+    }
+
+    @Override
+    public void setConfigurationManager(ConfigurationManager configurationManager) {
+        if (configurationManager != null) {
+            this.configurationManager = configurationManager;
+        } else {
+            throw new NullPointerException("Configuration Manager is can't be null!");
+        }
+    }
+
+    @Override
     public byte[] getBytecode(Class<?> clazz) {
         if (clazz != null) {
+            checkingDumpingPropertyForEnabling();
+
             String filePath = ClassNameConverter.toFileJavaClassName(clazz);
             String fullClassDumpPath = DUMP_PATH + File.separator + filePath;
             Path path = Paths.get(fullClassDumpPath);
@@ -109,14 +124,30 @@ public class DumperBytecodeCollector implements BytecodeCollector {
                 try {
                     return Files.readAllBytes(path);
                 } catch (IOException exception) {
-                    System.out.println("Can't read file: " + fullClassDumpPath);
+                    System.err.println("Can't read file: " + fullClassDumpPath);
                     exception.printStackTrace();
 
                     return null;
                 }
             }
+        } else {
+            throw new NullPointerException("Class can't be a null!");
         }
 
         return null;
+    }
+
+    private void checkingDumpingPropertyForEnabling() {
+        boolean isMethodHandleDumpEnabled = Boolean.getBoolean(DUMP_MH_PROPERTY);
+        if (!isMethodHandleDumpEnabled) {
+            System.err.println("Please add property \"-D" + DUMP_MH_PROPERTY + "=true\"" +
+                    " for obtaining dump of method handle classes.");
+        }
+
+        String lambdaDumpPathProperty = System.getProperty(DUMP_LAMBDA_PROPERTY);
+        if (lambdaDumpPathProperty == null) {
+            System.err.println("Please add property \"-D" + DUMP_LAMBDA_PROPERTY + "=DUMP_CLASS_FILES\"" +
+                    " for obtaining dump of lambda classes.");
+        }
     }
 }

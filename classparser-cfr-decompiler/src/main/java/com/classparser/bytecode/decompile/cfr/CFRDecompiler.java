@@ -2,10 +2,10 @@ package com.classparser.bytecode.decompile.cfr;
 
 import com.classparser.bytecode.api.BytecodeCollector;
 import com.classparser.bytecode.api.Decompiler;
-import com.classparser.bytecode.decompile.cfr.configuration.CFRBuilderConfiguration;
-import com.classparser.bytecode.exception.decompile.DecompilationException;
 import com.classparser.bytecode.collector.ChainBytecodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
+import com.classparser.bytecode.decompile.cfr.configuration.CFRBuilderConfiguration;
+import com.classparser.bytecode.exception.DecompilationException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
 import org.benf.cfr.reader.api.ClassFileSource;
@@ -14,6 +14,7 @@ import org.benf.cfr.reader.entities.ClassFile;
 import org.benf.cfr.reader.state.ClassFileSourceImpl;
 import org.benf.cfr.reader.state.DCCommonState;
 import org.benf.cfr.reader.state.TypeUsageCollector;
+import org.benf.cfr.reader.state.TypeUsageCollectorImpl;
 import org.benf.cfr.reader.state.TypeUsageInformation;
 import org.benf.cfr.reader.util.CannotLoadClassException;
 import org.benf.cfr.reader.util.bytestream.BaseByteData;
@@ -27,7 +28,6 @@ import org.benf.cfr.reader.util.output.StdIODumper;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +38,7 @@ import static com.classparser.bytecode.decompile.cfr.configuration.CFRConfigurat
 /**
  * Adapter of CFR decompiler for {@link Decompiler} API
  * This decompiler was written of Lee Benfield
- * Decompiler version: 0.132
+ * Decompiler version: 0.132 (Jan 09, 2019)
  * <p>
  * CFR decompiler supports java 8 syntax
  *
@@ -52,12 +52,7 @@ public final class CFRDecompiler implements Decompiler {
     private volatile ConfigurationManager configurationManager;
 
     public CFRDecompiler() {
-        this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
-    }
-
-    @Override
-    public String decompile(byte[] bytecode) {
-        return decompile(bytecode, Collections.emptyList());
+        this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
 
     @Override
@@ -74,7 +69,7 @@ public final class CFRDecompiler implements Decompiler {
             DCCommonState dcCommonState = new CFRDCCommonState(options, classFileSource, bytecode, classes);
 
             ClassFile classFile = dcCommonState.getClassFileMaybePath(className);
-            TypeUsageCollector collectingDumper = new TypeUsageCollector(classFile);
+            TypeUsageCollector collectingDumper = new TypeUsageCollectorImpl(classFile);
             IllegalIdentifierDump illegalIdentifierDump = IllegalIdentifierDump.Factory.get(options);
             dcCommonState.configureWith(classFile);
 
@@ -87,9 +82,9 @@ public final class CFRDecompiler implements Decompiler {
             classFile.dump(dumper);
 
             return dumper.toString();
+        } else {
+            throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
         }
-
-        throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
     }
 
     /**
@@ -135,7 +130,7 @@ public final class CFRDecompiler implements Decompiler {
      */
     private Map<String, Object> getDefaultConfiguration() {
         return CFRBuilderConfiguration
-                .getBuilderConfiguration()
+                .createBuilder()
                 .replaceStringConcatToStringBuffer(false)
                 .replaceStringConcatToStringBuilder(false)
                 .decompileSugarEnumInSwitch(true)
@@ -202,14 +197,18 @@ public final class CFRDecompiler implements Decompiler {
 
     @Override
     public void setConfigurationManager(ConfigurationManager configurationManager) {
-        this.configurationManager = configurationManager;
-        this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
+        if (configurationManager != null) {
+            this.configurationManager = configurationManager;
+            this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
+        } else {
+            throw new NullPointerException("Configuration manager is can't be a null!");
+        }
     }
 
     /**
      * Class extends {@link StdIODumper} and implements any fixes by correcting decompiled code
      */
-    private class CFRBuilderDumper extends StdIODumper {
+    private static class CFRBuilderDumper extends StdIODumper {
 
         private final StringBuilder builder;
 
@@ -314,8 +313,8 @@ public final class CFRDecompiler implements Decompiler {
          * @param bytecode        bytecode of based decompile class
          * @param innerClasses    collection of all inner classes
          */
-        private CFRDCCommonState(Options options, ClassFileSource classFileSource,
-                                 byte[] bytecode, Collection<byte[]> innerClasses) {
+        CFRDCCommonState(Options options, ClassFileSource classFileSource,
+                         byte[] bytecode, Collection<byte[]> innerClasses) {
             super(options, classFileSource);
             this.outerClassName = ClassNameConverter.toJavaClassName(bytecode);
             this.codeCollector = new ChainBytecodeCollector(configurationManager);

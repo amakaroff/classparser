@@ -2,7 +2,6 @@ package com.classparser.reflection.parser.base;
 
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.configuration.ReflectionParserManager;
-import com.classparser.util.Reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -31,7 +30,8 @@ public class ValueParser {
 
     private final ConfigurationManager configurationManager;
 
-    public ValueParser(GenericTypeParser genericTypeParser, AnnotationParser annotationParser,
+    public ValueParser(GenericTypeParser genericTypeParser,
+                       AnnotationParser annotationParser,
                        ReflectionParserManager manager) {
         this.genericTypeParser = genericTypeParser;
         this.annotationParser = annotationParser;
@@ -59,18 +59,19 @@ public class ValueParser {
         if (object != null) {
             Class<?> clazz = object.getClass();
             if (clazz.isArray()) {
-                List<String> listValues = new ArrayList<>();
-                for (Object listValue : getArrayValues(object)) {
-                    if (!isObjectValue(listValue)) {
+                Class<?> componentArrayType = getComponentArrayType(clazz);
+                if (isSupportedComponentType(componentArrayType)) {
+                    List<String> listValues = new ArrayList<>();
+                    for (Object listValue : toObjectArray(object)) {
                         listValues.add(getValue(listValue));
                     }
-                }
 
-                String values = String.join(", ", listValues);
-                if (values.isEmpty()) {
-                    return values;
-                } else {
-                    return '{' + values + '}';
+                    String values = String.join(", ", listValues);
+                    if (values.isEmpty()) {
+                        return values;
+                    } else {
+                        return '{' + values + '}';
+                    }
                 }
             }
 
@@ -88,9 +89,10 @@ public class ValueParser {
             } else if (object instanceof Class) {
                 return genericTypeParser.parseType((Class) object) + ".class";
             } else if (object instanceof Annotation) {
-                Class<? extends Annotation> annotationType = ((Annotation) object).annotationType();
+                Annotation annotation = (Annotation) object;
+                Class<? extends Annotation> annotationType = annotation.annotationType();
                 if (annotationType != null && annotationType.isAnnotation()) {
-                    return annotationParser.parseAnnotation((Annotation) object);
+                    return annotationParser.parseAnnotation(annotation);
                 }
             }
 
@@ -102,12 +104,38 @@ public class ValueParser {
     }
 
     /**
+     * Checks is component type are supported for value parsing
+     *
+     * @param clazz array component type
+     * @return true if type is supported
+     */
+    private boolean isSupportedComponentType(Class<?> clazz) {
+        return String.class.isAssignableFrom(clazz) ||
+                isEnum(clazz) ||
+                Character.class.isAssignableFrom(clazz) ||
+                Number.class.isAssignableFrom(clazz) ||
+                Boolean.class.isAssignableFrom(clazz) ||
+                Class.class.isAssignableFrom(clazz) ||
+                clazz.isPrimitive();
+    }
+
+    /**
+     * Obtains component type from array
+     *
+     * @param clazz array class
+     * @return component type
+     */
+    private Class<?> getComponentArrayType(Class<?> clazz) {
+        return clazz.isArray() ? getComponentArrayType(clazz.getComponentType()) : clazz;
+    }
+
+    /**
      * Convert array object to really array
      *
      * @param object any object
      * @return array or empty array if object is not array
      */
-    public Object[] getArrayValues(Object object) {
+    Object[] toObjectArray(Object object) {
         if (object != null && object.getClass().isArray()) {
             int length = Array.getLength(object);
             Object[] objects = new Object[length];
@@ -120,16 +148,6 @@ public class ValueParser {
         }
 
         return EMPTY_OBJECT_ARRAY;
-    }
-
-    /**
-     * Checks if object is non string value
-     *
-     * @param object any object
-     * @return true if this not string value
-     */
-    private boolean isObjectValue(Object object) {
-        return object != null && !(object instanceof String) && object.toString().isEmpty();
     }
 
     /**
@@ -180,19 +198,98 @@ public class ValueParser {
      * @return value from static field or empty string if value can't be obtained
      */
     private String getFieldValue(Field field) {
-        if (configurationManager.isDisplayFieldValue() &&
-                Modifier.isStatic(field.getModifiers()) &&
-                !isEnumConstant(field)) {
-            Object value = Reflection.get(field);
+        if (isDisplayFieldValue(field)) {
+            Object value = getStaticFieldValue(field);
             if (!isField(value)) {
                 String fieldValue = getValue(value);
                 if (!"".equals(fieldValue)) {
-                    return " = " + fieldValue;
+                    if (field.getType() == String.class) {
+                        return " = " + escapingSpecialSymbols(fieldValue);
+                    } else {
+                        return " = " + fieldValue;
+                    }
                 }
             }
         }
 
         return "";
+    }
+
+    /**
+     * Escaping special symbols for normally displaying it in result
+     *
+     * @param line any string
+     * @return escaped string
+     */
+    private String escapingSpecialSymbols(String line) {
+        StringBuilder stringBuilder = new StringBuilder(line.length());
+
+        for (int i = 0; i < line.length(); i++) {
+            char character = line.charAt(i);
+            switch (character) {
+                case '\n':
+                    stringBuilder.append("\\n");
+                    break;
+                case '\r':
+                    stringBuilder.append("\\r");
+                    break;
+                case '\t':
+                    stringBuilder.append("\\t");
+                    break;
+                case '\f':
+                    stringBuilder.append("\\f");
+                    break;
+                case '\b':
+                    stringBuilder.append("\\b");
+                    break;
+                case '\\':
+                    stringBuilder.append("\\\\");
+                    break;
+                default:
+                    stringBuilder.append(character);
+                    break;
+            }
+        }
+
+        return stringBuilder.toString();
+    }
+
+    /**
+     * Obtains static accessible field value
+     *
+     * @param field any field
+     * @return static field value
+     */
+    private Object getStaticFieldValue(Field field) {
+        try {
+            if (field.isAccessible()) {
+                return field.get(null);
+            } else {
+                field.setAccessible(true);
+                try {
+                    return field.get(null);
+                } finally {
+                    field.setAccessible(false);
+                }
+            }
+        } catch (ReflectiveOperationException exception) {
+            System.err.println("Can't access to field" + field + " from class ValueParser!");
+            exception.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
+     * Checks if value displayed is necessary
+     *
+     * @param field any field
+     * @return true if value of field should be displayed
+     */
+    private boolean isDisplayFieldValue(Field field) {
+        return configurationManager.isDisplayFieldValue() &&
+                Modifier.isStatic(field.getModifiers()) &&
+                !isEnumConstant(field);
     }
 
     /**

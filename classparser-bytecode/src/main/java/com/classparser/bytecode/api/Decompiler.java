@@ -5,6 +5,7 @@ import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.decompile.fernflower.FernflowerDecompiler;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Interface provides methods for bytecode decompilation
@@ -24,7 +25,9 @@ public interface Decompiler {
      * @param bytecode - bytecode of class
      * @return decompiling bytecode
      */
-    String decompile(byte[] bytecode);
+    default String decompile(byte[] bytecode) {
+        return decompile(bytecode, Collections.emptyList());
+    }
 
     /**
      * Process of decompiling bytecode with inner classes

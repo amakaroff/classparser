@@ -9,6 +9,7 @@ import sun.reflect.ConstantPool;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -47,7 +48,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
     /**
      * Private exception uses for message if ReflectionConstantPool can't be used
      */
-    private class ConstantPoolNotSupportedException extends RuntimeException {
+    private static class ConstantPoolNotSupportedException extends RuntimeException {
     }
 
     /**
@@ -55,7 +56,9 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
      * This implementation is very fast for a little sets of classes
      */
     @SuppressWarnings("sunapi")
-    private class UnsafeReflectConstantPoolClassIterator implements Iterator<Class<?>> {
+    private static class UnsafeReflectConstantPoolClassIterator implements Iterator<Class<?>> {
+
+        private static final String VIRTUAL_MACHINE_NAME = ManagementFactory.getRuntimeMXBean().getVmName();
 
         private final ConstantPool constantPool;
 
@@ -63,7 +66,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
 
         private int index = 1;
 
-        public UnsafeReflectConstantPoolClassIterator(Class<?> clazz) {
+        UnsafeReflectConstantPoolClassIterator(Class<?> clazz) {
             this.constantPool = getConstantPool(clazz);
             this.size = constantPool.getSize();
         }
@@ -127,7 +130,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          * @return true if JVM is hotspot
          */
         private boolean isHotSpotJVM() {
-            return System.getProperty("java.vm.name").toLowerCase().contains("hotspot");
+            return VIRTUAL_MACHINE_NAME.toLowerCase().contains("hotspot");
         }
 
         /**
@@ -136,7 +139,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          * @return true if JVM is hotspot
          */
         private boolean isOpenJDKVM() {
-            return System.getProperty("java.vm.name").toLowerCase().contains("openjdk");
+            return VIRTUAL_MACHINE_NAME.toLowerCase().contains("openjdk");
         }
 
         /**
@@ -147,12 +150,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          */
         private ConstantPool getHotSpotConstantPool(Class<?> clazz) {
             Method constantPoolMethod = Reflection.getMethod(Class.class, "getConstantPool");
-            constantPoolMethod.setAccessible(true);
-            try {
-                return (ConstantPool) Reflection.invoke(constantPoolMethod, clazz);
-            } finally {
-                constantPoolMethod.setAccessible(false);
-            }
+            return (ConstantPool) Reflection.invoke(constantPoolMethod, clazz);
         }
 
         /**
@@ -161,7 +159,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          * @return true if JVM is J9
          */
         private boolean isJ9JVM() {
-            return System.getProperty("java.vm.name").toLowerCase().contains("j9");
+            return VIRTUAL_MACHINE_NAME.toLowerCase().contains("j9");
         }
 
         /**
@@ -171,9 +169,23 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          * @return constant pool instance
          */
         private ConstantPool getJ9ConstantPool(Class<?> clazz) {
-            Class<?> access = Reflection.forName("java.lang.Access");
+            Class<?> access = loadAccessClass();
             Method constantPoolMethod = Reflection.getMethod(access, "getConstantPool", Object.class);
             return (ConstantPool) Reflection.invokeStatic(constantPoolMethod, clazz);
+        }
+
+        /**
+         * Tryings load package private Access class for ibm J9 jvm
+         *
+         * @return java.lang.Access class
+         */
+        private Class<?> loadAccessClass() {
+            String className = "java.lang.Access";
+            try {
+                return Class.forName(className);
+            } catch (ClassNotFoundException exception) {
+                throw new ConstantPoolNotSupportedException();
+            }
         }
     }
 
@@ -191,7 +203,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
 
         private int index = 1;
 
-        public BytecodeConstantPoolClassIterator(Class<?> clazz) {
+        BytecodeConstantPoolClassIterator(Class<?> clazz) {
             try {
                 DataInputStream stream = getBytecodeDataStream(clazz);
                 int constantPoolSize = stream.readUnsignedShort();
@@ -251,10 +263,10 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
          *
          * @return class or null if in constant pool no more exists classes
          */
-        public Class<?> iterateToNextNotNull() {
+        Class<?> iterateToNextNotNull() {
             while (index < size) {
                 Integer integer = indexes.get(index);
-                String className = constantPool[integer].replace('/', '.');
+                String className = ClassNameConverter.toJavaClassName(constantPool[integer]);
                 try {
                     return Class.forName(className, false, getClass().getClassLoader());
                 } catch (ClassNotFoundException ignore) {
@@ -270,9 +282,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
             if (hasNext()) {
                 Class<?> clazz = iterateToNextNotNull();
                 index++;
-                if (clazz != null) {
-                    return null;
-                }
+                return clazz;
             }
 
             throw new NoSuchElementException("No such the follow class constant!");

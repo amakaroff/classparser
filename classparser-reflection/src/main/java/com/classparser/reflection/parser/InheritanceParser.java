@@ -14,7 +14,7 @@ import java.util.List;
  * about inheritance and implemented interfaces for any classes
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class InheritanceParser {
@@ -94,9 +94,11 @@ public class InheritanceParser {
      */
     private List<String> parseMultipleParentTypes(Type[] parentTypes, AnnotatedType[] annotatedTypes) {
         List<String> multipleParentTypes = new ArrayList<>();
+
         for (int index = 0; index < parentTypes.length; index++) {
             multipleParentTypes.add(genericTypeParser.parseType(parentTypes[index], ifEmpty(annotatedTypes, index)));
         }
+
         return multipleParentTypes;
     }
 

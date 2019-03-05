@@ -20,7 +20,7 @@ import java.util.List;
  * Parsing includes annotation, generics and default values for annotation methods
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class MethodParser {
@@ -45,10 +45,14 @@ public class MethodParser {
 
     private final ValueParser valueParser;
 
-    public MethodParser(ReflectionParserManager manager, GenericTypeParser genericTypeParser,
-                        ModifierParser modifierParser, AnnotationParser annotationParser,
-                        ArgumentParser argumentParser, IndentParser indentParser,
-                        ExceptionParser exceptionParser, ClassNameParser classNameParser,
+    public MethodParser(ReflectionParserManager manager,
+                        GenericTypeParser genericTypeParser,
+                        ModifierParser modifierParser,
+                        AnnotationParser annotationParser,
+                        ArgumentParser argumentParser,
+                        IndentParser indentParser,
+                        ExceptionParser exceptionParser,
+                        ClassNameParser classNameParser,
                         ValueParser valueParser) {
         this.manager = manager;
         this.configurationManager = manager.getConfigurationManager();
@@ -110,8 +114,7 @@ public class MethodParser {
         String body = parseBody(method);
         String content = manager.joinNotEmptyContentBySpace(modifiers, generics, returnType);
 
-        return annotations + indent + content + " " + methodName + arguments +
-                defaultAnnotationValue + exceptions + body;
+        return annotations + indent + content + " " + methodName + arguments + defaultAnnotationValue + exceptions + body;
     }
 
     /**

@@ -16,7 +16,7 @@ import java.util.List;
  * Parsing includes annotation, generics and etc.
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class ConstructorParser {
@@ -37,9 +37,12 @@ public class ConstructorParser {
 
     private final ExceptionParser exceptionParser;
 
-    public ConstructorParser(ReflectionParserManager manager, GenericTypeParser genericParser,
-                             ModifierParser modifierParser, AnnotationParser annotationParser,
-                             ArgumentParser argumentParser, IndentParser indentParser,
+    public ConstructorParser(ReflectionParserManager manager,
+                             GenericTypeParser genericParser,
+                             ModifierParser modifierParser,
+                             AnnotationParser annotationParser,
+                             ArgumentParser argumentParser,
+                             IndentParser indentParser,
                              ExceptionParser exceptionParser) {
         this.manager = manager;
         this.configurationManager = manager.getConfigurationManager();

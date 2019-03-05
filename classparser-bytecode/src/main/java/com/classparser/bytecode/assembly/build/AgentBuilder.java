@@ -2,11 +2,11 @@ package com.classparser.bytecode.assembly.build;
 
 import com.classparser.bytecode.api.BytecodeCollector;
 import com.classparser.bytecode.collector.ClassFileBytecodeCollector;
-import com.classparser.bytecode.exception.classes.ClassNotFoundException;
-import com.classparser.bytecode.exception.classes.IllegalClassException;
+import com.classparser.bytecode.exception.ByteCodeParserException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.exception.file.FileCreatingException;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
@@ -32,7 +32,7 @@ public final class AgentBuilder {
 
     private static final String DEFAULT_AGENT_JAR_FILE_NAME = "agent.jar";
 
-    public static AgentJarBuilder getBuilder() {
+    public static AgentJarBuilder createBuilder() {
         return new Builder();
     }
 
@@ -42,6 +42,8 @@ public final class AgentBuilder {
     private static class Builder implements AgentJarBuilder {
 
         private static final String JAR_SUFFIX = ".jar";
+
+        private static final String DEFAULT_AGENT_JAR_NAME = "agent.jar";
 
         private final Collection<Class<?>> attachedClasses;
 
@@ -54,7 +56,7 @@ public final class AgentBuilder {
         private Manifest manifest;
 
         private Builder() {
-            this.agentName = "agent.jar";
+            this.agentName = DEFAULT_AGENT_JAR_NAME;
             this.agentDirLocation = "";
             this.attachedClasses = new HashSet<>();
         }
@@ -63,6 +65,8 @@ public final class AgentBuilder {
         public AgentJarBuilder addAgentName(String agentName) {
             if (agentName != null) {
                 this.agentName = appendJarSuffixIfNeeded(agentName);
+            } else {
+                throw new NullPointerException("Agent name is can't be a null!");
             }
 
             return this;
@@ -72,6 +76,8 @@ public final class AgentBuilder {
         public AgentJarBuilder addAgentDirLocation(String dirLocation) {
             if (dirLocation != null) {
                 this.agentDirLocation = dirLocation;
+            } else {
+                throw new NullPointerException("Agent dir location is can't be a null!");
             }
 
             return this;
@@ -81,6 +87,8 @@ public final class AgentBuilder {
         public AgentJarBuilder addClasses(Class<?>... attachedClasses) {
             if (attachedClasses != null) {
                 this.attachedClasses.addAll(Arrays.asList(attachedClasses));
+            } else {
+                throw new NullPointerException("Attached classes is can't be a null!");
             }
 
             return this;
@@ -90,6 +98,8 @@ public final class AgentBuilder {
         public AgentJarBuilder addManifest(Manifest manifest) {
             if (manifest != null) {
                 this.manifest = manifest;
+            } else {
+                throw new NullPointerException("Manifest is can't be a null!");
             }
 
             return this;
@@ -99,7 +109,7 @@ public final class AgentBuilder {
         public AgentJarBuilder addAgentClass(Class<?> agentClass) {
             if (!isAgentClass(agentClass)) {
                 String className = ClassNameConverter.toJavaClassName(agentClass);
-                throw new IllegalClassException("Class \"" + className + "\" is can't be a agent class", agentClass);
+                throw new IllegalArgumentException("Class \"" + className + "\" is can't be an agent class");
             }
 
             this.agentClass = agentClass;
@@ -108,18 +118,9 @@ public final class AgentBuilder {
 
         @Override
         public String build() {
-            findAgentClass();
-            if (agentClass == null) {
-                throw new NullPointerException("Java agent class can't be null");
-            }
-
-            if (agentName == null) {
-                agentName = DEFAULT_AGENT_JAR_FILE_NAME;
-            }
+            prepareBuild();
 
             String agentPath = agentDirLocation + agentName;
-
-            this.attachedClasses.add(agentClass);
             try (JarOutputStream jarStream = new JarOutputStream(new FileOutputStream(agentPath), getManifest())) {
                 BytecodeCollector reader = new ClassFileBytecodeCollector();
 
@@ -131,7 +132,7 @@ public final class AgentBuilder {
                         if (bytecode == null) {
                             String className = ClassNameConverter.toJavaClassName(attachedClass);
                             String exceptionMessage = "Can't find bytecode of class \"" + className + "\"";
-                            throw new ClassNotFoundException(exceptionMessage, className);
+                            throw new ByteCodeParserException(exceptionMessage);
                         }
 
                         jarStream.write(bytecode);
@@ -142,20 +143,37 @@ public final class AgentBuilder {
 
                 jarStream.finish();
             } catch (IOException exception) {
-                throw new FileCreatingException("Java agent jar is can't created", exception, agentPath);
+                throw new FileCreatingException("Java agent jar is can't be created", exception, agentPath);
             }
 
             return agentPath;
+        }
+
+        private void prepareBuild() {
+            findAgentClass();
+            if (agentClass == null) {
+                throw new NullPointerException("Java agent class can't be null");
+            }
+
+            if (agentName == null) {
+                agentName = DEFAULT_AGENT_JAR_FILE_NAME;
+            }
+
+            if (!agentDirLocation.endsWith(File.separator)) {
+                agentDirLocation += File.separatorChar;
+            }
+
+            attachedClasses.add(agentClass);
         }
 
         /**
          * Tryings find agent class in all attach classes and set it to {@link Builder#agentClass}
          */
         private void findAgentClass() {
-            if (this.agentClass == null) {
-                for (Class<?> attachedClass : this.attachedClasses) {
+            if (agentClass == null) {
+                for (Class<?> attachedClass : attachedClasses) {
                     if (isAgentClass(attachedClass)) {
-                        this.agentClass = attachedClass;
+                        agentClass = attachedClass;
                         return;
                     }
                 }
@@ -165,11 +183,11 @@ public final class AgentBuilder {
         /**
          * Checks if class exists special agent signature method
          * <code>
-         *      void agentmain(String args, Instrumentation instrumentation)
+         * void agentmain(String args, Instrumentation instrumentation)
          * </code>
          * or
          * <code>
-         *      void premain(String args, Instrumentation instrumentation)
+         * void premain(String args, Instrumentation instrumentation)
          * </code>
          *
          * @param clazz any class
@@ -211,7 +229,7 @@ public final class AgentBuilder {
         /**
          * Tryings and append any suffix if it's needed
          *
-         * @param value  any value
+         * @param value any value
          * @return value exists suffix
          */
         private String appendJarSuffixIfNeeded(String value) {

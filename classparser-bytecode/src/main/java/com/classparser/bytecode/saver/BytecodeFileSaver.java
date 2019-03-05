@@ -80,6 +80,8 @@ public class BytecodeFileSaver {
     public void saveToFile(byte[] bytecode) {
         if (bytecode != null) {
             writeByteCodeToFile(getClassFileName(bytecode), bytecode);
+        } else {
+            throw new NullPointerException("Bytecode of class is can't be null!");
         }
     }
 }

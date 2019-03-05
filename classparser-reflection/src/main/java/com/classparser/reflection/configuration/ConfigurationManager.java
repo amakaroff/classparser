@@ -1,10 +1,9 @@
 package com.classparser.reflection.configuration;
 
 import com.classparser.configuration.Configuration;
-import com.classparser.util.ConfigurationUtils;
 import com.classparser.reflection.ReflectionParser;
+import com.classparser.util.ConfigurationUtils;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.classparser.reflection.configuration.api.ReflectionParserConfiguration.*;
@@ -24,7 +23,7 @@ public class ConfigurationManager {
     private final ConfigurationUtils utils;
 
     public ConfigurationManager() {
-        this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
+        this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
 
     /**
@@ -38,6 +37,7 @@ public class ConfigurationManager {
      *      <li>{@link #isDisplayGenericSignatures()} - yes</li>
      *      <li>{@link #isDisplayVarArgs()} - yes</li>
      *      <li>{@link #isDisplayDefaultInheritance()} - false</li>
+     *      <li>{@link #isEnabledStaticBlockDisplaying()} - true</li>
      *      <li>{@link #hideExhaustiveModifiers()} - true</li>
      *      <li>{@link #isEnabledImports()} - yes</li>
      *      <li>{@link #getIndentSpaces()} - 4 spaces</li>
@@ -48,7 +48,7 @@ public class ConfigurationManager {
      */
     protected Map<String, Object> getDefaultConfiguration() {
         return ReflectionParserBuilderConfiguration
-                .getBuilder()
+                .createBuilder()
                 .displayAnnotationOnTypes(true)
                 .displayInnerClasses(true)
                 .displaySyntheticEntities(false)
@@ -56,6 +56,7 @@ public class ConfigurationManager {
                 .displayValueForFields(true)
                 .displayGenericSignatures(true)
                 .displayVarArgs(true)
+                .enableStaticBlockDisplaying(true)
                 .enableImportSection(true)
                 .hideExhaustiveModifiers(true)
                 .displayDefaultInheritance(false)
@@ -70,11 +71,7 @@ public class ConfigurationManager {
      * @return "'\n\r" if system windows or "\n" in other cases
      */
     private static String chooseSystemNewLineCharacter() {
-        if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
-            return "\n\r";
-        } else {
-            return "\n";
-        }
+        return System.getProperty("line.separator");
     }
 
     /**
@@ -151,6 +148,15 @@ public class ConfigurationManager {
      */
     public boolean isDisplayFieldValue() {
         return utils.getConfigOption(DISPLAY_VALUE_IN_STATIC_FIELDS_KEY, Boolean.class);
+    }
+
+    /**
+     * Checks if generic signatures for types displaying is necessary
+     *
+     * @return true if enable process of checking existing static block in class
+     */
+    public boolean isEnabledStaticBlockDisplaying() {
+        return utils.getConfigOption(ENABLED_STATIC_BLOCK_DISPLAYING, Boolean.class);
     }
 
     /**

@@ -261,9 +261,10 @@ public interface FernflowerConfiguration extends Configuration {
      * <p>
      * Default value: selected by OS
      *
-     * @param character line separator
+     * @param separator line separator
+     * @return builder instance
      */
-    FernflowerConfiguration defineLineSeparator(String character);
+    FernflowerConfiguration defineLineSeparator(LineSeparator separator);
 
     /**
      * Indentations string
@@ -284,4 +285,11 @@ public interface FernflowerConfiguration extends Configuration {
      * @return builder instance
      */
     FernflowerConfiguration setLogLevel(IFernflowerLogger.Severity level);
+
+    enum LineSeparator {
+
+        WINDOWS,
+
+        LINUX
+    }
 }

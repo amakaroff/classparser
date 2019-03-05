@@ -2,7 +2,6 @@ package com.classparser.reflection.parser.base;
 
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.configuration.ReflectionParserManager;
-import com.classparser.reflection.exception.ReflectionParserException;
 
 import java.lang.reflect.AnnotatedArrayType;
 import java.lang.reflect.AnnotatedParameterizedType;
@@ -15,7 +14,6 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -23,46 +21,23 @@ import java.util.List;
  * Depending on context {@link ReflectionParserManager} of parsing
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class GenericTypeParser {
 
     private final ClassNameParser classNameParser;
 
-    private final ReflectionParserManager manager;
-
     private final ConfigurationManager configurationManager;
 
-    private AnnotationParser annotationParser;
+    private final AnnotationParser annotationParser;
 
-    public GenericTypeParser(ClassNameParser classNameParser, ReflectionParserManager manager) {
+    public GenericTypeParser(ClassNameParser classNameParser,
+                             AnnotationParser annotationParser,
+                             ReflectionParserManager manager) {
         this.classNameParser = classNameParser;
-        this.manager = manager;
-        this.configurationManager = manager.getConfigurationManager();
-    }
-
-    /**
-     * Inner getter for annotation parser
-     *
-     * @return annotation parser
-     * @throws ReflectionParserException if parser is not initialize
-     */
-    private AnnotationParser getAnnotationParser() {
-        if (annotationParser != null) {
-            return annotationParser;
-        }
-
-        throw new ReflectionParserException("<Annotation Parser> for <Generic Type Parser> is not initialized!");
-    }
-
-    /**
-     * Setter for annotation parser
-     *
-     * @param annotationParser annotation parser
-     */
-    public void setAnnotationParser(AnnotationParser annotationParser) {
         this.annotationParser = annotationParser;
+        this.configurationManager = manager.getConfigurationManager();
     }
 
     /**
@@ -81,7 +56,7 @@ public class GenericTypeParser {
             TypeVariable<?>[] typeParameters = genericDeclaration.getTypeParameters();
 
             for (TypeVariable parameter : typeParameters) {
-                String annotations = getAnnotationParser().parseAnnotationsAsInline(parameter);
+                String annotations = annotationParser.parseAnnotationsAsInline(parameter);
                 String boundTypes = String.join(" & ", parseBounds(parameter));
                 String bounds = !boundTypes.isEmpty() ? " extends " + boundTypes : "";
 
@@ -117,7 +92,7 @@ public class GenericTypeParser {
         if (configurationManager.isDisplayAnnotationOnTypes() && annotatedType != null && !isArray(type)) {
             // If type is inner nested class then "use type" annotations for parametrized type is invisible
             // https://stackoverflow.com/questions/39952812/why-annotation-on-generic-type-argument-is-not-visible-for-nested-type
-            annotations = getAnnotationParser().parseAnnotationsAsInline(getAnnotatedArrayType(annotatedType));
+            annotations = annotationParser.parseAnnotationsAsInline(getAnnotatedArrayType(annotatedType));
         }
 
         if (type instanceof Class) {
@@ -127,9 +102,9 @@ public class GenericTypeParser {
                 AnnotatedArrayType annotatedArrayType = (AnnotatedArrayType) annotatedType;
                 boundType = parseType(clazz.getComponentType(), annotatedArrayType);
                 AnnotatedType annotatedForArrayType = getAnnotatedTypeForArray(clazz, annotatedArrayType);
-                boundType += getAnnotationParser().parseAnnotationsAsInline(annotatedForArrayType) + "[]";
+                boundType += annotationParser.parseAnnotationsAsInline(annotatedForArrayType) + "[]";
             } else {
-                if (isNeedNameForInnerClass(clazz)) {
+                if (classNameParser.isNeedNameForInnerClass(clazz)) {
                     String typeName = parseType(clazz.getDeclaringClass(), null);
                     boundType = !typeName.isEmpty() ? typeName + "." + getCorrectAnnotations(annotations) : "";
                     annotations = "";
@@ -148,9 +123,9 @@ public class GenericTypeParser {
             boundType = typeVariable.getName();
         } else if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
-            if (isNeedNameForInnerClass((Class) parameterizedType.getRawType())) {
+            if (classNameParser.isNeedNameForInnerClass((Class) parameterizedType.getRawType())) {
                 // Have problems because of https://bugs.openjdk.java.net/browse/JDK-8146861
-                // Fixed in Java 9
+                // Fixed in Java 9 AnnotatedParameterizedType#getAnnotatedOwnerType
                 AnnotatedParameterizedType annotatedOwnerParametrizedType = null;
                 String correctAnnotations = getCorrectAnnotations(annotations);
                 Type ownerType = parameterizedType.getOwnerType();
@@ -175,7 +150,7 @@ public class GenericTypeParser {
             AnnotatedArrayType annotatedArrayType = (AnnotatedArrayType) annotatedType;
             boundType = parseType(genericArrayType.getGenericComponentType(), annotatedArrayType);
             AnnotatedType annotatedTypeForArray = getAnnotatedTypeForArray(genericArrayType, annotatedArrayType);
-            boundType += getAnnotationParser().parseAnnotationsAsInline(annotatedTypeForArray) + "[]";
+            boundType += annotationParser.parseAnnotationsAsInline(annotatedTypeForArray) + "[]";
         }
 
         return getCorrectAnnotations(annotations) + boundType;
@@ -209,7 +184,7 @@ public class GenericTypeParser {
         AnnotatedType[] annotatedBounds = parameter.getAnnotatedBounds();
 
         for (int index = 0; index < typeBounds.length; index++) {
-            String annotations = getAnnotationParser().parseAnnotationsAsInline(annotatedBounds[index]);
+            String annotations = annotationParser.parseAnnotationsAsInline(annotatedBounds[index]);
             Type typeBound = typeBounds[index];
             if (configurationManager.isDisplayDefaultInheritance() || typeBound != Object.class) {
                 String boundType = parseType(typeBound);
@@ -289,7 +264,7 @@ public class GenericTypeParser {
      * @return annotated array type
      */
     private AnnotatedType getAnnotatedArrayType(AnnotatedType annotatedType) {
-        if (!configurationManager.isDisplayAnnotationOnTypes()) {
+        if (configurationManager.isDisplayAnnotationOnTypes()) {
             if (annotatedType instanceof AnnotatedArrayType) {
                 AnnotatedArrayType annotatedArrayType = (AnnotatedArrayType) annotatedType;
                 while (annotatedArrayType.getAnnotatedGenericComponentType() instanceof AnnotatedArrayType) {
@@ -324,8 +299,11 @@ public class GenericTypeParser {
                 WildcardType wildcardType = (WildcardType) actualTypeArguments[index];
                 AnnotatedType annotatedType = ifEmpty(annotatedActualTypeArguments, index);
 
+                String annotations = "";
                 AnnotatedWildcardType annotatedWildcardType = (AnnotatedWildcardType) annotatedType;
-                String annotations = getAnnotationParser().parseAnnotationsAsInline(annotatedWildcardType);
+                if (annotatedWildcardType != null) {
+                    annotations = annotationParser.parseAnnotationsAsInline(annotatedWildcardType);
+                }
                 String wildcard = getCorrectAnnotations(annotations) + "?";
 
                 AnnotatedType[] upper = ifNullUpper(annotatedWildcardType);
@@ -370,48 +348,7 @@ public class GenericTypeParser {
         return wildcard;
     }
 
-    /**
-     * Check is needed name for inner class
-     *
-     * @param innerClass any class
-     * @return true if name needed for inner class
-     */
-    private boolean isNeedNameForInnerClass(Class<?> innerClass) {
-        Class<?> parsedClass = manager.getBaseParsedClass();
-        return innerClass.isMemberClass()
-                && (!getTopClass(innerClass).equals(getTopClass(parsedClass))
-                || !isInVisibilityZone(innerClass));
-    }
 
-    /**
-     * Checking is class exists in visibility zone for current parsed class
-     * For example:
-     *    Top class
-     * 1 /         \ 2
-     *  /\         /\
-     * 3 4        5 6
-     * <p>Class 3 in visibility zone for class 1 and not requires full name</p>
-     * <p>
-     * Class 4 and 5 in not visibility zone and if we used class 4 in 5 then we should
-     * add enclosing class name
-     * </p>
-     *
-     * @param innerClass any class
-     * @return true if class in visibility zone for current parsed class
-     */
-    private boolean isInVisibilityZone(Class<?> innerClass) {
-        Class<?> currentClass = manager.getCurrentParsedClass();
-        while (currentClass != null) {
-            List<Class<?>> innerClasses = Arrays.asList(currentClass.getDeclaredClasses());
-            if (innerClasses.contains(innerClass)) {
-                return true;
-            }
-
-            currentClass = currentClass.getDeclaringClass();
-        }
-
-        return false;
-    }
 
     /**
      * Obtains package name
@@ -421,16 +358,6 @@ public class GenericTypeParser {
      */
     private String getPackageName(Class<?> clazz) {
         return clazz.getPackage() != null ? clazz.getPackage().getName() : "";
-    }
-
-    /**
-     * Retrievals top declaring class
-     *
-     * @param innerClass any class
-     * @return top declaring class
-     */
-    private Class<?> getTopClass(Class<?> innerClass) {
-        return innerClass.getDeclaringClass() != null ? getTopClass(innerClass.getDeclaringClass()) : innerClass;
     }
 
     /**

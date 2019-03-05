@@ -21,7 +21,7 @@ public class ProcyonBuilderConfiguration {
      *
      * @return {@link ProcyonConfiguration} instance
      */
-    public static ProcyonConfiguration getBuilderConfiguration() {
+    public static ProcyonConfiguration createBuilder() {
         return new Builder();
     }
 
@@ -32,10 +32,7 @@ public class ProcyonBuilderConfiguration {
 
         private final Map<String, Object> configuration;
 
-        /**
-         * Default constructor for initialize {@link Builder}
-         */
-        public Builder() {
+        Builder() {
             this.configuration = new ConcurrentHashMap<>();
         }
 
@@ -76,13 +73,23 @@ public class ProcyonBuilderConfiguration {
 
         @Override
         public ProcyonConfiguration setLanguage(Language language) {
-            configuration.put(LANGUAGE_KEY, language);
+            if (language != null) {
+                configuration.put(LANGUAGE_KEY, language);
+            } else {
+                throw new NullPointerException("Language is can't be a null!");
+            }
+
             return this;
         }
 
         @Override
-        public ProcyonConfiguration setJavaFormatterOptions(JavaFormattingOptions language) {
-            configuration.put(JAVA_FORMATTER_OPTIONS_KEY, language);
+        public ProcyonConfiguration setJavaFormatterOptions(JavaFormattingOptions javaFormattingOptions) {
+            if (javaFormattingOptions != null) {
+                configuration.put(JAVA_FORMATTER_OPTIONS_KEY, javaFormattingOptions);
+            } else {
+                throw new NullPointerException("Java formatting options is can't be a null!");
+            }
+
             return this;
         }
 

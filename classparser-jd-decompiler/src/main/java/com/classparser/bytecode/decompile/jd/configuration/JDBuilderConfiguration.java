@@ -19,7 +19,7 @@ public class JDBuilderConfiguration {
      *
      * @return {@link JDConfiguration} instance
      */
-    public static JDConfiguration getBuilderConfiguration() {
+    public static JDConfiguration createBuilder() {
         return new Builder();
     }
 
