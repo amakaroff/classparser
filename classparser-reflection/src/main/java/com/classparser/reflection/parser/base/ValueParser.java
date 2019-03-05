@@ -203,12 +203,55 @@ public class ValueParser {
             if (!isField(value)) {
                 String fieldValue = getValue(value);
                 if (!"".equals(fieldValue)) {
-                    return " = " + fieldValue;
+                    if (field.getType() == String.class) {
+                        return " = " + escapingSpecialSymbols(fieldValue);
+                    } else {
+                        return " = " + fieldValue;
+                    }
                 }
             }
         }
 
         return "";
+    }
+
+    /**
+     * Escaping special symbols for normally displaying it in result
+     *
+     * @param line any string
+     * @return escaped string
+     */
+    private String escapingSpecialSymbols(String line) {
+        StringBuilder stringBuilder = new StringBuilder(line.length());
+
+        for (int i = 0; i < line.length(); i++) {
+            char character = line.charAt(i);
+            switch (character) {
+                case '\n':
+                    stringBuilder.append("\\n");
+                    break;
+                case '\r':
+                    stringBuilder.append("\\r");
+                    break;
+                case '\t':
+                    stringBuilder.append("\\t");
+                    break;
+                case '\f':
+                    stringBuilder.append("\\f");
+                    break;
+                case '\b':
+                    stringBuilder.append("\\b");
+                    break;
+                case '\\':
+                    stringBuilder.append("\\\\");
+                    break;
+                default:
+                    stringBuilder.append(character);
+                    break;
+            }
+        }
+
+        return stringBuilder.toString();
     }
 
     /**

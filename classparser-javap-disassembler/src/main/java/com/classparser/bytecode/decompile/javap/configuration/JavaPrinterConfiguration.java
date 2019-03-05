@@ -2,7 +2,7 @@ package com.classparser.bytecode.decompile.javap.configuration;
 
 import com.classparser.bytecode.decompile.javap.JavaPrinterDisassembler;
 import com.classparser.configuration.Configuration;
-import com.sun.tools.javap.InstructionDetailWriter;
+import com.sun.tools.javap.InstructionDetailWriter.Kind;
 
 import java.lang.reflect.Modifier;
 
@@ -117,13 +117,13 @@ public interface JavaPrinterConfiguration extends Configuration {
     /**
      * Appends kind to displayed kind set
      * <p>
-     * Default value: {@link InstructionDetailWriter.Kind#TRY_BLOCKS},
-     * {@link InstructionDetailWriter.Kind#TYPE_ANNOS}
+     * Default value: {@link Kind#TRY_BLOCKS},
+     * {@link Kind#TYPE_ANNOS}
      *
      * @param kind any kind
      * @return builder instance
      */
-    JavaPrinterConfiguration appendDisplayDetails(InstructionDetailWriter.Kind kind);
+    JavaPrinterConfiguration appendDisplayDetails(Kind kind);
 
     /**
      * Inner class uses for store information about
