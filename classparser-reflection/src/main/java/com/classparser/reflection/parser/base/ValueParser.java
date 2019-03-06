@@ -81,9 +81,9 @@ public class ValueParser {
                 }
                 return genericTypeParser.parseType(clazz) + "." + object;
             } else if (object instanceof String) {
-                return "\"" + object + "\"";
+                return "\"" + escapingSpecialSymbols(object.toString()) + "\"";
             } else if (object instanceof Character) {
-                return "\'" + object + "\'";
+                return "\'" + escapingSpecialSymbols(object.toString()) + "\'";
             } else if (object instanceof Number || object instanceof Boolean) {
                 return object.toString() + getLiteral(object);
             } else if (object instanceof Class) {
@@ -203,11 +203,7 @@ public class ValueParser {
             if (!isField(value)) {
                 String fieldValue = getValue(value);
                 if (!"".equals(fieldValue)) {
-                    if (field.getType() == String.class) {
-                        return " = " + escapingSpecialSymbols(fieldValue);
-                    } else {
-                        return " = " + fieldValue;
-                    }
+                    return " = " + fieldValue;
                 }
             }
         }
@@ -244,6 +240,9 @@ public class ValueParser {
                     break;
                 case '\\':
                     stringBuilder.append("\\\\");
+                    break;
+                case '\"':
+                    stringBuilder.append("\\\"");
                     break;
                 default:
                     stringBuilder.append(character);
