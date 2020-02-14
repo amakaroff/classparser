@@ -2,18 +2,20 @@ package com.classparser.bytecode.decompile.cfr;
 
 import com.classparser.bytecode.api.BytecodeCollector;
 import com.classparser.bytecode.api.Decompiler;
-import com.classparser.bytecode.decompile.cfr.configuration.CFRBuilderConfiguration;
-import com.classparser.bytecode.exception.decompile.DecompilationException;
 import com.classparser.bytecode.collector.ChainBytecodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
+import com.classparser.bytecode.decompile.cfr.configuration.CFRBuilderConfiguration;
+import com.classparser.bytecode.exception.decompile.DecompilationException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
 import org.benf.cfr.reader.api.ClassFileSource;
+import org.benf.cfr.reader.apiunreleased.ClassFileSource2;
 import org.benf.cfr.reader.bytecode.analysis.parse.utils.Pair;
 import org.benf.cfr.reader.entities.ClassFile;
 import org.benf.cfr.reader.state.ClassFileSourceImpl;
 import org.benf.cfr.reader.state.DCCommonState;
 import org.benf.cfr.reader.state.TypeUsageCollector;
+import org.benf.cfr.reader.state.TypeUsageCollectorImpl;
 import org.benf.cfr.reader.state.TypeUsageInformation;
 import org.benf.cfr.reader.util.CannotLoadClassException;
 import org.benf.cfr.reader.util.bytestream.BaseByteData;
@@ -56,25 +58,25 @@ public final class CFRDecompiler implements Decompiler {
     }
 
     @Override
-    public String decompile(byte[] bytecode) {
-        return decompile(bytecode, Collections.emptyList());
+    public String decompile(byte[] byteCode) {
+        return decompile(byteCode, Collections.emptyList());
     }
 
     @Override
-    public String decompile(byte[] bytecode, Collection<byte[]> classes) {
-        if (bytecode != null && classes != null) {
-            String className = ClassNameConverter.getClassName(bytecode);
+    public String decompile(byte[] byteCode, Collection<byte[]> classes) {
+        if (byteCode != null && classes != null) {
+            String className = ClassNameConverter.getClassName(byteCode);
 
             GetOptParser getOptParser = new GetOptParser();
             String[] defaultOptions = getDefaultOptions(className);
             Pair<List<String>, Options> parse = getOptParser.parse(defaultOptions, OptionsImpl.getFactory());
 
             Options options = parse.getSecond();
-            ClassFileSource classFileSource = new ClassFileSourceImpl(options);
-            DCCommonState dcCommonState = new CFRDCCommonState(options, classFileSource, bytecode, classes);
+            ClassFileSource2 classFileSource = new ClassFileSourceImpl(options);
+            DCCommonState dcCommonState = new CFRDCCommonState(options, classFileSource, byteCode, classes);
 
             ClassFile classFile = dcCommonState.getClassFileMaybePath(className);
-            TypeUsageCollector collectingDumper = new TypeUsageCollector(classFile);
+            TypeUsageCollector collectingDumper = new TypeUsageCollectorImpl(options, classFile);
             IllegalIdentifierDump illegalIdentifierDump = IllegalIdentifierDump.Factory.get(options);
             dcCommonState.configureWith(classFile);
 
@@ -89,11 +91,11 @@ public final class CFRDecompiler implements Decompiler {
             return dumper.toString();
         }
 
-        throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
+        throw new DecompilationException("Byte code of classes for decompilation can't be a null!");
     }
 
     /**
-     * Parses current configuration and create decompiler options
+     * Parses a current configuration and create decompiler options
      *
      * @param className decompiled class name
      * @return array of decompiler options
@@ -170,13 +172,13 @@ public final class CFRDecompiler implements Decompiler {
                 .forceTopSortAggressive(true)
                 .forceCodePropagate(true)
                 .forceReturnIngifs(true)
-                //.ignoreExceptionsAlways(false) Not working in current version
+                .ignoreExceptionsAlways(false)
                 .ignoreExceptions(false)
                 .forceExceptionPrune(true)
                 .removeNestedExceptionsHandlers(false)
                 .splitLifetimesAnalysisCausedType(false)
                 .recoverTypeHintsForIterators(true)
-                .showDebugInfo(0)
+                //.showDebugInfo(0) //Not working in current version
                 .doNotDisplayStateWhile(true)
                 .allowMoreAggressiveOptions(true)
                 .enableEclipseTransformations(false)
@@ -193,7 +195,7 @@ public final class CFRDecompiler implements Decompiler {
                 .renameInvalidIdentifiers(false)
                 .renameEnumIdentifiers(false)
                 .countAtWhichToTriggerAggressiveReductions(15000)
-                //.removeReturnFromStaticInit(true) Not working in current version
+                //.removeReturnFromStaticInit(true) //Not working in current version
                 .useLocalVariableTableIfExits(true)
                 .pullCodeIntoCaseStatements(true)
                 .elideThingsInScalaOutput(true)
@@ -209,7 +211,9 @@ public final class CFRDecompiler implements Decompiler {
     /**
      * Class extends {@link StdIODumper} and implements any fixes by correcting decompiled code
      */
-    private class CFRBuilderDumper extends StdIODumper {
+    private static class CFRBuilderDumper extends StdIODumper {
+
+        private static final String CEF_INFO = "/*\n * Decompiled with CFR.\n */\n";
 
         private final StringBuilder builder;
 
@@ -222,9 +226,10 @@ public final class CFRDecompiler implements Decompiler {
          * @param options               decompiler options
          * @param illegalIdentifierDump illegal identifier dump instance
          */
-        private CFRBuilderDumper(TypeUsageInformation typeUsageInformation, Options options,
+        private CFRBuilderDumper(TypeUsageInformation typeUsageInformation,
+                                 Options options,
                                  IllegalIdentifierDump illegalIdentifierDump) {
-            super(typeUsageInformation, options, illegalIdentifierDump);
+            super(typeUsageInformation, options, illegalIdentifierDump, 0);
             this.builder = new StringBuilder();
             this.skipLineSeparator = false;
         }
@@ -242,9 +247,9 @@ public final class CFRDecompiler implements Decompiler {
          */
         private String getCorrectData(String data) {
             if ((data.equals("class ") ||
-                    data.equals("interface ") ||
-                    data.equals("enum ") ||
-                    data.equals("@interface ")) && !skipLineSeparator) {
+                 data.equals("interface ") ||
+                 data.equals("enum ") ||
+                 data.equals("@interface ")) && !skipLineSeparator) {
                 skipLineSeparator = true;
             }
 
@@ -265,7 +270,7 @@ public final class CFRDecompiler implements Decompiler {
 
         @Override
         public String toString() {
-            return correctCode(builder);
+            return builder.toString().replace(CEF_INFO, "");
         }
 
         @Override
@@ -273,24 +278,9 @@ public final class CFRDecompiler implements Decompiler {
             builder.delete(0, builder.length());
         }
 
-        /**
-         * Removes header for decompiler and fix open brackets in code
-         *
-         * @param builder strung builder instance with decompiled class code
-         * @return corrected decompile code
-         */
-        private String correctCode(StringBuilder builder) {
-            builder.delete(0, builder.indexOf("*/") + 3);
-
-            int index = 0;
-            while (index < builder.length()) {
-                if (builder.charAt(index) == '{' && builder.charAt(index - 1) != ' ') {
-                    builder.insert(index, ' ');
-                }
-                index++;
-            }
-
-            return builder.toString();
+        @Override
+        public Dumper withTypeUsageInformation(TypeUsageInformation innerclassTypeUsageInformation) {
+            return this;
         }
     }
 
@@ -311,19 +301,21 @@ public final class CFRDecompiler implements Decompiler {
          *
          * @param options         decompiler options
          * @param classFileSource {@link ClassFileSource} instance of based decompile class
-         * @param bytecode        bytecode of based decompile class
+         * @param byteCode        byte code of based decompile class
          * @param innerClasses    collection of all inner classes
          */
-        private CFRDCCommonState(Options options, ClassFileSource classFileSource,
-                                 byte[] bytecode, Collection<byte[]> innerClasses) {
+        private CFRDCCommonState(Options options,
+                                 ClassFileSource2 classFileSource,
+                                 byte[] byteCode,
+                                 Collection<byte[]> innerClasses) {
             super(options, classFileSource);
-            this.outerClassName = ClassNameConverter.toJavaClassName(bytecode);
+            this.outerClassName = ClassNameConverter.toJavaClassName(byteCode);
             this.codeCollector = new ChainBytecodeCollector(configurationManager);
             this.classFileCache = new HashMap<>();
 
-            convertClassFileFromBytecode(bytecode);
+            convertClassFileFromByteCode(byteCode);
             for (byte[] innerClass : innerClasses) {
-                convertClassFileFromBytecode(innerClass);
+                convertClassFileFromByteCode(innerClass);
             }
         }
 
@@ -339,7 +331,7 @@ public final class CFRDecompiler implements Decompiler {
          * @return {@link ClassFile} instance
          * @throws CannotLoadClassException if can't obtain {@link ClassFile} instance by name
          */
-        private ClassFile loadClassFileAtPath(String className) throws CannotLoadClassException {
+        public ClassFile loadClassFileAtPath(String className) throws CannotLoadClassException {
             className = ClassNameConverter.toJavaClassName(className);
 
             ClassFile classFile = classFileCache.get(className);
@@ -351,7 +343,7 @@ public final class CFRDecompiler implements Decompiler {
                 throw new CannotLoadClassException("", null);
             }
 
-            return convertClassFileFromBytecode(getByteCode(className));
+            return convertClassFileFromByteCode(getByteCode(className));
         }
 
         /**
@@ -370,21 +362,21 @@ public final class CFRDecompiler implements Decompiler {
         }
 
         /**
-         * Tryings collect bytecode of class by name
+         * Tryings collect byte code of class by name
          *
          * @param className name of class
-         * @return bytecode of class
-         * @throws CannotLoadClassException if bytecode of class is not found
+         * @return byte code of class
+         * @throws CannotLoadClassException if byte code of class is not found
          */
         private byte[] getByteCode(String className) throws CannotLoadClassException {
             Class<?> clazz = loadClass(className);
-            byte[] bytecode = codeCollector.getBytecode(clazz);
+            byte[] byteCode = codeCollector.getBytecode(clazz);
 
-            if (bytecode == null) {
+            if (byteCode == null) {
                 throw new CannotLoadClassException("Can't load class: " + className, null);
             }
 
-            return bytecode;
+            return byteCode;
         }
 
         @Override
@@ -393,16 +385,16 @@ public final class CFRDecompiler implements Decompiler {
         }
 
         /**
-         * Performs converting bytecode of class to {@link ClassFile} instance
+         * Performs converting byte code of class to {@link ClassFile} instance
          * and put this entity to {@link #classFileCache}
          *
-         * @param bytecode bytecode of class
+         * @param byteCode byte code of class
          * @return {@link ClassFile} instance
          */
-        private ClassFile convertClassFileFromBytecode(byte[] bytecode) {
-            String className = ClassNameConverter.toJavaClassName(bytecode);
+        private ClassFile convertClassFileFromByteCode(byte[] byteCode) {
+            String className = ClassNameConverter.toJavaClassName(byteCode);
 
-            ByteData data = new BaseByteData(bytecode);
+            ByteData data = new BaseByteData(byteCode);
             ClassFile classFile = new ClassFile(data, className, this);
             classFileCache.put(className, classFile);
 

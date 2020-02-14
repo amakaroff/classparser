@@ -19,7 +19,7 @@
     </description>
 
     <properties>
-        <procyon.decompiler.version>0.5.32</procyon.decompiler.version>
+        <procyon.decompiler.version>0.5.36</procyon.decompiler.version>
     </properties>
 
     <dependencies>
