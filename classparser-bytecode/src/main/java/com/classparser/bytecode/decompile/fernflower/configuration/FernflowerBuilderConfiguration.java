@@ -101,6 +101,12 @@ public class FernflowerBuilderConfiguration {
         }
 
         @Override
+        public FernflowerConfiguration ensureSynchronizedMonitor(boolean flag) {
+            configuration.put("esm", flag ? ONE : ZERO);
+            return this;
+        }
+
+        @Override
         public FernflowerConfiguration decompileEnumerations(boolean flag) {
             configuration.put("den", flag ? ZERO : ONE);
             return this;
@@ -119,14 +125,14 @@ public class FernflowerBuilderConfiguration {
         }
 
         @Override
-        public FernflowerConfiguration encodeNonASCIICharacters(boolean flag) {
-            configuration.put("asc", flag ? ONE : ZERO);
+        public FernflowerConfiguration interpretInt1AsBooleanTrue(boolean flag) {
+            configuration.put("bto", flag ? ONE : ZERO);
             return this;
         }
 
         @Override
-        public FernflowerConfiguration interpretInt1AsBooleanTrue(boolean flag) {
-            configuration.put("bto", flag ? ONE : ZERO);
+        public FernflowerConfiguration encodeNonASCIICharacters(boolean flag) {
+            configuration.put("asc", flag ? ONE : ZERO);
             return this;
         }
 
@@ -147,6 +153,12 @@ public class FernflowerBuilderConfiguration {
             configuration.put("udv", flag ? ONE : ZERO);
             return this;
         }
+        
+        @Override
+        public FernflowerConfiguration useMethodParameterNamesFromByteCodeStructure(boolean flag) {
+            configuration.put("ump", flag ? ONE : ZERO);
+            return this;
+        }
 
         @Override
         public FernflowerConfiguration removeEmptyExceptionRanges(boolean flag) {
@@ -157,6 +169,42 @@ public class FernflowerBuilderConfiguration {
         @Override
         public FernflowerConfiguration deInlineFinallyStructures(boolean flag) {
             configuration.put("fdi", flag ? ONE : ZERO);
+            return this;
+        }
+
+        @Override
+        public FernflowerConfiguration checkNonNullAnnotation(boolean flag) {
+            configuration.put("inn", flag ? ONE : ZERO);
+            return this;
+        }
+
+        @Override
+        public FernflowerConfiguration decompileLambdaExpressionsToAnonymousClasses(boolean flag) {
+            configuration.put("lac", flag ? ONE : ZERO);
+            return this;
+        }
+        
+        @Override
+        public FernflowerConfiguration performByteCodeSourceMapping(boolean flag) {
+            configuration.put("bsm", flag ? ONE : ZERO);
+            return this;
+        }
+
+        @Override
+        public FernflowerConfiguration ignoreInvalidByteCode(boolean flag) {
+            configuration.put("iib", flag ? ONE : ZERO);
+            return this;
+        }
+        
+        @Override
+        public FernflowerConfiguration verifyAnonymousClasses(boolean flag) {
+            configuration.put("vac", flag ? ONE : ZERO);
+            return this;
+        }
+
+        @Override
+        public FernflowerConfiguration setLogLevel(IFernflowerLogger.Severity level) {
+            configuration.put("log", level.name());
             return this;
         }
 
@@ -175,18 +223,6 @@ public class FernflowerBuilderConfiguration {
         @Override
         public FernflowerConfiguration setNewIIdentifierRenamer(Class<? extends IIdentifierRenamer> renamer) {
             configuration.put("urc", ClassNameConverter.toJavaClassName(renamer));
-            return this;
-        }
-
-        @Override
-        public FernflowerConfiguration checkNonNullAnnotation(boolean flag) {
-            configuration.put("inn", flag ? ONE : ZERO);
-            return this;
-        }
-
-        @Override
-        public FernflowerConfiguration decompileLambdaExpressionsToAnonymousClasses(boolean flag) {
-            configuration.put("lac", flag ? ONE : ZERO);
             return this;
         }
 
@@ -213,10 +249,12 @@ public class FernflowerBuilderConfiguration {
             return this;
         }
 
-        @Override
-        public FernflowerConfiguration setLogLevel(IFernflowerLogger.Severity level) {
-            configuration.put("log", level.name());
-            return this;
-        }
+        
+
+        
+
+        
+
+        
     }
 }

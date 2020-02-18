@@ -25,12 +25,26 @@
         <tools.jar.location>/</tools.jar.location>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <dependencies>
-        <!-- FernFlower Decompiler -->
-        <dependency>
+        <!-- Old FernFlower version from maven central repo -->
+        <!--<dependency>
             <groupId>org.jboss.windup.decompiler.fernflower</groupId>
             <artifactId>windup-fernflower</artifactId>
             <version>1.0.0.20171018</version>
+        </dependency>-->
+
+        <!-- FernFlower Decompiler -->
+        <dependency>
+            <groupId>com.github.fesh0r</groupId>
+            <artifactId>fernflower</artifactId>
+            <version>4ca282df94</version>
         </dependency>
 
         <!-- Java dev tools -->

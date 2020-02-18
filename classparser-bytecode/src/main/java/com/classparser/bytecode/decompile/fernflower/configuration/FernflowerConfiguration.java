@@ -6,6 +6,8 @@ import org.jetbrains.java.decompiler.main.extern.IFernflowerLogger;
 import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
 import org.jetbrains.java.decompiler.modules.renamer.ConverterHelper;
 
+import java.lang.reflect.Parameter;
+
 /**
  * Interface for builder configuration for {@link FernflowerDecompiler}
  */
@@ -102,6 +104,15 @@ public interface FernflowerConfiguration extends Configuration {
     FernflowerConfiguration assumeReturnNotThrowingExceptions(boolean flag);
 
     /**
+     * TODO: What the fuck?
+     * Default value: true
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    FernflowerConfiguration ensureSynchronizedMonitor(boolean flag);
+
+    /**
      * Decompiles enumerations to class
      * <p>
      * Default value: false
@@ -182,6 +193,17 @@ public interface FernflowerConfiguration extends Configuration {
     FernflowerConfiguration reconstructVariableNamesFromDebugInformation(boolean flag);
 
     /**
+     * Try to collect parameter method names from special structure contained byte code
+     * see {@link Parameter#isNamePresent()}
+     * <p>
+     * Default value: true
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    FernflowerConfiguration useMethodParameterNamesFromByteCodeStructure(boolean flag);
+
+    /**
      * Removes empty exception ranges
      * <p>
      * Default value: false
@@ -226,7 +248,7 @@ public interface FernflowerConfiguration extends Configuration {
      * It is used to determine which class identifiers should be renamed and provides
      * new identifier names (see "Renaming identifiers")
      * <p>
-     * Default value:
+     * Default value: none
      *
      * @param renamer deobfuscator instance
      * @return builder instance
@@ -253,6 +275,37 @@ public interface FernflowerConfiguration extends Configuration {
      * @return builder instance
      */
     FernflowerConfiguration decompileLambdaExpressionsToAnonymousClasses(boolean flag);
+
+    /**
+     * Try to map byte code to source on real number lines
+     * <p>
+     * Default value: true
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    FernflowerConfiguration performByteCodeSourceMapping(boolean flag);
+
+    /**
+     * Continue decompilation on invalid byte codes
+     * <p>
+     * Default value: false
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    FernflowerConfiguration ignoreInvalidByteCode(boolean flag);
+
+
+    /**
+     * Perform verification of anonymous classes
+     * <p>
+     * Default value:
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    FernflowerConfiguration verifyAnonymousClasses(boolean flag);
 
     /**
      * Defines new line character to be used for output.

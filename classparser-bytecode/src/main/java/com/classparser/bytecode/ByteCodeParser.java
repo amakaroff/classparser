@@ -16,6 +16,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Implementation of {@link ClassParser} provides
@@ -36,13 +37,24 @@ public class ByteCodeParser implements ClassParser {
 
     static {
         if (Boolean.getBoolean(DUMP_PROPERTY)) {
+            String illegalMessage = "Dumping class files to DUMP_CLASS_FILES/...";
+            Pattern messagePattern = Pattern.compile("dump: DUMP_CLASS_FILES\\\\.*?\\.class");
+            
             System.setOut(new PrintStream(System.out) {
                 @Override
                 public void println(String data) {
-                    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-                    if (!isInvokeFromDumper(stackTrace)) {
-                        super.println(data);
+                    if (isIllegalMessage(data)) {
+                        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+                        if (isInvokeFromDumper(stackTrace)) {
+                            return;
+                        }
                     }
+
+                    super.println(data);
+                }
+                
+                private boolean isIllegalMessage(String message) {
+                    return message.equals(illegalMessage) || messagePattern.matcher(message).matches(); 
                 }
 
                 private boolean isInvokeFromDumper(StackTraceElement[] stackTrace) {

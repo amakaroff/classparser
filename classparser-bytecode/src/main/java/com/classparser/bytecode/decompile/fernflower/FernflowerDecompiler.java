@@ -5,22 +5,19 @@ import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.decompile.fernflower.configuration.FernflowerBuilderConfiguration;
 import com.classparser.bytecode.decompile.fernflower.configuration.FernflowerConfiguration;
 import com.classparser.bytecode.exception.decompile.DecompilationException;
-import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.configuration.Configuration;
-import com.classparser.util.Reflection;
+import org.jetbrains.java.decompiler.main.DecompilerContext;
 import org.jetbrains.java.decompiler.main.Fernflower;
 import org.jetbrains.java.decompiler.main.decompiler.ConsoleDecompiler;
 import org.jetbrains.java.decompiler.main.decompiler.PrintStreamLogger;
 import org.jetbrains.java.decompiler.main.extern.IFernflowerLogger;
 import org.jetbrains.java.decompiler.main.extern.IResultSaver;
-import org.jetbrains.java.decompiler.struct.ContextUnit;
 import org.jetbrains.java.decompiler.struct.StructClass;
 import org.jetbrains.java.decompiler.struct.StructContext;
 import org.jetbrains.java.decompiler.struct.lazy.LazyLoader;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -29,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Adapter of Fernflower decompiler for {@link Decompiler} API
  * This decompiler was written of Egor Ushakov
- * Decompiler version: ? (18.10.2017)
+ * Decompiler version: ? (Feb 3, 2020)
  * <p>
  * Fernflower decompiler support java 8 syntax and can decompile all inner classes
  *
@@ -52,21 +49,22 @@ public final class FernflowerDecompiler implements Decompiler {
     @Override
     public String decompile(byte[] byteCode, Collection<byte[]> nestedClassesByteCodes) {
         if (byteCode != null && nestedClassesByteCodes != null) {
-            DecompiledCodeSaver decompiledCodeSaver = new DecompiledCodeSaver(null, null);
             IFernflowerLogger logger = new PrintStreamLogger(System.out);
+            IResultSaver nothingSaver = new NothingSaver(null, null, logger);
             Map<String, Object> configuration = getConfiguration();
 
-            Fernflower fernflower = new Fernflower(null, decompiledCodeSaver, configuration, logger);
-            FernflowerContext fernflowerContext = new FernflowerContext(fernflower, decompiledCodeSaver);
+            Fernflower fernflower = new Fernflower(null, nothingSaver, configuration, logger);
 
-            uploadBytecode(fernflowerContext, byteCode);
-            for (byte[] nestedClass : nestedClassesByteCodes) {
-                uploadBytecode(fernflowerContext, nestedClass);
+            StructClass structClass = createStructClass(byteCode);
+            for (byte[] byteCodeOfNestedClass : nestedClassesByteCodes) {
+                createStructClass(byteCodeOfNestedClass);
             }
 
-            decompile(fernflower);
+            fernflower.decompileContext();
+            String decompiledClass = fernflower.getClassContent(structClass);
+            fernflower.clearContext();
 
-            return decompiledCodeSaver.getDecompiledCode();
+            return decompiledClass;
         }
 
         throw new DecompilationException("Byte code of classes for decompilation can't be a null!");
@@ -82,19 +80,6 @@ public final class FernflowerDecompiler implements Decompiler {
             return getDefaultConfiguration();
         } else {
             return configurationMap;
-        }
-    }
-
-    /**
-     * Starts decompile context process
-     *
-     * @param fernflower fernflower decompiler instance
-     */
-    private void decompile(Fernflower fernflower) {
-        try {
-            fernflower.decompileContext();
-        } finally {
-            fernflower.clearContext();
         }
     }
 
@@ -118,6 +103,7 @@ public final class FernflowerDecompiler implements Decompiler {
                 .decompileGenericSignatures(true)
                 .deInlineFinallyStructures(true)
                 .assumeReturnNotThrowingExceptions(true)
+                .ensureSynchronizedMonitor(true)
                 .decompileEnumerations(false)
                 .removeGetClassInvocation(false)
                 .displayOutputNumericLiterals(false)
@@ -126,11 +112,15 @@ public final class FernflowerDecompiler implements Decompiler {
                 .allowForSetSyntheticAttribute(false)
                 .considerNamelessTypes(false)
                 .reconstructVariableNamesFromDebugInformation(true)
+                .useMethodParameterNamesFromByteCodeStructure(true)
                 .removeEmptyExceptionRanges(false)
                 .setUpperLimitForDecompilation(0)
                 .renameAmbiguousClassesAndClassElements(false)
                 .checkNonNullAnnotation(true)
                 .decompileLambdaExpressionsToAnonymousClasses(false)
+                .performByteCodeSourceMapping(true)
+                .ignoreInvalidByteCode(false)
+                .verifyAnonymousClasses(true)
                 .setCountIndentSpaces(4)
                 .setLogLevel(IFernflowerLogger.Severity.ERROR)
                 .getConfiguration();
@@ -139,21 +129,16 @@ public final class FernflowerDecompiler implements Decompiler {
     /**
      * Uploads byte code to current fernflower decompiler context
      *
-     * @param context  fernflower context
      * @param byteCode byte code of class
      */
-    private void uploadBytecode(FernflowerContext context, byte[] byteCode) {
+    private StructClass createStructClass(byte[] byteCode) {
         StructClass structClass = createClassStruct(byteCode);
 
-        StructContext structContext = context.getStructContext();
+        StructContext structContext = DecompilerContext.getStructContext();
         Map<String, StructClass> classes = structContext.getClasses();
         classes.put(structClass.qualifiedName, structClass);
 
-        ContextUnit unit = createFakeContextUnit(context.getFernflower(), context.getSaver());
-        unit.addClass(structClass, ClassNameConverter.toFileJavaClassName(structClass.qualifiedName));
-
-        Map<String, ContextUnit> units = context.getUnits();
-        units.put(structClass.qualifiedName, unit);
+        return structClass;
     }
 
     /**
@@ -164,26 +149,15 @@ public final class FernflowerDecompiler implements Decompiler {
      */
     private StructClass createClassStruct(byte[] byteCode) {
         try {
-            LazyLoader lazyLoader = new LazyLoader((p1, p2) -> byteCode);
+            LazyLoader lazyLoader = new LazyLoader((externalPath, internalPath) -> byteCode);
             StructClass structClass = new StructClass(byteCode, true, lazyLoader);
-            LazyLoader.Link link = new LazyLoader.Link(LazyLoader.Link.CLASS, structClass.qualifiedName, "");
+            LazyLoader.Link link = new LazyLoader.Link("", structClass.qualifiedName);
             lazyLoader.addClassLink(structClass.qualifiedName, link);
 
             return structClass;
         } catch (IOException exception) {
             throw new DecompilationException("Invalid bytes of java class!", exception);
         }
-    }
-
-    /**
-     * Creates fake context unit for fernflower decompiler
-     *
-     * @param fernflower fernflower decompiler instance
-     * @param saver      decompiled code saver
-     * @return fake context unit instance
-     */
-    private ContextUnit createFakeContextUnit(Fernflower fernflower, IResultSaver saver) {
-        return new ContextUnit(ContextUnit.TYPE_FOLDER, "", "", true, saver, fernflower);
     }
 
     @Override
@@ -202,104 +176,21 @@ public final class FernflowerDecompiler implements Decompiler {
     }
 
     /**
-     * Class uses for store fernflower context includes
-     * decompiler, struct context, units and result saver
-     */
-    private static class FernflowerContext {
-
-        private final Fernflower fernflower;
-
-        private final StructContext structContext;
-
-        private final Map<String, ContextUnit> units;
-
-        private final IResultSaver saver;
-
-        public FernflowerContext(Fernflower fernflower, IResultSaver saver) {
-            this.fernflower = fernflower;
-            this.structContext = fernflower.getStructContext();
-            this.units = getContextUnitByReflection(structContext);
-            this.saver = saver;
-        }
-
-        /**
-         * Obtains content unit from struct context uses reflective mechanism
-         *
-         * @param context struct context instance
-         * @return map of units
-         */
-        @SuppressWarnings("unchecked")
-        private Map<String, ContextUnit> getContextUnitByReflection(StructContext context) {
-            Field units = Reflection.getField(StructContext.class, "units");
-            return (Map<String, ContextUnit>) Reflection.get(units, context);
-        }
-
-        /**
-         * Getter for {@link Fernflower} instance
-         *
-         * @return Fernflower instance
-         */
-        public Fernflower getFernflower() {
-            return fernflower;
-        }
-
-        /**
-         * Getter for {@link StructContext} instance
-         *
-         * @return Struct Context instance
-         */
-        public StructContext getStructContext() {
-            return structContext;
-        }
-
-        /**
-         * Getter for Map of {@link ContextUnit} instance
-         *
-         * @return map of utils
-         */
-        public Map<String, ContextUnit> getUnits() {
-            return units;
-        }
-
-        /**
-         * Getter for {@link IResultSaver} instance
-         *
-         * @return decompiled code saver instance
-         */
-        public IResultSaver getSaver() {
-            return saver;
-        }
-    }
-
-    /**
      * Class uses for obtaining decompiled code as string
      */
-    private static class DecompiledCodeSaver extends ConsoleDecompiler {
-
-        private String decompiledCode;
-
+    private static class NothingSaver extends ConsoleDecompiler {
         /**
          * Default constructor for initialize of decompiled code saver
          *
          * @param destination destination stub
          * @param options     options stub
          */
-        public DecompiledCodeSaver(File destination, Map<String, Object> options) {
-            super(destination, options);
+        public NothingSaver(File destination, Map<String, Object> options, IFernflowerLogger logger) {
+            super(destination, options, logger);
         }
 
         @Override
-        public void saveClassFile(String path, String qualifiedName, String entryName, String content, int[] mapping) {
-            this.decompiledCode = content;
-        }
-
-        /**
-         * Obtains decompiled code from saver
-         *
-         * @return decompiled code
-         */
-        public String getDecompiledCode() {
-            return decompiledCode;
+        public void saveFolder(String path) {
         }
     }
 }
