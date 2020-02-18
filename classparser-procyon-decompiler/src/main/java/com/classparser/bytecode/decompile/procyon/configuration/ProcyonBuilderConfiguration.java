@@ -1,6 +1,7 @@
 package com.classparser.bytecode.decompile.procyon.configuration;
 
 import com.classparser.bytecode.decompile.procyon.ProcyonDecompiler;
+import com.strobel.decompiler.languages.BytecodeOutputOptions;
 import com.strobel.decompiler.languages.Language;
 import com.strobel.decompiler.languages.java.JavaFormattingOptions;
 
@@ -17,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ProcyonBuilderConfiguration {
 
     /**
-     * Creates instance of builder
+     * Creates an instance of builder
      *
      * @return {@link ProcyonConfiguration} instance
      */
@@ -87,6 +88,12 @@ public class ProcyonBuilderConfiguration {
         }
 
         @Override
+        public ProcyonConfiguration setByteCodeOutputOptions(BytecodeOutputOptions byteCodeOutputOptions) {
+            configuration.put(BYTE_CODE_OUTPUT_OPTIONS_KEY, byteCodeOutputOptions);
+            return this;
+        }
+
+        @Override
         public ProcyonConfiguration showSyntheticMembers(boolean flag) {
             configuration.put(DISPLAY_SYNTHETIC_MEMBERS_KEY, flag);
             return this;
@@ -105,7 +112,7 @@ public class ProcyonBuilderConfiguration {
         }
 
         @Override
-        public ProcyonConfiguration includeLineNumbersInBytecode(boolean flag) {
+        public ProcyonConfiguration includeLineNumbersInByteCode(boolean flag) {
             configuration.put(INCLUDE_LINE_NUMBERS_IN_BYTECODE_KEY, flag);
             return this;
         }
@@ -149,6 +156,12 @@ public class ProcyonBuilderConfiguration {
         @Override
         public ProcyonConfiguration disableForEachTransforms(boolean flag) {
             configuration.put(DISABLE_FOR_EACH_TRANSFORMS_KEY, flag);
+            return this;
+        }
+
+        @Override
+        public ProcyonConfiguration setForceFullyQualifiedReferences(boolean flag) {
+            configuration.put(FORCE_FULLY_QUALIFIED_REFERENCES, flag);
             return this;
         }
     }

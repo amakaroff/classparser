@@ -39,7 +39,7 @@ public class ClassNotFoundException extends RuntimeException {
     }
 
     /**
-     * Obtains name of class which was is not found
+     * Obtains the name of class which was is not found
      *
      * @return name of class
      */

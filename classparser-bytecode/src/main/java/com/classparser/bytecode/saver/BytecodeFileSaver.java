@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Class provides functionality by store founded bytecode to class files
+ * Class provides functionality by store founded byte code to class files
  *
  * @author Aleksei Makarov
  * @since 1.0.0
@@ -26,29 +26,29 @@ public class BytecodeFileSaver {
     }
 
     /**
-     * Writes bytecode to file
+     * Writes byte code to file
      *
      * @param fileName java class file name
-     * @param bytecode bytecode of class
+     * @param byteCode byte code of class
      */
-    private void writeByteCodeToFile(String fileName, byte[] bytecode) {
+    private void writeByteCodeToFile(String fileName, byte[] byteCode) {
         try (FileOutputStream stream = new FileOutputStream(fileName)) {
-            stream.write(bytecode);
+            stream.write(byteCode);
         } catch (IOException exception) {
-            throw new FileCreatingException("\"Can't create file by path: " + fileName, exception, fileName);
+            throw new FileCreatingException("\"Can't create a file by the path: " + fileName, exception, fileName);
         }
     }
 
     /**
      * Constructs class file name
      *
-     * @param bytecode bytecode of class
+     * @param byteCode byte code of class
      * @return java class file path
      */
-    protected String getClassFileName(byte[] bytecode) {
-        String classFileName = configurationManager.getDirectoryForSaveBytecode()
-                + File.separatorChar
-                + ClassNameConverter.toFileJavaClassName(ClassNameConverter.toJavaClassName(bytecode));
+    protected String getClassFileName(byte[] byteCode) {
+        String classFileName = configurationManager.getDirectoryForSaveByteCode()
+                               + File.separatorChar
+                               + ClassNameConverter.toFileJavaClassName(ClassNameConverter.toJavaClassName(byteCode));
         createClassFileNameDirectory(classFileName);
         return classFileName;
     }
@@ -68,18 +68,18 @@ public class BytecodeFileSaver {
             Files.createDirectories(directoryPath).toFile();
         } catch (IOException exception) {
             String fullPath = directoryPath.toAbsolutePath().toString();
-            throw new FileCreatingException("Directory: \"" + path + "\" can't created", exception, fullPath);
+            throw new FileCreatingException("Directory: \"" + path + "\" can't create", exception, fullPath);
         }
     }
 
     /**
-     * Performs process by store bytecode to file
+     * Performs process by store byte code to file
      *
-     * @param bytecode bytecode of class
+     * @param byteCode byte code of class
      */
-    public void saveToFile(byte[] bytecode) {
-        if (bytecode != null) {
-            writeByteCodeToFile(getClassFileName(bytecode), bytecode);
+    public void saveToFile(byte[] byteCode) {
+        if (byteCode != null) {
+            writeByteCodeToFile(getClassFileName(byteCode), byteCode);
         }
     }
 }

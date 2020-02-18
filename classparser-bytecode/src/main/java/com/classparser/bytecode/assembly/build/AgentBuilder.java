@@ -1,7 +1,7 @@
 package com.classparser.bytecode.assembly.build;
 
-import com.classparser.bytecode.api.BytecodeCollector;
-import com.classparser.bytecode.collector.ClassFileBytecodeCollector;
+import com.classparser.bytecode.api.ByteCodeCollector;
+import com.classparser.bytecode.collector.ClassFileByteCodeCollector;
 import com.classparser.bytecode.exception.classes.ClassNotFoundException;
 import com.classparser.bytecode.exception.classes.IllegalClassException;
 import com.classparser.bytecode.utils.ClassNameConverter;
@@ -20,7 +20,7 @@ import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
 /**
- * Class uses builder pattern for creating jar with agent class
+ * Class is used for builder pattern for creating jar with agent class
  * for attaching to JVM
  * <p>
  * Stores agent jar to java temp directory
@@ -37,7 +37,7 @@ public final class AgentBuilder {
     }
 
     /**
-     * Inner builder implemented functionality by agent jar creating
+     * The inner builder implemented functionality by agent jar creating
      */
     private static class Builder implements AgentJarBuilder {
 
@@ -121,20 +121,20 @@ public final class AgentBuilder {
 
             this.attachedClasses.add(agentClass);
             try (JarOutputStream jarStream = new JarOutputStream(new FileOutputStream(agentPath), getManifest())) {
-                BytecodeCollector reader = new ClassFileBytecodeCollector();
+                ByteCodeCollector reader = new ClassFileByteCodeCollector();
 
                 for (Class<?> attachedClass : attachedClasses) {
                     if (attachedClass != null) {
                         jarStream.putNextEntry(new JarEntry(ClassNameConverter.toJarJavaClassName(attachedClass)));
 
-                        byte[] bytecode = reader.getBytecode(attachedClass);
-                        if (bytecode == null) {
+                        byte[] byteCode = reader.getByteCode(attachedClass);
+                        if (byteCode == null) {
                             String className = ClassNameConverter.toJavaClassName(attachedClass);
                             String exceptionMessage = "Can't find bytecode of class \"" + className + "\"";
                             throw new ClassNotFoundException(exceptionMessage, className);
                         }
 
-                        jarStream.write(bytecode);
+                        jarStream.write(byteCode);
                         jarStream.flush();
                         jarStream.closeEntry();
                     }

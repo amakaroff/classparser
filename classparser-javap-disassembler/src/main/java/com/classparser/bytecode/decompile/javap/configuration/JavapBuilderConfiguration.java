@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JavapBuilderConfiguration {
 
     /**
-     * Creates instance of builder
+     * Creates an instance of builder
      *
      * @return {@link JavapDisassembler} instance
      */

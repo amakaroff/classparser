@@ -54,7 +54,7 @@ public class FieldParser {
     }
 
     /**
-     * Parses fields meta information for class
+     * Parse fields meta information for class
      *
      * @param clazz any class
      * @return parsed fields
@@ -86,8 +86,8 @@ public class FieldParser {
     }
 
     /**
-     * Parses field meta information
-     * Include types, name, annotation and etc.
+     * Parses the field meta information
+     * Include types, name, annotation etc.
      *
      * @param field any field
      * @return parsed field

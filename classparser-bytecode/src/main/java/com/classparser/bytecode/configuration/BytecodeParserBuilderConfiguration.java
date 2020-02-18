@@ -1,6 +1,6 @@
 package com.classparser.bytecode.configuration;
 
-import com.classparser.bytecode.BytecodeParser;
+import com.classparser.bytecode.ByteCodeParser;
 import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.api.JavaAgent;
 import com.classparser.bytecode.configuration.api.BytecodeParserConfiguration;
@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class provides java API special builder for creating
- * configuration map for {@link BytecodeParser}
+ * configuration map for {@link ByteCodeParser}
  *
  * @author Aleksei Makarov
  * @since 1.0.0

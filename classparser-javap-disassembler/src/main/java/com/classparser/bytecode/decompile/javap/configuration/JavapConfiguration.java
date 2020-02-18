@@ -60,7 +60,7 @@ public interface JavapConfiguration extends Configuration {
     JavapConfiguration displayCodeLineAndLocalVariableTable(boolean flag);
 
     /**
-     * Displays system information about path to class file
+     * Displays system information about the path to class file
      *
      * @param flag true/false value
      * @return builder instance
@@ -68,7 +68,7 @@ public interface JavapConfiguration extends Configuration {
     JavapConfiguration displaySystemInformation(boolean flag);
 
     /**
-     * Displays full information about bytecode of class
+     * Displays full information about byte code of class
      * <p>
      * Default value: false
      *
@@ -143,7 +143,7 @@ public interface JavapConfiguration extends Configuration {
         private final String name;
 
         /**
-         * Private constructor for create enum value
+         * The private constructor for create enum value
          *
          * @param modifier modifier mask
          * @param name     name of modifier

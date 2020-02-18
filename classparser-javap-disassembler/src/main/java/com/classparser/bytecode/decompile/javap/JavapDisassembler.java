@@ -24,10 +24,10 @@ import static com.classparser.bytecode.decompile.javap.configuration.JavapConfig
 
 /**
  * Adapter of Javap disassembler for {@link Decompiler} API
- * This disassembler is standard tool and deliver with jdk
- * Disassembler version uses on depend current jdk
+ * This disassembler is a standard tool and deliver with jdk
+ * Disassembler version depend on current jdk
  * <p>
- * This disassembler can disassemble all types bytecode of classes
+ * This disassembler can disassemble all types byte code of classes
  *
  * @author Aleksei Makarov
  * @since 1.0.0
@@ -47,17 +47,17 @@ public final class JavapDisassembler implements Decompiler {
     }
 
     @Override
-    public String decompile(byte[] bytecode) {
-        return decompile(bytecode, Collections.emptyList());
+    public String decompile(byte[] byteCode) {
+        return decompile(byteCode, Collections.emptyList());
     }
 
     @Override
-    public String decompile(byte[] bytecode, Collection<byte[]> classes) {
-        Map<String, byte[]> bytecodeMap = new HashMap<>();
-        String className = ClassNameConverter.getClassName(bytecode);
-        bytecodeMap.put(className, bytecode);
-        for (byte[] innerClassByteCode : classes) {
-            bytecodeMap.put(ClassNameConverter.getClassName(innerClassByteCode), innerClassByteCode);
+    public String decompile(byte[] byteCode, Collection<byte[]> nestedClassesByteCodes) {
+        Map<String, byte[]> byteCodeMap = new HashMap<>();
+        String className = ClassNameConverter.getClassName(byteCode);
+        byteCodeMap.put(className, byteCode);
+        for (byte[] innerClassByteCode : nestedClassesByteCodes) {
+            byteCodeMap.put(ClassNameConverter.getClassName(innerClassByteCode), innerClassByteCode);
         }
 
         List<String> classesList = new ArrayList<>();
@@ -68,11 +68,11 @@ public final class JavapDisassembler implements Decompiler {
 
         Options options = getOptions(context);
 
-        if (!classes.isEmpty()) {
+        if (!nestedClassesByteCodes.isEmpty()) {
             options.showInnerClasses = true;
         }
 
-        JavapTask task = new ByteCodeJavapTask(bytecodeMap, context);
+        JavapTask task = new ByteCodeJavapTask(byteCodeMap, context);
         StringPrintWriter stringPrintWriter = new StringPrintWriter();
 
         setField(task, "log", stringPrintWriter);
@@ -170,25 +170,25 @@ public final class JavapDisassembler implements Decompiler {
 
     /**
      * Implementation of {@link SimpleJavaFileObject} which create class input stream
-     * from bytecode of class
+     * from byte code of class
      */
     private static class ByteArrayJavaFileObject extends SimpleJavaFileObject {
 
         private static final String EMPTY_URI = "file://class";
 
-        private final byte[] bytecode;
+        private final byte[] byteCode;
 
         private final String className;
 
         /**
          * Default constructor for initialize of {@link ByteArrayJavaFileObject}
          *
-         * @param bytecode bytecode of class
+         * @param byteCode byte code of class
          */
-        public ByteArrayJavaFileObject(byte[] bytecode) {
+        public ByteArrayJavaFileObject(byte[] byteCode) {
             super(URI.create(EMPTY_URI), Kind.CLASS);
-            this.bytecode = bytecode;
-            this.className = ClassNameConverter.getClassName(bytecode);
+            this.byteCode = byteCode;
+            this.className = ClassNameConverter.getClassName(byteCode);
         }
 
         @Override
@@ -198,7 +198,7 @@ public final class JavapDisassembler implements Decompiler {
 
         @Override
         public InputStream openInputStream() {
-            return new ByteArrayInputStream(bytecode);
+            return new ByteArrayInputStream(byteCode);
         }
     }
 
@@ -208,22 +208,22 @@ public final class JavapDisassembler implements Decompiler {
      */
     private static class ByteCodeJavapTask extends JavapTask {
 
-        private final Map<String, byte[]> bytecodeMap;
+        private final Map<String, byte[]> byteCodeMap;
 
         /**
          * Default constructor for initialize of {@link ByteCodeJavapTask}
          *
-         * @param bytecodeMap bytecode map of classes
+         * @param byteCodeMap byte code map of classes
          * @param context     current disassemble context
          */
-        public ByteCodeJavapTask(Map<String, byte[]> bytecodeMap, Context context) {
-            this.bytecodeMap = bytecodeMap;
+        public ByteCodeJavapTask(Map<String, byte[]> byteCodeMap, Context context) {
+            this.byteCodeMap = byteCodeMap;
             this.context = context;
         }
 
         @Override
         protected JavaFileObject open(String className) {
-            byte[] bytes = bytecodeMap.get(className);
+            byte[] bytes = byteCodeMap.get(className);
             return new ByteArrayJavaFileObject(bytes);
         }
     }

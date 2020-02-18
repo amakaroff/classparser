@@ -1,6 +1,6 @@
 package com.classparser.bytecode.configuration.api;
 
-import com.classparser.bytecode.BytecodeParser;
+import com.classparser.bytecode.ByteCodeParser;
 import com.classparser.bytecode.agent.DefaultJavaAgent;
 import com.classparser.bytecode.api.Decompiler;
 import com.classparser.bytecode.api.JavaAgent;
@@ -8,7 +8,7 @@ import com.classparser.bytecode.decompile.fernflower.FernflowerDecompiler;
 import com.classparser.configuration.Configuration;
 
 /**
- * Builder configuration for class: {@link BytecodeParser}
+ * Builder configuration for class: {@link ByteCodeParser}
  *
  * @author Aleksei Makarov
  * @since 1.0.0
@@ -48,7 +48,7 @@ public interface BytecodeParserConfiguration extends Configuration {
     BytecodeParserConfiguration decompileAllInnerClasses(boolean flag);
 
     /**
-     * Savings collect bytecode to file
+     * Savings collect byte code to file
      * <p>
      * Default value: false
      *
@@ -58,7 +58,7 @@ public interface BytecodeParserConfiguration extends Configuration {
     BytecodeParserConfiguration saveByteCodeToFile(boolean flag);
 
     /**
-     * Sets directory to save bytecode of classes
+     * Sets directory to save byte code of classes
      * <p>
      * Default value: "${user.dir}/classes/"
      *
@@ -88,7 +88,7 @@ public interface BytecodeParserConfiguration extends Configuration {
     BytecodeParserConfiguration setDecompiler(Decompiler decompiler);
 
     /**
-     * Enables search bytecode from files
+     * Enables search byte code from files
      * <p>
      * Default value: true
      *
@@ -98,7 +98,7 @@ public interface BytecodeParserConfiguration extends Configuration {
     BytecodeParserConfiguration enableClassFileBytecodeCollector(boolean flag);
 
     /**
-     * Enables getting bytecode uses instrumentation
+     * Enables getting byte code uses instrumentation
      * <p>
      * Default value: true
      *
@@ -108,7 +108,7 @@ public interface BytecodeParserConfiguration extends Configuration {
     BytecodeParserConfiguration enableFromInstrumentationBytecodeCollector(boolean flag);
 
     /**
-     * Enables custom collect of bytecode
+     * Enables custom collect of byte code
      * <p>
      * Default value: false
      *
@@ -138,7 +138,7 @@ public interface BytecodeParserConfiguration extends Configuration {
     BytecodeParserConfiguration setAgentClass(JavaAgent agent);
 
     /**
-     * Sets custom path to tools.jar file
+     * Sets a custom path to tools.jar file
      *
      * @param path path to tools.jar
      * @return builder instance

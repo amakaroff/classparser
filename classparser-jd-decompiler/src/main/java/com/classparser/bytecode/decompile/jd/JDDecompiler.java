@@ -16,6 +16,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.COUNT_INDENT_SPACES_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.MERGE_EMPTY_LINES_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.REALIGNMENT_LINE_NUMBER_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.SHOW_LINE_NUMBERS_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.TYPE_MAKER_KEY;
+
 /**
  * Adapter of JD decompiler for {@link Decompiler} API
  * This decompiler was written of Emmanuel Dupuy
@@ -42,17 +48,17 @@ public final class JDDecompiler implements Decompiler {
     }
 
     @Override
-    public String decompile(byte[] byteCode, Collection<byte[]> classes) {
-        if (byteCode != null && classes != null) {
+    public String decompile(byte[] byteCode, Collection<byte[]> nestedClassesByteCodes) {
+        if (byteCode != null && nestedClassesByteCodes != null) {
             org.jd.core.v1.api.Decompiler decompiler = new ClassFileToJavaSourceDecompiler();
-            
-            Loader loader = new JDLoader(byteCode, classes);
+
+            Loader loader = new JDLoader(byteCode, nestedClassesByteCodes);
             JDPrinter printer = new JDPrinter();
             String mainClassName = ClassNameConverter.getClassName(byteCode);
             try {
                 decompiler.decompile(loader, printer, mainClassName, getConfiguration(loader));
-                
-                return printer.getSource(); 
+
+                return printer.getSource();
             } catch (Exception exception) {
                 throw new DecompilationException("Decompilcation process was interrupt with exception", exception);
             }
@@ -60,13 +66,17 @@ public final class JDDecompiler implements Decompiler {
 
         throw new DecompilationException("Byte code of classes for decompilation can't be a null!");
     }
-    
+
     private Map<String, Object> getConfiguration(Loader loader) {
         Map<String, Object> configuration = new HashMap<>();
-        
-        configuration.put("realignLineNumbers", false);
-        configuration.put("typeMaker", new TypeMaker(loader));
-        
+
+        configuration.put("realignLineNumbers", utils.getConfigOption(REALIGNMENT_LINE_NUMBER_KEY, Boolean.class));
+        if (utils.hasOptionExists(TYPE_MAKER_KEY)) {
+            configuration.put("typeMaker", utils.getConfigOption(TYPE_MAKER_KEY, TypeMaker.class));
+        } else {
+            configuration.put("typeMaker", new TypeMaker(loader));
+        }
+
         return configuration;
     }
 
@@ -74,22 +84,6 @@ public final class JDDecompiler implements Decompiler {
     public void setConfigurationManager(ConfigurationManager configurationManager) {
         this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
     }
-
-    /**
-     * Creates decompiler settings
-     *
-     * @return decompiler settings
-     */
-    /*private CommonPreferences getCommonPreferences() {
-        return new CommonPreferences(
-                utils.getConfigOption(SHOW_DEFAULT_CONSTRUCTOR_KEY, Boolean.class),
-                utils.getConfigOption(REALIGNMENT_LINE_NUMBER_KEY, Boolean.class),
-                utils.getConfigOption(SHOW_PREFIX_THIS_KEY, Boolean.class),
-                utils.getConfigOption(MERGE_EMPTY_LINES_KEY, Boolean.class),
-                utils.getConfigOption(UNICODE_ESCAPE_KEY, Boolean.class),
-                utils.getConfigOption(SHOW_LINE_NUMBERS_KEY, Boolean.class)
-        );
-    }*/
 
     /**
      * Creates default configuration for decompiler
@@ -100,11 +94,8 @@ public final class JDDecompiler implements Decompiler {
     private Map<String, Object> getDefaultConfiguration() {
         return JDBuilderConfiguration
                 .getBuilderConfiguration()
-                .displayDefaultConstructor(true)
                 .realignmentLineNumber(true)
-                .displayPrefixThis(true)
                 .mergeEmptyLines(true)
-                .unicodeEscape(false)
                 .displayLineNumbers(false)
                 .setCountIndentSpaces(4)
                 .getConfiguration();
@@ -124,12 +115,12 @@ public final class JDDecompiler implements Decompiler {
          */
         public JDLoader(byte[] mainByteCode, Collection<byte[]> nestedClassesByteCodes) {
             Map<String, byte[]> byteCodesMap = new HashMap<>();
-            
+
             byteCodesMap.put(ClassNameConverter.getClassName(mainByteCode), mainByteCode);
             for (byte[] nestedClassesByteCode : nestedClassesByteCodes) {
                 byteCodesMap.put(ClassNameConverter.getClassName(nestedClassesByteCode), nestedClassesByteCode);
             }
-            
+
             this.byteCodesMap = byteCodesMap;
         }
 
@@ -143,21 +134,27 @@ public final class JDDecompiler implements Decompiler {
             return true;
         }
     }
-    
-    private static class JDPrinter implements Printer {
-        
+
+    private class JDPrinter implements Printer {
+
+        private final String NEW_LINE = System.lineSeparator();
+
         private final StringBuilder sourceBuilder = new StringBuilder();
-        
-        private int indent;
-        
+
+        private final boolean isMergeEmptyLines = utils.getConfigOption(MERGE_EMPTY_LINES_KEY, Boolean.class);
+
+        private final boolean isDisplayLineNumbers = utils.getConfigOption(SHOW_LINE_NUMBERS_KEY, Boolean.class);
+
+        private final String indentSpaces = utils.getConfigOption(COUNT_INDENT_SPACES_KEY, String.class);
+
+        private int indentCounter;
+
         @Override
         public void start(int maxLineNumber, int majorVersion, int minorVersion) {
-            
         }
 
         @Override
         public void end() {
-
         }
 
         @Override
@@ -192,41 +189,47 @@ public final class JDDecompiler implements Decompiler {
 
         @Override
         public void indent() {
-            indent++;
+            indentCounter++;
         }
 
         @Override
         public void unindent() {
-            indent--;
+            indentCounter--;
         }
 
         @Override
         public void startLine(int lineNumber) {
-            for (int i = 0; i < indent; i++) {
-                sourceBuilder.append("    ");
+            if (isDisplayLineNumbers) {
+                sourceBuilder.append(lineNumber);
+            }
+
+            for (int i = 0; i < indentCounter; i++) {
+                sourceBuilder.append(indentSpaces);
             }
         }
 
         @Override
         public void endLine() {
-            sourceBuilder.append("\r\n");
+            sourceBuilder.append(NEW_LINE);
         }
 
         @Override
         public void extraLine(int count) {
-
+            if (!isMergeEmptyLines) {
+                while (count-- > 0) {
+                    sourceBuilder.append(NEW_LINE);
+                }
+            }
         }
 
         @Override
         public void startMarker(int type) {
-
         }
 
         @Override
         public void endMarker(int type) {
-            
         }
-        
+
         public String getSource() {
             return sourceBuilder.toString();
         }

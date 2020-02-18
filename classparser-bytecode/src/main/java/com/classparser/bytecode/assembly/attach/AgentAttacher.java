@@ -71,7 +71,7 @@ public class AgentAttacher {
                 findToolsJarAndAttach(agentPath, parameters);
             }
         } else {
-            throw new ByteCodeParserException("Could't find agent jar by follow path: " + agentPath);
+            throw new ByteCodeParserException("Could not find agent jar by follow path: " + agentPath);
         }
     }
 
@@ -121,7 +121,7 @@ public class AgentAttacher {
     }
 
     /**
-     * Tryings find tools.jar in file system if it not define in java classpath
+     * Tryings find tools.jar in file system if it not defines in java classpath
      * and perform attach
      *
      * @param agentPath  path to agent jar
@@ -170,7 +170,7 @@ public class AgentAttacher {
     }
 
     /**
-     * Tryings obtains tools.jar path in system
+     * Try obtains tools.jar path in system
      *
      * @return tools.jar path or null if jar is not found
      */

@@ -3,7 +3,7 @@ package com.classparser.configuration;
 import java.util.Map;
 
 /**
- * Basic interface should implemented for classes uses any configuration
+ * A basic interface should implement for classes uses any configuration
  *
  * @author Aleksei Makarov
  */

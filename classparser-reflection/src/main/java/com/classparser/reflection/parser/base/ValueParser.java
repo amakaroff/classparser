@@ -82,11 +82,11 @@ public class ValueParser {
             } else if (object instanceof String) {
                 return "\"" + object + "\"";
             } else if (object instanceof Character) {
-                return "\'" + object + "\'";
+                return "'" + object + "'";
             } else if (object instanceof Number || object instanceof Boolean) {
                 return object.toString() + getLiteral(object);
             } else if (object instanceof Class) {
-                return genericTypeParser.parseType((Class) object) + ".class";
+                return genericTypeParser.parseType((Class<?>) object) + ".class";
             } else if (object instanceof Annotation) {
                 Class<? extends Annotation> annotationType = ((Annotation) object).annotationType();
                 if (annotationType != null && annotationType.isAnnotation()) {
@@ -142,12 +142,12 @@ public class ValueParser {
         if (object instanceof Long) {
             return "L";
         } else if (object instanceof Float) {
-            Float floatValue = (Float) object;
+            float floatValue = (Float) object;
             if (!Float.isInfinite(floatValue) && !Float.isNaN(floatValue)) {
                 return "f";
             }
         } else if (object instanceof Double) {
-            Double doubleValue = (Double) object;
+            double doubleValue = (Double) object;
             if (!Double.isInfinite(doubleValue) && !Double.isNaN(doubleValue)) {
                 return "d";
             }

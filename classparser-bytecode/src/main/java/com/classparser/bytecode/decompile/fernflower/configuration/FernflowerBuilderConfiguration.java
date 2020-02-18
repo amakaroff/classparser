@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FernflowerBuilderConfiguration {
 
     /**
-     * Creates instance of builder
+     * Creates an instance of builder
      *
      * @return {@link FernflowerConfiguration} instance
      */

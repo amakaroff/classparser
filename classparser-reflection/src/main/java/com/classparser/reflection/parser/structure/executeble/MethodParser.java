@@ -2,8 +2,8 @@ package com.classparser.reflection.parser.structure.executeble;
 
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.configuration.ReflectionParserManager;
-import com.classparser.reflection.parser.base.ClassNameParser;
 import com.classparser.reflection.parser.base.AnnotationParser;
+import com.classparser.reflection.parser.base.ClassNameParser;
 import com.classparser.reflection.parser.base.GenericTypeParser;
 import com.classparser.reflection.parser.base.IndentParser;
 import com.classparser.reflection.parser.base.ModifierParser;
@@ -92,7 +92,7 @@ public class MethodParser {
 
     /**
      * Parses method meta information and collects data about method,
-     * includes name, types, generics, annotation and etc.
+     * includes the name, types, generics, annotation etc.
      *
      * @param method any method
      * @return parsed method
@@ -111,7 +111,7 @@ public class MethodParser {
         String content = manager.joinNotEmptyContentBySpace(modifiers, generics, returnType);
 
         return annotations + indent + content + " " + methodName + arguments +
-                defaultAnnotationValue + exceptions + body;
+               defaultAnnotationValue + exceptions + body;
     }
 
     /**
@@ -130,7 +130,7 @@ public class MethodParser {
 
     /**
      * Obtains body for method
-     * As reflection is can't be access to bytecode body not contained java code
+     * As reflection is can't be access to byte code body not contained java code
      *
      * @param method any method
      * @return parsed method body

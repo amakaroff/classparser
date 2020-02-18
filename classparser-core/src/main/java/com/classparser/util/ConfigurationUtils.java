@@ -34,7 +34,7 @@ public class ConfigurationUtils {
     }
 
     /**
-     * Check has object is instance of any class
+     * Check has objected is an instance of any class
      *
      * @param object any object
      * @param type   checking type
@@ -46,7 +46,7 @@ public class ConfigurationUtils {
     }
 
     /**
-     * Reload current configuration for utils
+     * Reload the current configuration for utils
      *
      * @param newConfiguration new configuration map
      */
@@ -78,7 +78,7 @@ public class ConfigurationUtils {
                 return type.cast(option);
             } else {
                 System.err.println("Option {" + config + "} have invalid default class type {" + type + "}!" +
-                        "Will be get the default option.");
+                                   "Will be get the default option.");
             }
         }
 
@@ -88,5 +88,15 @@ public class ConfigurationUtils {
         }
 
         return type.cast(option);
+    }
+
+    /**
+     * Checks if option exists in custom and default configurations
+     *
+     * @param config the name of option
+     * @return true if option exists
+     */
+    public boolean hasOptionExists(String config) {
+        return configuration.containsKey(config) || defaultConfiguration.containsKey(config);
     }
 }

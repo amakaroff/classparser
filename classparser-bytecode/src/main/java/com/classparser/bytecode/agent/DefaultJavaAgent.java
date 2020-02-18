@@ -15,7 +15,7 @@ import java.util.jar.Manifest;
  * by default and allow obtains {@link Instrumentation} instance
  * <p>
  * Agent class is self initialize and have proxy access to instrumentation instance
- * allows create many agents, uses it for different transformers
+ * allows to create many agents, uses it for different transformers
  *
  * @author Aleksei Makarov
  * @since 1.0.0
@@ -85,9 +85,9 @@ public final class DefaultJavaAgent implements JavaAgent {
      * If agent already init, do nothing
      */
     private void ensureInitialize() {
-        if (!isInitialize()) {
+        if (!isInitialized()) {
             synchronized (lock) {
-                if (!isInitialize()) {
+                if (!isInitialized()) {
                     if (instrumentation == null) {
                         agentAssembler.assembly(this);
                     }
@@ -100,7 +100,7 @@ public final class DefaultJavaAgent implements JavaAgent {
     }
 
     @Override
-    public boolean isInitialize() {
+    public boolean isInitialized() {
         return instrumentation != null && isInitialize;
     }
 
@@ -140,7 +140,7 @@ public final class DefaultJavaAgent implements JavaAgent {
     }
 
     /**
-     * Create proxy instrumentation instance for catch any calls and redirect it to selected agents
+     * Create proxy instrumentation instance for a catch any calls and redirect it to selected agents
      *
      * @return instrumentation proxy instance
      */

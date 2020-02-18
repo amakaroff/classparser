@@ -1,7 +1,7 @@
 package com.classparser.exception.option;
 
 /**
- * Unchecked exception throws if option in configuration is not exists
+ * Unchecked exception throws if option in the configuration is not exists
  *
  * @author Aleksei Makarov
  */
@@ -25,7 +25,7 @@ public class OptionNotFoundException extends RuntimeException {
     }
 
     /**
-     * Obtain name of option which is not found
+     * Obtain the name of option which is not found
      *
      * @return name of option
      */

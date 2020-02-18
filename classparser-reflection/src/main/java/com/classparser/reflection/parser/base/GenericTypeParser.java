@@ -80,7 +80,7 @@ public class GenericTypeParser {
             List<String> generics = new ArrayList<>();
             TypeVariable<?>[] typeParameters = genericDeclaration.getTypeParameters();
 
-            for (TypeVariable parameter : typeParameters) {
+            for (TypeVariable<?> parameter : typeParameters) {
                 String annotations = getAnnotationParser().parseAnnotationsAsInline(parameter);
                 String boundTypes = String.join(" & ", parseBounds(parameter));
                 String bounds = !boundTypes.isEmpty() ? " extends " + boundTypes : "";
@@ -121,7 +121,7 @@ public class GenericTypeParser {
         }
 
         if (type instanceof Class) {
-            Class clazz = (Class) type;
+            Class<?> clazz = (Class<?>) type;
 
             if (clazz.isArray()) {
                 AnnotatedArrayType annotatedArrayType = (AnnotatedArrayType) annotatedType;
@@ -144,11 +144,11 @@ public class GenericTypeParser {
                 }
             }
         } else if (type instanceof TypeVariable) {
-            TypeVariable typeVariable = (TypeVariable) type;
+            TypeVariable<?> typeVariable = (TypeVariable<?>) type;
             boundType = typeVariable.getName();
         } else if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
-            if (isNeedNameForInnerClass((Class) parameterizedType.getRawType())) {
+            if (isNeedNameForInnerClass((Class<?>) parameterizedType.getRawType())) {
                 // Have problems because of https://bugs.openjdk.java.net/browse/JDK-8146861
                 // Fixed in Java 9
                 AnnotatedParameterizedType annotatedOwnerParametrizedType = null;
@@ -159,7 +159,7 @@ public class GenericTypeParser {
             }
 
             String genericArguments = "";
-            Class<?> clazz = (Class) parameterizedType.getRawType();
+            Class<?> clazz = (Class<?>) parameterizedType.getRawType();
             String parametrizedRawTypeName = classNameParser.parseTypeName(clazz);
             annotatedType = getAnnotatedArrayType(annotatedType);
             AnnotatedParameterizedType annotatedParameterizedType = (AnnotatedParameterizedType) annotatedType;
@@ -203,7 +203,7 @@ public class GenericTypeParser {
      * @param parameter type variable
      * @return resolved list of string bound with meta information
      */
-    private List<String> parseBounds(TypeVariable parameter) {
+    private List<String> parseBounds(TypeVariable<?> parameter) {
         List<String> bounds = new ArrayList<>();
         Type[] typeBounds = parameter.getBounds();
         AnnotatedType[] annotatedBounds = parameter.getAnnotatedBounds();
@@ -244,7 +244,7 @@ public class GenericTypeParser {
 
     /**
      * Resolve annotated types for generic array
-     * It's behaviour because of case:
+     * Its behaviour because of case:
      * <code>
      * {@literal @}Annotation int{@literal @}Annotation[]{@literal @}Annotation3[] a;
      * </code>
@@ -371,7 +371,7 @@ public class GenericTypeParser {
     }
 
     /**
-     * Check is needed name for inner class
+     * Check is a needed name for inner class
      *
      * @param innerClass any class
      * @return true if name needed for inner class
@@ -450,7 +450,7 @@ public class GenericTypeParser {
      * @return true if type is array (generic array)
      */
     private boolean isArray(Type type) {
-        return type instanceof Class && ((Class) type).isArray() || type instanceof GenericArrayType;
+        return type instanceof Class && ((Class<?>) type).isArray() || type instanceof GenericArrayType;
     }
 
     /**
@@ -482,7 +482,7 @@ public class GenericTypeParser {
     /**
      * Checks and try get annotation for index
      *
-     * @param annotatedTypes annotations types array
+     * @param annotatedTypes annotation types array
      * @param index          index for array
      * @return annotation by index or null if array is null or empty
      */

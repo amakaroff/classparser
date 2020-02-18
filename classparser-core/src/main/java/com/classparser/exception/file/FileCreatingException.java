@@ -23,7 +23,7 @@ public class FileCreatingException extends RuntimeException {
     }
 
     /**
-     * Obtain path of file which is can't be creating
+     * Obtain the path of file which is can't be creating
      *
      * @return file path
      */

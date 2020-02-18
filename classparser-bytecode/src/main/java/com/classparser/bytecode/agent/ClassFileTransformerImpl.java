@@ -26,8 +26,8 @@ class ClassFileTransformerImpl implements ClassFileTransformer {
                             String className,
                             Class<?> classBeingRedefined,
                             ProtectionDomain protectionDomain,
-                            byte[] bytecode) throws IllegalClassFormatException {
-        return classFileTransformer.transform(loader, className, classBeingRedefined, protectionDomain, bytecode);
+                            byte[] byteCode) throws IllegalClassFormatException {
+        return classFileTransformer.transform(loader, className, classBeingRedefined, protectionDomain, byteCode);
     }
 
     /**

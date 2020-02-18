@@ -2,6 +2,7 @@ package com.classparser.bytecode.decompile.procyon.configuration;
 
 import com.classparser.bytecode.decompile.procyon.ProcyonDecompiler;
 import com.classparser.configuration.Configuration;
+import com.strobel.decompiler.languages.BytecodeOutputOptions;
 import com.strobel.decompiler.languages.Language;
 import com.strobel.decompiler.languages.java.JavaFormattingOptions;
 import com.strobel.decompiler.languages.java.JavaLanguage;
@@ -28,6 +29,8 @@ public interface ProcyonConfiguration extends Configuration {
 
     String JAVA_FORMATTER_OPTIONS_KEY = "jfo";
 
+    String BYTE_CODE_OUTPUT_OPTIONS_KEY = "boo";
+
     String DISPLAY_SYNTHETIC_MEMBERS_KEY = "ssm";
 
     String ALWAYS_GENERATE_EXCEPTION_VARIABLE_FOR_CATCH_BLOCKS_KEY = "gec";
@@ -50,8 +53,10 @@ public interface ProcyonConfiguration extends Configuration {
 
     String DISABLE_FOR_EACH_TRANSFORMS_KEY = "det";
 
+    String FORCE_FULLY_QUALIFIED_REFERENCES = "fqr";
+
     /**
-     * Upload bytecode of references classes
+     * Upload byte code of references classes
      * for create annotation @Override
      * <p>
      * Default value: true
@@ -126,9 +131,19 @@ public interface ProcyonConfiguration extends Configuration {
     ProcyonConfiguration setJavaFormatterOptions(JavaFormattingOptions language);
 
     /**
+     * Set byte code options for output
+     * <p>
+     * Default value: taken from {@link BytecodeOutputOptions#BytecodeOutputOptions()}
+     *
+     * @param byteCodeOutputOptions instance of class with options
+     * @return builder instance
+     */
+    ProcyonConfiguration setByteCodeOutputOptions(BytecodeOutputOptions byteCodeOutputOptions);
+
+    /**
      * Display synthetic members
      * <p>
-     * Default value: true
+     * Default value: false
      *
      * @param flag true/false value
      * @return builder instance
@@ -156,18 +171,19 @@ public interface ProcyonConfiguration extends Configuration {
     ProcyonConfiguration includeErrorDiagnostics(boolean flag);
 
     /**
+     * Include the line numbers into byte code output
      * <p>
      * Default value: false
      *
      * @param flag true/false value
      * @return builder instance
      */
-    ProcyonConfiguration includeLineNumbersInBytecode(boolean flag);
+    ProcyonConfiguration includeLineNumbersInByteCode(boolean flag);
 
     /**
      * Retain redundant casts
      * <p>
-     * Default value: true
+     * Default value: false
      *
      * @param flag true/false value
      * @return builder instance
@@ -233,4 +249,14 @@ public interface ProcyonConfiguration extends Configuration {
      * @return builder instance
      */
     ProcyonConfiguration disableForEachTransforms(boolean flag);
+
+    /**
+     * Set all class references in output with full qualified name
+     * <p>
+     * Default value: false
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    ProcyonConfiguration setForceFullyQualifiedReferences(boolean flag);
 }

@@ -152,7 +152,7 @@ public interface FernflowerConfiguration extends Configuration {
     FernflowerConfiguration interpretInt1AsBooleanTrue(boolean flag);
 
     /**
-     * Allows for set synthetic attribute (workaround to a compiler bug)
+     * Allows for set the synthetic attribute (workaround to a compiler bug)
      * <p>
      * Default value: false
      *
@@ -262,6 +262,7 @@ public interface FernflowerConfiguration extends Configuration {
      * Default value: selected by OS
      *
      * @param character line separator
+     * @return builder instance
      */
     FernflowerConfiguration defineLineSeparator(String character);
 

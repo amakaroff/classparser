@@ -3,20 +3,20 @@ package com.classparser.bytecode.api;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 
 /**
- * Interface provide methods for obtains bytecode of classes
+ * Interface provide methods for obtains byte code of classes
  *
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-public interface BytecodeCollector extends Comparable<BytecodeCollector> {
+public interface ByteCodeCollector extends Comparable<ByteCodeCollector> {
 
     /**
-     * Tryings find bytecode of class
+     * Tryings find byte code of class
      *
-     * @param clazz - class for which is getting bytecode
-     * @return bytecode of class or null if bytecode is not found
+     * @param clazz - class for which is getting byte code
+     * @return byte code of class or null if byte code is not found
      */
-    byte[] getBytecode(Class<?> clazz);
+    byte[] getByteCode(Class<?> clazz);
 
     /**
      * Order value by which will call collectors chain
@@ -42,7 +42,7 @@ public interface BytecodeCollector extends Comparable<BytecodeCollector> {
     void setConfigurationManager(ConfigurationManager configurationManager);
 
     @Override
-    default int compareTo(BytecodeCollector collector) {
+    default int compareTo(ByteCodeCollector collector) {
         return Integer.compare(this.getOrder(), collector.getOrder());
     }
 }

@@ -1,8 +1,8 @@
 package com.classparser.bytecode.decompile.procyon;
 
-import com.classparser.bytecode.api.BytecodeCollector;
+import com.classparser.bytecode.api.ByteCodeCollector;
 import com.classparser.bytecode.api.Decompiler;
-import com.classparser.bytecode.collector.ChainBytecodeCollector;
+import com.classparser.bytecode.collector.ChainByteCodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.decompile.procyon.configuration.ProcyonBuilderConfiguration;
 import com.classparser.bytecode.exception.decompile.DecompilationException;
@@ -17,6 +17,7 @@ import com.strobel.assembler.metadata.TypeReference;
 import com.strobel.decompiler.DecompilationOptions;
 import com.strobel.decompiler.DecompilerSettings;
 import com.strobel.decompiler.PlainTextOutput;
+import com.strobel.decompiler.languages.BytecodeOutputOptions;
 import com.strobel.decompiler.languages.Language;
 import com.strobel.decompiler.languages.java.BraceStyle;
 import com.strobel.decompiler.languages.java.JavaFormattingOptions;
@@ -32,9 +33,7 @@ import static com.classparser.bytecode.decompile.procyon.configuration.ProcyonCo
 /**
  * Adapter of Procyon decompiler for {@link Decompiler} API
  * This decompiler was written of Mike Strobel
- * Decompiler version: 0.5.32
- * <p>
- * Procyon decompiler supports java 8 syntax
+ * Decompiler version: 0.5.36
  *
  * @author Aleksei Makarov
  * @since 1.0.0
@@ -53,16 +52,16 @@ public final class ProcyonDecompiler implements Decompiler {
     }
 
     @Override
-    public String decompile(byte[] bytecode) {
-        return decompile(bytecode, Collections.emptyList());
+    public String decompile(byte[] byteCode) {
+        return decompile(byteCode, Collections.emptyList());
     }
 
     @Override
-    public String decompile(byte[] bytecode, Collection<byte[]> classes) {
-        if (bytecode != null && classes != null) {
-            String className = ClassNameConverter.getClassName(bytecode);
-            Map<String, byte[]> bytecodeMap = createInnerClassesByteCodeMap(classes);
-            bytecodeMap.put(className, bytecode);
+    public String decompile(byte[] byteCode, Collection<byte[]> nestedClassesByteCodes) {
+        if (byteCode != null && nestedClassesByteCodes != null) {
+            String className = ClassNameConverter.getClassName(byteCode);
+            Map<String, byte[]> bytecodeMap = createInnerClassesByteCodeMap(nestedClassesByteCodes);
+            bytecodeMap.put(className, byteCode);
 
             PlainTextOutput output = new PlainTextOutput();
             DecompilerSettings settings = getDecompilerSettings();
@@ -85,24 +84,24 @@ public final class ProcyonDecompiler implements Decompiler {
             return output.toString();
         }
 
-        throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
+        throw new DecompilationException("Byte code of classes for decompilation can't be a null!");
     }
 
     /**
-     * Creates map of inner classes where key is name of class,
-     * and value is bytecode of this class
+     * Creates a map of inner classes where key is name of class,
+     * and value is byte code of this class
      *
-     * @param classes collection of inner classes bytecode
+     * @param classes collection of inner classes byte code
      * @return inner classes map
      */
     private Map<String, byte[]> createInnerClassesByteCodeMap(Collection<byte[]> classes) {
-        Map<String, byte[]> bytecodeMap = new HashMap<>();
+        Map<String, byte[]> byteCodeMap = new HashMap<>();
 
-        for (byte[] bytecode : classes) {
-            bytecodeMap.put(ClassNameConverter.getClassName(bytecode), bytecode);
+        for (byte[] byteCode : classes) {
+            byteCodeMap.put(ClassNameConverter.getClassName(byteCode), byteCode);
         }
 
-        return bytecodeMap;
+        return byteCodeMap;
     }
 
     /**
@@ -118,22 +117,24 @@ public final class ProcyonDecompiler implements Decompiler {
         settings.setForceExplicitImports(utils.getConfigOption(FORCE_EXPLICIT_IMPORTS_KEY, Boolean.class));
         settings.setForceExplicitTypeArguments(utils.getConfigOption(FORCE_EXPLICIT_TYPE_ARGUMENTS_KEY, Boolean.class));
         settings.setLanguage(utils.getConfigOption(LANGUAGE_KEY, Language.class));
-        settings.setJavaFormattingOptions(utils.getConfigOption(JAVA_FORMATTER_OPTIONS_KEY, JavaFormattingOptions.class));
         settings.setShowSyntheticMembers(utils.getConfigOption(DISPLAY_SYNTHETIC_MEMBERS_KEY, Boolean.class));
+        settings.setJavaFormattingOptions(utils.getConfigOption(JAVA_FORMATTER_OPTIONS_KEY, JavaFormattingOptions.class));
+        settings.setBytecodeOutputOptions(utils.getConfigOption(BYTE_CODE_OUTPUT_OPTIONS_KEY, BytecodeOutputOptions.class));
         settings.setAlwaysGenerateExceptionVariableForCatchBlocks(
                 utils.getConfigOption(ALWAYS_GENERATE_EXCEPTION_VARIABLE_FOR_CATCH_BLOCKS_KEY, Boolean.class)
         );
+        settings.setRetainRedundantCasts(utils.getConfigOption(RETAIN_REDUNDANT_CASTS_KEY, Boolean.class));
         settings.setIncludeErrorDiagnostics(utils.getConfigOption(INCLUDE_ERROR_DIAGNOSTICS_KEY, Boolean.class));
         settings.setIncludeLineNumbersInBytecode(
                 utils.getConfigOption(INCLUDE_LINE_NUMBERS_IN_BYTECODE_KEY, Boolean.class)
         );
-        settings.setRetainRedundantCasts(utils.getConfigOption(RETAIN_REDUNDANT_CASTS_KEY, Boolean.class));
         settings.setRetainPointlessSwitches(utils.getConfigOption(RETAIN_POINTLESS_SWITCHES_KEY, Boolean.class));
         settings.setUnicodeOutputEnabled(utils.getConfigOption(UNICODE_OUTPUT_ENABLED_KEY, Boolean.class));
-        settings.setShowDebugLineNumbers(utils.getConfigOption(SHOW_DEBUG_LINE_NUMBERS_KEY, Boolean.class));
         settings.setMergeVariables(utils.getConfigOption(MERGE_VARIABLES_KEY, Boolean.class));
+        settings.setShowDebugLineNumbers(utils.getConfigOption(SHOW_DEBUG_LINE_NUMBERS_KEY, Boolean.class));
         settings.setSimplifyMemberReferences(utils.getConfigOption(SIMPLIFY_MEMBER_REFERENCES_KEY, Boolean.class));
         settings.setDisableForEachTransforms(utils.getConfigOption(DISABLE_FOR_EACH_TRANSFORMS_KEY, Boolean.class));
+        settings.setForceFullyQualifiedReferences(utils.getConfigOption(FORCE_FULLY_QUALIFIED_REFERENCES, Boolean.class));
 
         return settings;
     }
@@ -158,18 +159,20 @@ public final class ProcyonDecompiler implements Decompiler {
                 .forceExplicitImports(true)
                 .forceExplicitTypeArguments(true)
                 .setLanguage(new JavaLanguage())
+                .setByteCodeOutputOptions(new BytecodeOutputOptions())
                 .setJavaFormatterOptions(options)
-                .showSyntheticMembers(true)
+                .showSyntheticMembers(false)
                 .alwaysGenerateExceptionVariableForCatchBlocks(true)
                 .includeErrorDiagnostics(false)
-                .includeLineNumbersInBytecode(false)
-                .retainRedundantCasts(true)
+                .includeLineNumbersInByteCode(false)
+                .retainRedundantCasts(false)
                 .retainPointlessSwitches(true)
                 .unicodeOutputEnabled(true)
                 .showDebugLineNumbers(false)
                 .mergeVariables(false)
                 .simplifyMemberReferences(true)
                 .disableForEachTransforms(false)
+                .setForceFullyQualifiedReferences(false)
                 .getConfiguration();
     }
 
@@ -182,7 +185,7 @@ public final class ProcyonDecompiler implements Decompiler {
     }
 
     /**
-     * Implementation of {@link ITypeLoader} uses chain bytecode load mechanism
+     * Implementation of {@link ITypeLoader} uses chain byte code load mechanism
      */
     private class ProcyonTypeLoader implements ITypeLoader {
 
@@ -194,19 +197,19 @@ public final class ProcyonDecompiler implements Decompiler {
 
         private final boolean isLoadReferenceOnClass;
 
-        private final BytecodeCollector collector;
+        private final ByteCodeCollector collector;
 
         /**
-         * Default constructor for create instance of {@link ProcyonTypeLoader}
+         * Default constructor for create an instance of {@link ProcyonTypeLoader}
          *
          * @param outerClassName name of main decompiled class
-         * @param bytecodeMap    map of all inner classes for outer class
+         * @param byteCodeMap    map of all inner classes for outer class
          */
-        public ProcyonTypeLoader(String outerClassName, Map<String, byte[]> bytecodeMap) {
+        public ProcyonTypeLoader(String outerClassName, Map<String, byte[]> byteCodeMap) {
             this.outerClassName = outerClassName;
-            this.bytecodeMap = bytecodeMap;
+            this.bytecodeMap = byteCodeMap;
             this.isLoadReferenceOnClass = utils.getConfigOption(UPLOAD_CLASS_REFERENCE_KEY, Boolean.class);
-            this.collector = new ChainBytecodeCollector(configurationManager);
+            this.collector = new ChainByteCodeCollector(configurationManager);
         }
 
         @Override
@@ -249,16 +252,16 @@ public final class ProcyonDecompiler implements Decompiler {
         }
 
         /**
-         * Try load bytecode of class
+         * Try load byte code of class
          *
          * @param className name of class
-         * @return bytecode of class or null if class or bytecode is not found
+         * @return byte code of class or null if class or byte code is not found
          */
         private byte[] loadByteCode(String className) {
             Class<?> clazz = loadClass(className);
 
             if (clazz != null) {
-                return collector.getBytecode(clazz);
+                return collector.getByteCode(clazz);
             }
 
             return null;

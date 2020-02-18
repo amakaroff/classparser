@@ -140,7 +140,7 @@ public final class ImportParser {
      * Checking class for append to import section
      *
      * @param clazz any class
-     * @return true if this class can be append to import
+     * @return true if these class can be appended to import
      */
     private boolean isAppendToImports(Class<?> clazz) {
         return !clazz.isPrimitive()
@@ -159,7 +159,7 @@ public final class ImportParser {
     }
 
     /**
-     * Equals classes by full name
+     * Equal classes by full name
      *
      * @param source one class
      * @param target other class
@@ -170,7 +170,7 @@ public final class ImportParser {
     }
 
     /**
-     * Equals classes by simple name
+     * Equal classes by simple name
      *
      * @param source one class
      * @param target other class
@@ -219,7 +219,7 @@ public final class ImportParser {
     }
 
     /**
-     * Obtains simple name of class
+     * Obtains the simple name of class
      *
      * @param clazz any class
      * @return class simple name

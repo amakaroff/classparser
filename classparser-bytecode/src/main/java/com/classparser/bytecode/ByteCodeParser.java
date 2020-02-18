@@ -1,9 +1,9 @@
 package com.classparser.bytecode;
 
 import com.classparser.api.ClassParser;
-import com.classparser.bytecode.api.BytecodeCollector;
+import com.classparser.bytecode.api.ByteCodeCollector;
 import com.classparser.bytecode.api.Decompiler;
-import com.classparser.bytecode.collector.ChainBytecodeCollector;
+import com.classparser.bytecode.collector.ChainByteCodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.exception.ByteCodeParserException;
 import com.classparser.bytecode.exception.classes.IllegalClassException;
@@ -19,7 +19,7 @@ import java.util.List;
 
 /**
  * Implementation of {@link ClassParser} provides
- * functionality for parsing class by bytecode decompilation
+ * functionality for parsing class by byte code decompilation
  * That parsing mechanism can parse only normal class and can't
  * parse arrays and primitives
  * <p>
@@ -28,19 +28,11 @@ import java.util.List;
  * @author Aleksey Makarov
  * @since 1.0.0
  */
-public class BytecodeParser implements ClassParser {
+public class ByteCodeParser implements ClassParser {
 
     private static final String DUMP_PROPERTY = "java.lang.invoke.MethodHandle.DUMP_CLASS_FILES";
 
     private static final String DUMPER_CLASS = "java.lang.invoke.InvokerBytecodeGenerator";
-
-    private final ConfigurationManager configurationManager;
-
-    private final BytecodeFileSaver saver;
-
-    private final InnerClassesCollector classesCollector;
-
-    private final BytecodeCollector bytecodeCollector;
 
     static {
         if (Boolean.getBoolean(DUMP_PROPERTY)) {
@@ -60,9 +52,14 @@ public class BytecodeParser implements ClassParser {
         }
     }
 
-    public BytecodeParser() {
+    private final ConfigurationManager configurationManager;
+    private final BytecodeFileSaver saver;
+    private final InnerClassesCollector classesCollector;
+    private final ByteCodeCollector bytecodeCollector;
+
+    public ByteCodeParser() {
         this.configurationManager = new ConfigurationManager();
-        this.bytecodeCollector = new ChainBytecodeCollector(configurationManager);
+        this.bytecodeCollector = new ChainByteCodeCollector(configurationManager);
         this.classesCollector = new InnerClassesCollector(configurationManager);
         this.saver = new BytecodeFileSaver(configurationManager);
     }
@@ -71,79 +68,79 @@ public class BytecodeParser implements ClassParser {
     public String parseClass(Class<?> clazz) throws ByteCodeParserException {
         checkToCorrectClass(clazz);
 
-        byte[] bytecode = getBytecodeOfClass(clazz);
-        List<byte[]> bytecodeOfInnerClasses = getBytecodeOfInnerClasses(clazz);
+        byte[] byteCode = getByteCodeOfClass(clazz);
+        List<byte[]> byteCodeOfInnerClasses = getByteCodeOfInnerClasses(clazz);
 
         if (configurationManager.isSaveToFile()) {
-            saveByteCodeToFile(bytecode, bytecodeOfInnerClasses);
+            saveByteCodeToFile(byteCode, byteCodeOfInnerClasses);
         }
 
         Decompiler decompiler = configurationManager.getDecompiler();
         decompiler.setConfigurationManager(configurationManager);
 
-        return decompiler.decompile(bytecode, bytecodeOfInnerClasses);
+        return decompiler.decompile(byteCode, byteCodeOfInnerClasses);
     }
 
     /**
-     * Saves collected bytecode to file
+     * Saves collected byte code to file
      *
-     * @param bytecode               bytecode of file
-     * @param bytecodeOfInnerClasses bytecode of inner classes
+     * @param byteCode               byte code of file
+     * @param byteCodeOfInnerClasses byte code of inner classes
      */
-    private void saveByteCodeToFile(byte[] bytecode, List<byte[]> bytecodeOfInnerClasses) {
-        saver.saveToFile(bytecode);
-        for (byte[] bytecodeOfInnerClass : bytecodeOfInnerClasses) {
-            saver.saveToFile(bytecodeOfInnerClass);
+    private void saveByteCodeToFile(byte[] byteCode, List<byte[]> byteCodeOfInnerClasses) {
+        saver.saveToFile(byteCode);
+        for (byte[] byteCodeOfInnerClass : byteCodeOfInnerClasses) {
+            saver.saveToFile(byteCodeOfInnerClass);
         }
     }
 
     /**
-     * Obtains bytecode of inner classes for class
+     * Obtains byte code of inner classes for class
      *
      * @param clazz any class
-     * @return list with bytecode of inner classes
+     * @return list with byte code of inner classes
      */
-    private List<byte[]> getBytecodeOfInnerClasses(Class<?> clazz) {
+    private List<byte[]> getByteCodeOfInnerClasses(Class<?> clazz) {
         if (configurationManager.isDecompileInnerClasses()) {
-            List<byte[]> bytecodeOfInnerClasses = new ArrayList<>();
+            List<byte[]> byteCodeOfInnerClasses = new ArrayList<>();
 
             for (Class<?> innerClass : classesCollector.getInnerClasses(clazz)) {
-                byte[] bytecodeOfInnerClass = bytecodeCollector.getBytecode(innerClass);
-                if (bytecodeOfInnerClass != null) {
-                    bytecodeOfInnerClasses.add(bytecodeOfInnerClass);
+                byte[] byteCodeOfInnerClass = bytecodeCollector.getByteCode(innerClass);
+                if (byteCodeOfInnerClass != null) {
+                    byteCodeOfInnerClasses.add(byteCodeOfInnerClass);
                 }
             }
 
-            return bytecodeOfInnerClasses;
+            return byteCodeOfInnerClasses;
         }
 
         return Collections.emptyList();
     }
 
     /**
-     * Obtains bytecode of class
+     * Obtains byte code of class
      *
      * @param clazz any class
-     * @return bytecode of class
+     * @return byte code of class
      */
-    private byte[] getBytecodeOfClass(Class<?> clazz) {
-        byte[] bytecode = bytecodeCollector.getBytecode(clazz);
-        if (bytecode == null) {
+    private byte[] getByteCodeOfClass(Class<?> clazz) {
+        byte[] byteCode = bytecodeCollector.getByteCode(clazz);
+        if (byteCode == null) {
             String className = ClassNameConverter.toJavaClassName(clazz);
-            throw new ByteCodeParserException("Byte code of class: \"" + className + "\" is not found!");
+            throw new ByteCodeParserException("Byte code of class: \"" + className + "\" is not found");
         }
 
-        return bytecode;
+        return byteCode;
     }
 
     /**
-     * Checks of for class can be obtain bytecode
+     * Checks of for class can be obtained byte code
      *
      * @param clazz any class
      */
     private void checkToCorrectClass(Class<?> clazz) {
         if (clazz == null) {
-            throw new NullPointerException("Class for parsing is can't be a null!");
+            throw new NullPointerException("Class for parsing is can't be a null");
         }
 
         if (clazz.isPrimitive()) {

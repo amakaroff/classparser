@@ -46,7 +46,7 @@ public class AgentAssembler {
      * @param agent java agent instance
      */
     public void assembly(JavaAgent agent) {
-        if (!agent.isInitialize()) {
+        if (!agent.isInitialized()) {
             String agentPath = agent.getAgentLocationPath() + agent.getAgentJarName();
             if (configurationManager.isCacheAgentJar()) {
                 cachedAssembly(agent, agentPath);
@@ -59,6 +59,7 @@ public class AgentAssembler {
     /**
      * Performs assembly java agent uses cache agent jar
      *
+     * @param agent the instance of java agent
      * @param agentPath path to agent jar
      */
     protected void cachedAssembly(JavaAgent agent, String agentPath) {
@@ -73,6 +74,7 @@ public class AgentAssembler {
     /**
      * Performs assembly java agent and removes jar after attach processes
      *
+     * @param agent the instance of java agent
      * @param agentPath path to agent jar
      */
     protected void nonCachedAssembly(JavaAgent agent, String agentPath) {
@@ -102,7 +104,7 @@ public class AgentAssembler {
     /**
      * Process of building agent jar file
      *
-     * @return absolute path to path to agent jar
+     * @return absolute path to agent jar
      */
     private String createAgent(JavaAgent agent) {
         return AgentBuilder.getBuilder()

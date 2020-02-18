@@ -61,8 +61,8 @@ public final class ReflectionParserManager {
     }
 
     /**
-     * Obtains current configuration manager
-     * Configuration manager is not tied to context
+     * Obtains current configuration manager.
+     * Configuration manager is not tied to the context
      *
      * @return {@link ConfigurationManager} object
      */
@@ -103,7 +103,7 @@ public final class ReflectionParserManager {
     }
 
     /**
-     * Performs join non empty class content by space
+     * Performs the join of non-empty class content by space
      *
      * @param content class content
      * @return joined class content

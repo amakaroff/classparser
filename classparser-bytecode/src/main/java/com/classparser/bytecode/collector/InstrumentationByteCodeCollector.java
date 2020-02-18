@@ -1,6 +1,6 @@
 package com.classparser.bytecode.collector;
 
-import com.classparser.bytecode.api.BytecodeCollector;
+import com.classparser.bytecode.api.ByteCodeCollector;
 import com.classparser.bytecode.api.JavaAgent;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.exception.classes.IllegalClassException;
@@ -14,23 +14,23 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Collector uses {@link Instrumentation} instance try obtain bytecode of class
+ * Collector uses {@link Instrumentation} instance try obtain byte code of class
  * This collector is unstable and can drop JVM because of error in instrument lib
  *
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-public class InstrumentationBytecodeCollector implements BytecodeCollector {
+public class InstrumentationByteCodeCollector implements ByteCodeCollector {
 
     private static volatile ClassFileTransformer classFileTransformer;
 
-    private static Map<String, byte[]> bytecodeStorage;
+    private static Map<String, byte[]> byteCodeStorage;
 
     private ConfigurationManager configurationManager;
 
     @Override
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
-    public byte[] getBytecode(Class<?> clazz) {
+    public byte[] getByteCode(Class<?> clazz) {
         if (clazz != null) {
             synchronized (clazz) {
                 String className = ClassNameConverter.toJavaClassName(clazz);
@@ -65,7 +65,7 @@ public class InstrumentationBytecodeCollector implements BytecodeCollector {
 
     @Override
     public boolean isEnable() {
-        return configurationManager.isEnableInstrumentationBytecodeCollector();
+        return configurationManager.isEnableInstrumentationByteCodeCollector();
     }
 
     @Override
@@ -76,14 +76,14 @@ public class InstrumentationBytecodeCollector implements BytecodeCollector {
     }
 
     /**
-     * Initialize class transformer uses for store bytecode
+     * Initialize class transformer uses for store byte code
      */
     private void initializeTransformer(JavaAgent agent) {
         if (classFileTransformer == null) {
-            synchronized (InstrumentationBytecodeCollector.class) {
+            synchronized (InstrumentationByteCodeCollector.class) {
                 if (classFileTransformer == null) {
-                    classFileTransformer = new BytecodeStoreClassFileTransformer();
-                    bytecodeStorage = new ConcurrentHashMap<>();
+                    classFileTransformer = new ByteCodeStoreClassFileTransformer();
+                    byteCodeStorage = new ConcurrentHashMap<>();
                     Instrumentation instrumentation = agent.getInstrumentation();
                     instrumentation.addTransformer(classFileTransformer, true);
                 }
@@ -92,39 +92,39 @@ public class InstrumentationBytecodeCollector implements BytecodeCollector {
     }
 
     /**
-     * Obtains bytecode of class from storage map
+     * Obtains byte code of class from storage map
      *
      * @param clazz any class
-     * @return bytecode of this class or null if map value is absent
+     * @return byte code of this class or null if map value is absent
      */
     private byte[] getBytesOfClass(Class<?> clazz) {
         String className = ClassNameConverter.toJavaClassName(clazz);
-        byte[] bytecode = bytecodeStorage.get(className);
-        bytecodeStorage.remove(className);
-
-        return bytecode;
+        return byteCodeStorage.remove(className);
     }
 
     /**
-     * Resolves java class name and append it to bytecode map
+     * Resolves java class name and append it to byte code map
      *
      * @param className java class name
-     * @param bytecode  bytecode of class
+     * @param byteCode  byte code of class
      */
-    private void uploadByteCodeOfClassToHolder(String className, byte[] bytecode) {
+    private void uploadByteCodeOfClassToHolder(String className, byte[] byteCode) {
         String javaBasedClassName = ClassNameConverter.toJavaClassName(className);
-        bytecodeStorage.put(javaBasedClassName, bytecode);
+        byteCodeStorage.put(javaBasedClassName, byteCode);
     }
 
     /**
-     * Simple class file transformer uses for store of re-transformed bytecode
+     * Simple class file transformer uses for store of re-transformed byte code
      */
-    private class BytecodeStoreClassFileTransformer implements ClassFileTransformer {
+    private class ByteCodeStoreClassFileTransformer implements ClassFileTransformer {
 
         @Override
-        public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-                                ProtectionDomain protectionDomain, byte[] bytecode) {
-            uploadByteCodeOfClassToHolder(className, bytecode);
+        public byte[] transform(ClassLoader loader, 
+                                String className, 
+                                Class<?> classBeingRedefined,
+                                ProtectionDomain protectionDomain,
+                                byte[] byteCode) {
+            uploadByteCodeOfClassToHolder(className, byteCode);
             return null;
         }
     }

@@ -32,7 +32,7 @@ public class InheritanceParser {
     }
 
     /**
-     * Parses meta information about inheritor and interfaces for class
+     * Parses meta information about an inheritor and interfaces for class
      * <p>
      * For example:
      * <code>
@@ -85,7 +85,7 @@ public class InheritanceParser {
     }
 
     /**
-     * Parses array of interface types to list of {@link String}
+     * Parses the array of interface types to list of {@link String}
      * Also processes information about annotations for this interface types
      *
      * @param parentTypes    array of parent types
@@ -152,7 +152,7 @@ public class InheritanceParser {
     /**
      * Checks if array is not empty and gets annotation from annotation array by index
      *
-     * @param types annotations types array
+     * @param types annotation types array
      * @param index index for array
      * @return annotation by index or null if array is null or empty
      */

@@ -1,6 +1,6 @@
 package com.classparser.bytecode.collector;
 
-import com.classparser.bytecode.api.BytecodeCollector;
+import com.classparser.bytecode.api.ByteCodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.exception.ByteCodeParserException;
 import com.classparser.bytecode.utils.ClassNameConverter;
@@ -11,15 +11,15 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
 /**
- * Dumper collector collects bytecode of classes uses jdk dumper mechanism
+ * Dumper collector collects byte code of classes uses jdk dumper mechanism
  * Dumper supports lambda expression and method handle for HotSpot/J9
  * <p>
  * <code>-Djdk.internal.lambda.dumpProxyClasses=DUMP_CLASS_FILES</code>
  * <code>-Djava.lang.invoke.MethodHandle.DUMP_CLASS_FILES=true</code>
  * <p>
- * This options should be enabled for working of this collector
+ * These options should be enabled for working of this collector
  */
-public class DumperBytecodeCollector implements BytecodeCollector {
+public class DumperByteCodeCollector implements ByteCodeCollector {
 
     private static final String DUMP_MH_PROPERTY = "java.lang.invoke.MethodHandle.DUMP_CLASS_FILES";
 
@@ -32,7 +32,7 @@ public class DumperBytecodeCollector implements BytecodeCollector {
     static {
         DUMP_PATH = System.getProperty("user.dir") + File.separatorChar + "DUMP_CLASS_FILES";
         if (isDumpPropertiesEnabled()) {
-            Runtime.getRuntime().addShutdownHook(new Thread(DumperBytecodeCollector::clearDumpDirectory));
+            Runtime.getRuntime().addShutdownHook(new Thread(DumperByteCodeCollector::clearDumpDirectory));
         }
     }
 
@@ -81,7 +81,7 @@ public class DumperBytecodeCollector implements BytecodeCollector {
                     }
 
                     /**
-                     * Perform delete file by path ignore access exceptions
+                     * Perform delete a file by the path ignore access exceptions
                      *
                      * @param path file system path
                      * @throws IOException if delete was interrupted with exception
@@ -100,7 +100,7 @@ public class DumperBytecodeCollector implements BytecodeCollector {
     }
 
     @Override
-    public byte[] getBytecode(Class<?> clazz) {
+    public byte[] getByteCode(Class<?> clazz) {
         if (clazz != null) {
             String filePath = ClassNameConverter.toFileJavaClassName(clazz);
             String fullClassDumpPath = DUMP_PATH + File.separator + filePath;

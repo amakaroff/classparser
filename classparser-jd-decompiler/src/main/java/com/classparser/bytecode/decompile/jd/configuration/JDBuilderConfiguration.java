@@ -1,6 +1,7 @@
 package com.classparser.bytecode.decompile.jd.configuration;
 
 import com.classparser.bytecode.decompile.jd.JDDecompiler;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JDBuilderConfiguration {
 
     /**
-     * Creates instance of builder
+     * Creates an instance of builder
      *
      * @return {@link JDConfiguration} instance
      */
@@ -40,32 +41,14 @@ public class JDBuilderConfiguration {
         }
 
         @Override
-        public JDConfiguration displayDefaultConstructor(boolean flag) {
-            configuration.put(SHOW_DEFAULT_CONSTRUCTOR_KEY, flag);
-            return this;
-        }
-
-        @Override
         public JDConfiguration realignmentLineNumber(boolean flag) {
             configuration.put(REALIGNMENT_LINE_NUMBER_KEY, flag);
             return this;
         }
 
         @Override
-        public JDConfiguration displayPrefixThis(boolean flag) {
-            configuration.put(SHOW_PREFIX_THIS_KEY, flag);
-            return this;
-        }
-
-        @Override
         public JDConfiguration mergeEmptyLines(boolean flag) {
             configuration.put(MERGE_EMPTY_LINES_KEY, flag);
-            return this;
-        }
-
-        @Override
-        public JDConfiguration unicodeEscape(boolean flag) {
-            configuration.put(UNICODE_ESCAPE_KEY, flag);
             return this;
         }
 
@@ -77,14 +60,28 @@ public class JDBuilderConfiguration {
 
         @Override
         public JDConfiguration setCountIndentSpaces(int indent) {
-            StringBuilder builder = new StringBuilder();
+            if (indent >= 0) {
+                StringBuilder builder = new StringBuilder();
 
-            for (int i = 0; i < indent; i++) {
-                builder.append(' ');
+                for (int i = 0; i < indent; i++) {
+                    builder.append(' ');
+                }
+
+                configuration.put(COUNT_INDENT_SPACES_KEY, builder.toString());
+                return this;
+            } else {
+                throw new IllegalArgumentException("The indent cannot be less, than zero");
             }
+        }
 
-            configuration.put(COUNT_INDENT_SPACES_KEY, builder.toString());
-            return this;
+        @Override
+        public JDConfiguration setTypeMaker(TypeMaker typeMaker) {
+            if (typeMaker != null) {
+                configuration.put(TYPE_MAKER_KEY, typeMaker);
+                return this;
+            } else {
+                throw new IllegalArgumentException("The type maker cannot be null");
+            }
         }
     }
 }

@@ -3,7 +3,7 @@ package com.classparser.bytecode.decompile.cfr.configuration;
 import com.classparser.bytecode.decompile.cfr.CFRDecompiler;
 import com.classparser.configuration.Configuration;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -12,13 +12,15 @@ import java.util.List;
  */
 public interface CFRConfiguration extends Configuration {
 
-    List<String> INT_OPTIONS = Collections.unmodifiableList(
-            new ArrayList<String>() {{
-                add("showops");
-                add("recpass");
-                add("renamesmallmembers");
-                add("aggressivesizethreshold");
-            }}
+    List<String> INT_OPTIONS = Arrays.asList(
+            "showops",
+            "recpass",
+            "renamesmallmembers",
+            "aggressivesizethreshold"
+    );
+
+    List<String> STRING_OPTIONS = Collections.singletonList(
+            "importfilter"
     );
 
     /**
@@ -42,6 +44,17 @@ public interface CFRConfiguration extends Configuration {
      * @return builder instance
      */
     CFRConfiguration replaceStringConcatToStringBuilder(boolean flag);
+
+    /**
+     * Convert usages of StringConcatFactor to string + string + string
+     * See http://www.benf.org/other/cfr/java9stringconcat.html
+     * <p>
+     * Default value: true
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    CFRConfiguration replaceStringConcatFactorToStringConcatenation(boolean flag);
 
     /**
      * Re-sugar switch on enum
@@ -75,6 +88,26 @@ public interface CFRConfiguration extends Configuration {
      * @return builder instance
      */
     CFRConfiguration decompileSugarStringInEnums(boolean flag);
+
+    /**
+     * Decompile preview features if class was compiled with (jdk --enable-preview).
+     * <p>
+     * Default value: true
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    CFRConfiguration decompileClassesWithPreviewFeatures(boolean flag);
+
+    /**
+     * Re-sugar switch expression.
+     * <p>
+     * Default value: true
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    CFRConfiguration decompileSwitchExpressions(boolean flag);
 
     /**
      * Re-sugar array based iteration.
@@ -127,7 +160,7 @@ public interface CFRConfiguration extends Configuration {
     /**
      * When processing many files, skip inner classes,
      * as they will be processed as part of outer classes anyway.
-     * If false, you will see inner classes as separate entities also.
+     * If false, you will see inner classes as separate entities as well.
      *
      * @param flag true/false value
      * @return builder instance
@@ -244,7 +277,7 @@ public interface CFRConfiguration extends Configuration {
     CFRConfiguration decompileBoxing(boolean flag);
 
     /**
-     * Show CFR version used in header (handy to turn off when regression testing)
+     * Show CFR version used in the header (handy to turn off when regression testing)
      * <p>
      * Default value: false
      *
@@ -346,6 +379,16 @@ public interface CFRConfiguration extends Configuration {
     CFRConfiguration forceTopSortAggressive(boolean flag);
 
     /**
+     * Force top sort not to pull try blocks
+     * <p>
+     * Default value: true
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    CFRConfiguration forceTopSortNoPull(boolean flag);
+
+    /**
      * Pull results of deterministic jumps back through some constant assignments
      * <p>
      * Default value: true
@@ -420,16 +463,6 @@ public interface CFRConfiguration extends Configuration {
      * @return builder instance
      */
     CFRConfiguration recoverTypeHintsForIterators(boolean flag);
-
-    /**
-     * Show some (cryptic!) debug
-     * <p>
-     * Default value: 0
-     *
-     * @param debug debug level
-     * @return builder instance
-     */
-    CFRConfiguration showDebugInfo(int debug);
 
     /**
      * Don't display state while decompiling
@@ -600,7 +633,7 @@ public interface CFRConfiguration extends Configuration {
     CFRConfiguration countAtWhichToTriggerAggressiveReductions(int opcode);
 
     /**
-     * Try to remove return from static init
+     * Try to remove return from a static init
      * <p>
      * Default value: true
      *
@@ -638,4 +671,25 @@ public interface CFRConfiguration extends Configuration {
      * @return builder instance
      */
     CFRConfiguration elideThingsInScalaOutput(boolean flag);
+
+    /**
+     * Be more aggressive about uncaching in order to reduce memory footprint.
+     * <p>
+     * Default value: false
+     *
+     * @param flag true/false value
+     * @return builder instance
+     */
+    CFRConfiguration setLowMemoryMode(boolean flag);
+
+    /**
+     * Substring regex - import classes only when fqn matches this pattern.
+     * (VNegate with !, eg !lang)
+     * <p>
+     * Default value: empty string
+     *
+     * @param regex the regular expression for filtration
+     * @return builder instance
+     */
+    CFRConfiguration setImportFilter(String regex);
 }

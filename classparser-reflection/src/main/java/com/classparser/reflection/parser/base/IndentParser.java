@@ -7,7 +7,7 @@ import java.lang.reflect.Member;
 
 /**
  * Class provides functionality by counting indent spaces for class structure elements
- * This class depend on context {@link ReflectionParserManager} of parsing
+ * These class depend on context {@link ReflectionParserManager} of parsing
  *
  * @author Aleksey Makarov
  * @author Valim Kiselev
@@ -43,7 +43,7 @@ public class IndentParser {
                 indent.append(configurationManager.getIndentSpaces());
             }
         } else if (object instanceof Class) {
-            declaringClass = (Class) object;
+            declaringClass = (Class<?>) object;
         } else {
             return "";
         }

@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Class provides functionality by parsing constructor of class meta information
- * Parsing includes annotation, generics and etc.
+ * Parsing includes annotation, generics etc.
  *
  * @author Aleksey Makarov
  * @author Valim Kiselev
@@ -54,7 +54,7 @@ public class ConstructorParser {
     /**
      * Parse constructors meta information and collecting all metadata
      * about constructors for any {@link Class} instance.
-     * Parsing result includes name, types, generics, annotations, modifiers, exceptions and etc.
+     * Parsing result includes name, types, generics, annotations, modifiers, exceptions etc.
      *
      * @param clazz any class
      * @return parsed constructors
@@ -82,8 +82,8 @@ public class ConstructorParser {
     }
 
     /**
-     * Parses constructor meta information and collects data about method,
-     * includes name, generics, annotation and etc.
+     * Parses the constructor meta information and collects data about method,
+     * includes the name, generics, annotation etc.
      *
      * @param constructor any constructor
      * @return string line with constructor meta information

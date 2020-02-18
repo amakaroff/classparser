@@ -24,7 +24,7 @@ public interface JavaAgent {
      *
      * @return boolean status
      */
-    boolean isInitialize();
+    boolean isInitialized();
 
     /**
      * Obtains agent jar file name
@@ -55,7 +55,7 @@ public interface JavaAgent {
     Manifest getManifestFileName();
 
     /**
-     * Obtains classes which will be store to agent jar
+     * Obtain classes which will be store to agent jar
      *
      * @return array of classes
      */

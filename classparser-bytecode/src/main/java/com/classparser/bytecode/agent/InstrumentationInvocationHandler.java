@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import java.util.function.Supplier;
 
 /**
- * Proxy invocation handler uses for redirect any methods by bounded agent
+ * Proxy invocation handler uses for the redirect any methods by bounded agent
  *
  * @author Aleksei Makarov
  * @since 1.0.0

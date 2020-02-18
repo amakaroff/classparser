@@ -6,10 +6,10 @@ import com.classparser.exception.ParsingException;
 /**
  * Interface provides functional by parsing of classes
  * Exists two implementations:
- * 1. {ReflectionParser} - parsing classes by reflection mechanism
+ * 1. {ReflectionParser} - based on reflection mechanism for parsing classes
  *    and collecting all meta information
- * 2. {BytecodeParser} - parsing of bytecode and collecting
- *    full class code information
+ * 2. {ByteCodeParser} - based on byte code collecting mechanism for parsing and collecting
+ *    full class code information used decompilers
  *
  * @author Aleksei Makarov
  */

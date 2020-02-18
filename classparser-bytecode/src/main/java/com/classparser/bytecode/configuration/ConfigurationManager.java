@@ -1,5 +1,6 @@
 package com.classparser.bytecode.configuration;
 
+import com.classparser.bytecode.ByteCodeParser;
 import com.classparser.bytecode.agent.DefaultJavaAgent;
 import com.classparser.bytecode.api.JavaAgent;
 import com.classparser.bytecode.api.Decompiler;
@@ -14,8 +15,8 @@ import java.util.Map;
 import static com.classparser.bytecode.configuration.api.BytecodeParserConfiguration.*;
 
 /**
- * Basic configuration manager for {@link com.classparser.bytecode.BytecodeParser}
- * Provides methods for checking current configuration on parser
+ * Basic configuration manager for {@link ByteCodeParser}
+ * Provides methods for checking current configuration on the parser
  * <p>
  * This class is thread safe
  * </p>
@@ -38,13 +39,13 @@ public class ConfigurationManager {
      * <ul>
      *      <li>{@link #isDecompileInnerClasses()} ()} - yes</li>
      *      <li>{@link #getDecompiler()} - {@link FernflowerDecompiler}</li>
-     *      <li>{@link #isEnableClassFileBytecodeCollector()} - yes</li>
-     *      <li>{@link #isEnableInstrumentationBytecodeCollector()} - yes</li>
+     *      <li>{@link #isEnableClassFileByteCodeCollector()} - yes</li>
+     *      <li>{@link #isEnableInstrumentationByteCodeCollector()} - yes</li>
      *      <li>{@link #isEnableDumperByteCodeCollector()} - no</li>
      *      <li>{@link #isSaveToFile()} - no</li>
      *      <li>{@link #getCustomDecompilerConfiguration()} - Empty</li>
      *      <li>{@link #isCacheAgentJar()} - true</li>
-     *      <li>{@link #getDirectoryForSaveBytecode()} - ${user.dir}/classes</li>
+     *      <li>{@link #getDirectoryForSaveByteCode()} - ${user.dir}/classes</li>
      *      <li>{@link #getAgent()} - {@link DefaultJavaAgent}</li>
      *      <li>{@link #getToolsJarPath()} - Empty</li>
      * </ul>
@@ -71,7 +72,7 @@ public class ConfigurationManager {
     /**
      * Reload current configuration
      *
-     * @param configuration new bytecode parser configuration instance
+     * @param configuration new byte code parser configuration instance
      */
     public void reloadConfiguration(Configuration configuration) {
         this.utils.reloadConfiguration(configuration);
@@ -87,7 +88,7 @@ public class ConfigurationManager {
     }
 
     /**
-     * Checks if necessary safe found bytecode of class to file
+     * Checks if necessary safe found byte code of class to file
      *
      * @return true if needed save found class to file
      */
@@ -96,16 +97,16 @@ public class ConfigurationManager {
     }
 
     /**
-     * Obtains path to directory where will be store founded bytecode of classes
+     * Obtains the path to directory where will be store founded byte code of classes
      *
-     * @return path to directory where necessary store bytecode
+     * @return path to directory where necessary store byte code
      */
-    public String getDirectoryForSaveBytecode() {
+    public String getDirectoryForSaveByteCode() {
         return utils.getConfigOption(DIRECTORY_FOR_SAVING_BYTECODE_KEY, String.class);
     }
 
     /**
-     * Obtains custom configuration for decompiler
+     * Obtains a custom configuration for decompiler
      *
      * @return custom decompiler configuration
      */
@@ -123,25 +124,25 @@ public class ConfigurationManager {
     }
 
     /**
-     * Checks if class file bytecode collector should be enabled
+     * Checks if class file byte code collector should be enabled
      *
      * @return true if class file collector is enable
      */
-    public boolean isEnableClassFileBytecodeCollector() {
+    public boolean isEnableClassFileByteCodeCollector() {
         return utils.getConfigOption(ENABLED_CLASS_FILE_BYTECODE_COLLECTOR_KEY, Boolean.class);
     }
 
     /**
-     * Checks if instrumentation bytecode collector should be enabled
+     * Checks if instrumentation byte code collector should be enabled
      *
      * @return true if instrumentation collector is enable
      */
-    public boolean isEnableInstrumentationBytecodeCollector() {
+    public boolean isEnableInstrumentationByteCodeCollector() {
         return utils.getConfigOption(ENABLED_INSTRUMENTATION_BYTECODE_COLLECTOR_KEY, Boolean.class);
     }
 
     /**
-     * Checks if custom bytecode collector should be enabled
+     * Checks if custom byte code collector should be enabled
      *
      * @return true if custom collector is enable
      */
@@ -168,7 +169,7 @@ public class ConfigurationManager {
     }
 
     /**
-     * Obtains path to tools.jar
+     * Obtains the path to tools.jar
      *
      * @return path to tools.jar
      */

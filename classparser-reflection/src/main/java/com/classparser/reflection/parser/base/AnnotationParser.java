@@ -44,7 +44,7 @@ public class AnnotationParser {
 
     /**
      * Parse annotation meta information and collecting it to inline string
-     * This method used for parameter or use type annotations
+     * This method used for the parameter or use type annotations
      * <code>
      * {
      * {@literal @}Annotation {@literal @}OtherAnnotation
@@ -233,7 +233,7 @@ public class AnnotationParser {
     }
 
     /**
-     * Obtaining method with name "value" from annotation
+     * Obtaining method with a name "value" from annotation
      *
      * @param annotationType any class of annotation
      * @return method or null if method with that name is not found
@@ -270,7 +270,7 @@ public class AnnotationParser {
     }
 
     /**
-     * Get value parser or throw exception if it not initialize
+     * Get value parser or throw exception if it not initialized
      *
      * @return instance of value parser
      */

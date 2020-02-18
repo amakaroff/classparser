@@ -8,6 +8,19 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Class provides java API special builder for creating
  * configuration map for {@link CFRDecompiler}
+ * <p>
+ *     Missing properties which can be applied to the configuration:
+ *     1.  outputdir
+ *     2.  outputpath
+ *     3.  clobber
+ *     4.  help
+ *     5.  analyseas
+ *     6.  jarfilter
+ *     7.  methodname
+ *     8.  extraclasspath
+ *     9.  caseinsensitivefs
+ *     10. obfuscationpath
+ * </p>
  *
  * @author Aleksei Makarov
  * @since 1.0.0
@@ -15,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CFRBuilderConfiguration {
 
     /**
-     * Creates instance of builder
+     * Creates an instance of builder
      *
      * @return {@link CFRConfiguration} instance
      */
@@ -55,6 +68,12 @@ public class CFRBuilderConfiguration {
         }
 
         @Override
+        public CFRConfiguration replaceStringConcatFactorToStringConcatenation(boolean flag) {
+            configuration.put("stringconcat", !flag);
+            return this;
+        }
+
+        @Override
         public CFRConfiguration decompileSugarEnumInSwitch(boolean flag) {
             configuration.put("decodeenumswitch", flag);
             return this;
@@ -73,20 +92,32 @@ public class CFRBuilderConfiguration {
         }
 
         @Override
+        public CFRConfiguration decompileClassesWithPreviewFeatures(boolean flag) {
+            configuration.put("previewfeatures", flag);
+            return this;
+        }
+
+        @Override
+        public CFRConfiguration decompileSwitchExpressions(boolean flag) {
+            configuration.put("switchexpression", flag);
+            return this;
+        }
+
+        @Override
         public CFRConfiguration decompileSugarInArrayIteration(boolean flag) {
             configuration.put("arrayiter", flag);
             return this;
         }
 
         @Override
-        public CFRConfiguration decompilerTryWithResourceConstruction(boolean flag) {
-            configuration.put("tryresources", flag);
+        public CFRConfiguration decompileSugarInCollectionIteration(boolean flag) {
+            configuration.put("collectioniter", flag);
             return this;
         }
 
         @Override
-        public CFRConfiguration decompileSugarInCollectionIteration(boolean flag) {
-            configuration.put("collectioniter", flag);
+        public CFRConfiguration decompilerTryWithResourceConstruction(boolean flag) {
+            configuration.put("tryresources", flag);
             return this;
         }
 
@@ -235,6 +266,12 @@ public class CFRBuilderConfiguration {
         }
 
         @Override
+        public CFRConfiguration forceTopSortNoPull(boolean flag) {
+            configuration.put("forcetopsortnopull", flag);
+            return this;
+        }
+
+        @Override
         public CFRConfiguration forceCodePropagate(boolean flag) {
             configuration.put("forcecondpropagate", flag);
             return this;
@@ -279,12 +316,6 @@ public class CFRBuilderConfiguration {
         @Override
         public CFRConfiguration recoverTypeHintsForIterators(boolean flag) {
             configuration.put("recovertypehints", flag);
-            return this;
-        }
-
-        @Override
-        public CFRConfiguration showDebugInfo(int debug) {
-            configuration.put("showops", debug);
             return this;
         }
 
@@ -405,6 +436,18 @@ public class CFRBuilderConfiguration {
         @Override
         public CFRConfiguration elideThingsInScalaOutput(boolean flag) {
             configuration.put("elidescala", flag);
+            return this;
+        }
+
+        @Override
+        public CFRConfiguration setLowMemoryMode(boolean flag) {
+            configuration.put("lomem", flag);
+            return this;
+        }
+
+        @Override
+        public CFRConfiguration setImportFilter(String regex) {
+            configuration.put("importfilter", regex);
             return this;
         }
     }

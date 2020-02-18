@@ -1,14 +1,14 @@
 package com.classparser.bytecode.api;
 
-import com.classparser.bytecode.BytecodeParser;
+import com.classparser.bytecode.ByteCodeParser;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.decompile.fernflower.FernflowerDecompiler;
 
 import java.util.Collection;
 
 /**
- * Interface provides methods for bytecode decompilation
- * {@link BytecodeParser} by default uses {@link FernflowerDecompiler}
+ * Interface provides methods for byte code decompilation
+ * {@link ByteCodeParser} by default uses {@link FernflowerDecompiler}
  * Before decompilation will call method #setConfigurationManager
  * and #setConfiguration for setting parser configuration into decompiler
  *
@@ -18,22 +18,22 @@ import java.util.Collection;
 public interface Decompiler {
 
     /**
-     * Performs process of decompiling bytecode and
+     * Performs process of decompiling byte code and
      * return decompilation code
      *
-     * @param bytecode - bytecode of class
-     * @return decompiling bytecode
+     * @param byteCode - byte code of class
+     * @return decompiling byte code
      */
-    String decompile(byte[] bytecode);
+    String decompile(byte[] byteCode);
 
     /**
-     * Process of decompiling bytecode with inner classes
+     * Process of decompiling byte code with inner classes
      *
-     * @param bytecode - bytecode of class
-     * @param classes  - bytecode of inner classes
-     * @return decompiling bytecode
+     * @param byteCode               - byte code of class
+     * @param nestedClassesByteCodes - byte code of inner classes
+     * @return decompiling byte code
      */
-    String decompile(byte[] bytecode, Collection<byte[]> classes);
+    String decompile(byte[] byteCode, Collection<byte[]> nestedClassesByteCodes);
 
     /**
      * Sets instance of {@link ConfigurationManager} into decompiler

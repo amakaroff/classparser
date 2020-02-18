@@ -46,21 +46,21 @@ class ProxyChainClassTransformer implements ClassFileTransformer {
 
     @Override
     public final byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-                                  ProtectionDomain protectionDomain, byte[] bytecode) throws IllegalClassFormatException {
+                                  ProtectionDomain protectionDomain, byte[] byteCode) throws IllegalClassFormatException {
         if (defaultJavaAgent.isCurrentAgentUsed()) {
-            byte[] currentBytecode = bytecode;
+            byte[] currentByteCode = byteCode;
             for (ClassFileTransformerImpl classFileTransformer : transformersQueue) {
-                byte[] transformedBytecode = classFileTransformer.transform(loader, className,
-                        classBeingRedefined, protectionDomain, currentBytecode);
-                if (transformedBytecode != null && classFileTransformer.isRetransformClass()) {
-                    currentBytecode = transformedBytecode;
+                byte[] transformedByteCode = classFileTransformer.transform(loader, className,
+                        classBeingRedefined, protectionDomain, currentByteCode);
+                if (transformedByteCode != null && classFileTransformer.isRetransformClass()) {
+                    currentByteCode = transformedByteCode;
                 }
             }
 
-            if (Arrays.equals(bytecode, currentBytecode)) {
+            if (Arrays.equals(byteCode, currentByteCode)) {
                 return null;
             } else {
-                return currentBytecode;
+                return currentByteCode;
             }
         }
 

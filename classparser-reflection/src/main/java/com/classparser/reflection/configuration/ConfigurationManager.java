@@ -1,8 +1,8 @@
 package com.classparser.reflection.configuration;
 
 import com.classparser.configuration.Configuration;
-import com.classparser.util.ConfigurationUtils;
 import com.classparser.reflection.ReflectionParser;
+import com.classparser.util.ConfigurationUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,7 @@ import static com.classparser.reflection.configuration.api.ReflectionParserConfi
 
 /**
  * Basic configuration manager for {@link ReflectionParser}
- * Provides methods for checking current configuration on parser
+ * Provides methods for checking current configuration on the parser
  * <p>
  * This class is thread safe
  * </p>
@@ -28,6 +28,19 @@ public class ConfigurationManager {
     }
 
     /**
+     * Chooses line separator
+     *
+     * @return "'\n\r" if system windows or "\n" in other cases
+     */
+    private static String chooseSystemNewLineCharacter() {
+        if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
+            return "\n\r";
+        } else {
+            return "\n";
+        }
+    }
+
+    /**
      * Obtain default configuration
      * <ul>
      *      <li>{@link #isDisplayAnnotationOnTypes()} - yes</li>
@@ -41,7 +54,7 @@ public class ConfigurationManager {
      *      <li>{@link #hideExhaustiveModifiers()} - true</li>
      *      <li>{@link #isEnabledImports()} - yes</li>
      *      <li>{@link #getIndentSpaces()} - 4 spaces</li>
-     *      <li>{@link #chooseSystemNewLineCharacter} - choice depend of system</li>
+     *      <li>{@link #chooseSystemNewLineCharacter} - choice depend on the system</li>
      * </ul>
      *
      * @return default configuration
@@ -62,19 +75,6 @@ public class ConfigurationManager {
                 .setCountIndentSpaces(4)
                 .defineLineSeparator(chooseSystemNewLineCharacter())
                 .getConfiguration();
-    }
-
-    /**
-     * Chooses line separator
-     *
-     * @return "'\n\r" if system windows or "\n" in other cases
-     */
-    private static String chooseSystemNewLineCharacter() {
-        if (System.getProperty("os.name").toLowerCase().startsWith("win")) {
-            return "\n\r";
-        } else {
-            return "\n";
-        }
     }
 
     /**

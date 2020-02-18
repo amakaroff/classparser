@@ -45,13 +45,13 @@ public final class FernflowerDecompiler implements Decompiler {
     }
 
     @Override
-    public String decompile(byte[] bytecode) {
-        return decompile(bytecode, Collections.emptyList());
+    public String decompile(byte[] byteCode) {
+        return decompile(byteCode, Collections.emptyList());
     }
 
     @Override
-    public String decompile(byte[] bytecode, Collection<byte[]> classes) {
-        if (bytecode != null && classes != null) {
+    public String decompile(byte[] byteCode, Collection<byte[]> nestedClassesByteCodes) {
+        if (byteCode != null && nestedClassesByteCodes != null) {
             DecompiledCodeSaver decompiledCodeSaver = new DecompiledCodeSaver(null, null);
             IFernflowerLogger logger = new PrintStreamLogger(System.out);
             Map<String, Object> configuration = getConfiguration();
@@ -59,8 +59,8 @@ public final class FernflowerDecompiler implements Decompiler {
             Fernflower fernflower = new Fernflower(null, decompiledCodeSaver, configuration, logger);
             FernflowerContext fernflowerContext = new FernflowerContext(fernflower, decompiledCodeSaver);
 
-            uploadBytecode(fernflowerContext, bytecode);
-            for (byte[] nestedClass : classes) {
+            uploadBytecode(fernflowerContext, byteCode);
+            for (byte[] nestedClass : nestedClassesByteCodes) {
                 uploadBytecode(fernflowerContext, nestedClass);
             }
 
@@ -69,11 +69,11 @@ public final class FernflowerDecompiler implements Decompiler {
             return decompiledCodeSaver.getDecompiledCode();
         }
 
-        throw new DecompilationException("Bytecode of classes for decompilation can't be a null!");
+        throw new DecompilationException("Byte code of classes for decompilation can't be a null!");
     }
 
     /**
-     * Obtains current configuration for decompiler
+     * Obtains the current configuration for decompiler
      *
      * @return decompiler configuration
      */
@@ -137,13 +137,13 @@ public final class FernflowerDecompiler implements Decompiler {
     }
 
     /**
-     * Uploads bytecode to current fernflower decompiler context
+     * Uploads byte code to current fernflower decompiler context
      *
      * @param context  fernflower context
-     * @param bytecode bytecode of class
+     * @param byteCode byte code of class
      */
-    private void uploadBytecode(FernflowerContext context, byte[] bytecode) {
-        StructClass structClass = createClassStruct(bytecode);
+    private void uploadBytecode(FernflowerContext context, byte[] byteCode) {
+        StructClass structClass = createClassStruct(byteCode);
 
         StructContext structContext = context.getStructContext();
         Map<String, StructClass> classes = structContext.getClasses();
@@ -157,15 +157,15 @@ public final class FernflowerDecompiler implements Decompiler {
     }
 
     /**
-     * Creates class structure from bytecode
+     * Creates class structure from byte code
      *
-     * @param bytecode bytecode of class
+     * @param byteCode byte code of class
      * @return struct class instance
      */
-    private StructClass createClassStruct(byte[] bytecode) {
+    private StructClass createClassStruct(byte[] byteCode) {
         try {
-            LazyLoader lazyLoader = new LazyLoader((p1, p2) -> bytecode);
-            StructClass structClass = new StructClass(bytecode, true, lazyLoader);
+            LazyLoader lazyLoader = new LazyLoader((p1, p2) -> byteCode);
+            StructClass structClass = new StructClass(byteCode, true, lazyLoader);
             LazyLoader.Link link = new LazyLoader.Link(LazyLoader.Link.CLASS, structClass.qualifiedName, "");
             lazyLoader.addClassLink(structClass.qualifiedName, link);
 
@@ -274,7 +274,7 @@ public final class FernflowerDecompiler implements Decompiler {
     /**
      * Class uses for obtaining decompiled code as string
      */
-    private class DecompiledCodeSaver extends ConsoleDecompiler {
+    private static class DecompiledCodeSaver extends ConsoleDecompiler {
 
         private String decompiledCode;
 

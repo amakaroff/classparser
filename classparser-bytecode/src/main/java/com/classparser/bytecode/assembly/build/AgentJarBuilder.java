@@ -11,7 +11,7 @@ import java.util.jar.Manifest;
 public interface AgentJarBuilder {
 
     /**
-     * Setter for name of jar file
+     * Setter for the name of jar file
      *
      * @param agentName full name of agent jar file
      * @return builder instance

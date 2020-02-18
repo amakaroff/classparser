@@ -1,6 +1,6 @@
 package com.classparser.bytecode.collector;
 
-import com.classparser.bytecode.api.BytecodeCollector;
+import com.classparser.bytecode.api.ByteCodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 
 import java.util.ArrayList;
@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.ServiceLoader;
 
 /**
- * Bytecode collector uses chain of responsibility pattern
- * for obtaining bytecode of classes called all collectors
+ * Byte code collector uses chain of responsibility pattern
+ * for obtaining byte code of classes called all collectors
  *
  * @author Aleksei Makarov
  * @since 1.0.0
  */
-public class ChainBytecodeCollector implements BytecodeCollector {
+public class ChainByteCodeCollector implements ByteCodeCollector {
 
     private final ConfigurationManager configurationManager;
 
@@ -24,7 +24,7 @@ public class ChainBytecodeCollector implements BytecodeCollector {
      *
      * @param configurationManager configuration manager instance
      */
-    public ChainBytecodeCollector(ConfigurationManager configurationManager) {
+    public ChainByteCodeCollector(ConfigurationManager configurationManager) {
         this.configurationManager = configurationManager;
     }
 
@@ -44,15 +44,15 @@ public class ChainBytecodeCollector implements BytecodeCollector {
     }
 
     @Override
-    public byte[] getBytecode(Class<?> clazz) {
-        List<BytecodeCollector> collectors = getCollectors();
+    public byte[] getByteCode(Class<?> clazz) {
+        List<ByteCodeCollector> collectors = getCollectors();
 
         if (clazz != null) {
-            for (BytecodeCollector collector : collectors) {
-                byte[] bytecode = collector.getBytecode(clazz);
+            for (ByteCodeCollector collector : collectors) {
+                byte[] byteCode = collector.getByteCode(clazz);
 
-                if (bytecode != null) {
-                    return bytecode;
+                if (byteCode != null) {
+                    return byteCode;
                 }
             }
         }
@@ -66,16 +66,16 @@ public class ChainBytecodeCollector implements BytecodeCollector {
      * 2. Dumper collector
      * 3. Instrumentation collector
      * <p>
-     * Collectors will be loaded uses {@link ServiceLoader}
+     * Collectors will be loaded use the {@link ServiceLoader}
      *
-     * @return list contains chain of collectors
+     * @return list contains a chain of collectors
      */
-    private List<BytecodeCollector> getCollectors() {
-        List<BytecodeCollector> collectors = new ArrayList<>();
+    private List<ByteCodeCollector> getCollectors() {
+        List<ByteCodeCollector> collectors = new ArrayList<>();
 
         if (configurationManager != null) {
-            ServiceLoader<BytecodeCollector> load = ServiceLoader.load(BytecodeCollector.class);
-            for (BytecodeCollector bytecodeCollector : load) {
+            ServiceLoader<ByteCodeCollector> load = ServiceLoader.load(ByteCodeCollector.class);
+            for (ByteCodeCollector bytecodeCollector : load) {
                 bytecodeCollector.setConfigurationManager(configurationManager);
                 if (bytecodeCollector.isEnable()) {
                     collectors.add(bytecodeCollector);

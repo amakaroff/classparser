@@ -240,7 +240,7 @@ public class ModifierParser {
      * Check is exists synthetic modifier
      *
      * @param modifierMask modifiers mask
-     * @return true if in synthetic modifier exists in mask
+     * @return true if in a synthetic modifier exists in mask
      */
     public boolean isSynthetic(int modifierMask) {
         return (modifierMask & SYNTHETIC) != 0;
@@ -272,7 +272,7 @@ public class ModifierParser {
      * Checks if class has member and interface, enum or annotation
      *
      * @param clazz any class
-     * @return true if class is inner interface, enum or annotation
+     * @return true if class is the inner interface, enum or annotation
      */
     private boolean isOnlyStaticInnerClass(Class<?> clazz) {
         Class<?> enclosingClass = clazz.getEnclosingClass();

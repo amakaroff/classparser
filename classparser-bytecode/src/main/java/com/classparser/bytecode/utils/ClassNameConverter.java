@@ -22,7 +22,7 @@ public class ClassNameConverter {
 
     /**
      * Obtains full java class name from class instance
-     * Resolves name for anonymous class are defined Unsafe instance
+     * Resolves name for anonymous class are defined by the Unsafe instance
      *
      * @param clazz any class
      * @return full name of class
@@ -33,7 +33,7 @@ public class ClassNameConverter {
 
     /**
      * Obtains full java class name from any name class
-     * Resolves name for anonymous class are defined Unsafe instance
+     * Resolves name for anonymous class are defined by the Unsafe instance
      *
      * @param className class name
      * @return full name of class
@@ -57,14 +57,14 @@ public class ClassNameConverter {
     }
 
     /**
-     * Obtains full java class name from bytecode of class
+     * Obtains full java class name from byte code of class
      * Resolves name for anonymous class are defined Unsafe instance
      *
-     * @param bytecode bytecode of class
+     * @param byteCode byte code of class
      * @return full name of class
      */
-    public static String toJavaClassName(byte[] bytecode) {
-        return toJavaClassName(getClassName(bytecode));
+    public static String toJavaClassName(byte[] byteCode) {
+        return toJavaClassName(getClassName(byteCode));
     }
 
     /**
@@ -133,17 +133,17 @@ public class ClassNameConverter {
     }
 
     /**
-     * Obtains java class name from bytecode of class uses constant pool
+     * Obtains java class name from byte code of class uses constant pool
      * Returns class name in normally form
      * <p>
      * com/company/ClassName
      * </p>
      *
-     * @param bytecode bytecode of class
+     * @param byteCode byte code of class
      * @return class name
      */
-    public static String getClassName(byte[] bytecode) {
-        try (DataInputStream stream = new DataInputStream(new ByteArrayInputStream(bytecode))) {
+    public static String getClassName(byte[] byteCode) {
+        try (DataInputStream stream = new DataInputStream(new ByteArrayInputStream(byteCode))) {
             if (stream.readInt() == MAGIC) {
                 stream.skipBytes(4);
 
@@ -184,10 +184,10 @@ public class ClassNameConverter {
                 }
 
 
-                throw new ClassFormatError("Can't obtain class name from bytecode!");
+                throw new ClassFormatError("Can't obtain class name from byte code!");
             }
 
-            throw new ClassFormatError("Invalid java bytecode of class");
+            throw new ClassFormatError("Invalid java byte code of class");
         } catch (IOException exception) {
             throw new ByteCodeParserException("Constant pool is broken", exception);
         }

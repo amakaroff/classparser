@@ -1,7 +1,7 @@
 package com.classparser.bytecode.utils;
 
-import com.classparser.bytecode.api.BytecodeCollector;
-import com.classparser.bytecode.collector.ChainBytecodeCollector;
+import com.classparser.bytecode.api.ByteCodeCollector;
+import com.classparser.bytecode.collector.ChainByteCodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.util.Reflection;
 import sun.reflect.ConstantPool;
@@ -40,14 +40,14 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
         try {
             return new UnsafeReflectConstantPoolClassIterator(clazz);
         } catch (NoClassDefFoundError | ConstantPoolNotSupportedException error) {
-            return new BytecodeConstantPoolClassIterator(clazz);
+            return new ByteCodeConstantPoolClassIterator(clazz);
         }
     }
 
     /**
      * Private exception uses for message if ReflectionConstantPool can't be used
      */
-    private class ConstantPoolNotSupportedException extends RuntimeException {
+    private static class ConstantPoolNotSupportedException extends RuntimeException {
     }
 
     /**
@@ -55,7 +55,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
      * This implementation is very fast for a little sets of classes
      */
     @SuppressWarnings("sunapi")
-    private class UnsafeReflectConstantPoolClassIterator implements Iterator<Class<?>> {
+    private static class UnsafeReflectConstantPoolClassIterator implements Iterator<Class<?>> {
 
         private final ConstantPool constantPool;
 
@@ -178,10 +178,10 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
     }
 
     /**
-     * More safe implementation of Constant Pool iterable uses bytecode of class for
+     * More safe implementation of Constant Pool iterable uses byte code of class for
      * searching classes
      */
-    private class BytecodeConstantPoolClassIterator implements Iterator<Class<?>> {
+    private class ByteCodeConstantPoolClassIterator implements Iterator<Class<?>> {
 
         private final String[] constantPool;
 
@@ -191,9 +191,9 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
 
         private int index = 1;
 
-        public BytecodeConstantPoolClassIterator(Class<?> clazz) {
+        public ByteCodeConstantPoolClassIterator(Class<?> clazz) {
             try {
-                DataInputStream stream = getBytecodeDataStream(clazz);
+                DataInputStream stream = getByteCodeDataStream(clazz);
                 int constantPoolSize = stream.readUnsignedShort();
                 constantPool = new String[constantPoolSize];
                 indexes = new ArrayList<>();
@@ -237,7 +237,7 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
 
                 size = indexes.size();
             } catch (IOException exception) {
-                throw new IllegalArgumentException("Invalid reading bytecode of class!", exception);
+                throw new IllegalArgumentException("Invalid reading byte code of class!", exception);
             }
         }
 
@@ -279,25 +279,25 @@ final class ConstantPoolClassIterable implements Iterable<Class<?>> {
         }
 
         /**
-         * Obtains bytecode of class and transform it to data stream
+         * Obtains byte code of class and transform it to data stream
          *
          * @param clazz any class
-         * @return data stream with bytecode of class
+         * @return data stream with byte code of class
          * @throws IOException any problems occurred at creating data stream
          */
-        private DataInputStream getBytecodeDataStream(Class<?> clazz) throws IOException {
+        private DataInputStream getByteCodeDataStream(Class<?> clazz) throws IOException {
             if (!clazz.isArray() && !clazz.isPrimitive()) {
-                BytecodeCollector chainByteCodeCollector = new ChainBytecodeCollector(configurationManager);
-                byte[] bytecode = chainByteCodeCollector.getBytecode(clazz);
-                if (bytecode != null) {
-                    DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(bytecode));
+                ByteCodeCollector chainByteCodeCollector = new ChainByteCodeCollector(configurationManager);
+                byte[] byteCode = chainByteCodeCollector.getByteCode(clazz);
+                if (byteCode != null) {
+                    DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(byteCode));
                     dataInputStream.skipBytes(8);
 
                     return dataInputStream;
                 }
 
                 String className = ClassNameConverter.toJavaClassName(clazz);
-                throw new IllegalArgumentException("Bytecode for class: " + className + " is not found!");
+                throw new IllegalArgumentException("Byte code for class: " + className + " is not found!");
             }
 
             throw new IllegalArgumentException("Array or primitive types have not constant pool!");

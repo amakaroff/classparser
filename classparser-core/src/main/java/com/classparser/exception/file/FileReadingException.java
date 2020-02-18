@@ -23,7 +23,7 @@ public class FileReadingException extends RuntimeException {
     }
 
     /**
-     * Obtain path of file which is can't be reading
+     * Obtain the path of file which is can't be reading
      *
      * @return file path
      */

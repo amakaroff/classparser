@@ -32,7 +32,7 @@ public class ExceptionParser {
     }
 
     /**
-     * Parses throws exceptions meta information and collects it to {@link String}
+     * Parses the throws exceptions meta information and collects it to {@link String}
      * For example:
      * <code>
      * throws Exception, RuntimeException
