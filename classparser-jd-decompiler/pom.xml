@@ -25,8 +25,8 @@
     <repositories>
         <!-- Maven repository on Github where storage artifact of JD decompiler-->
         <repository>
-            <id>bintray-java-decompiler-maven</id>
-            <name>bintray</name>
+            <id>bintray</id>
+            <name>bintray-repository</name>
             <url>https://dl.bintray.com/jaycroaker/maven</url>
         </repository>
     </repositories>

@@ -31,7 +31,8 @@
      -->
     <repositories>
         <repository>
-            <id>jitpack.io</id>
+            <id>jitpack</id>
+            <name>jitpack-repository</name>
             <url>https://jitpack.io/</url>
         </repository>
     </repositories>
