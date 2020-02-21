@@ -34,7 +34,7 @@ public class ChainByteCodeCollector implements ByteCodeCollector {
     }
 
     @Override
-    public boolean isEnable() {
+    public boolean isEnabled() {
         throw new UnsupportedOperationException();
     }
 
@@ -77,7 +77,7 @@ public class ChainByteCodeCollector implements ByteCodeCollector {
             ServiceLoader<ByteCodeCollector> load = ServiceLoader.load(ByteCodeCollector.class);
             for (ByteCodeCollector bytecodeCollector : load) {
                 bytecodeCollector.setConfigurationManager(configurationManager);
-                if (bytecodeCollector.isEnable()) {
+                if (bytecodeCollector.isEnabled()) {
                     collectors.add(bytecodeCollector);
                 }
             }

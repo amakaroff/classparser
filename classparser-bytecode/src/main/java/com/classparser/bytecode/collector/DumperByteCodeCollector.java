@@ -42,7 +42,7 @@ public class DumperByteCodeCollector implements ByteCodeCollector {
     }
 
     @Override
-    public boolean isEnable() {
+    public boolean isEnabled() {
         return configurationManager.isEnableDumperByteCodeCollector() && isDumpPropertiesEnabled();
     }
 
@@ -103,13 +103,12 @@ public class DumperByteCodeCollector implements ByteCodeCollector {
     public byte[] getByteCode(Class<?> clazz) {
         if (clazz != null) {
             String filePath = ClassNameConverter.toFileJavaClassName(clazz);
-            String fullClassDumpPath = DUMP_PATH + File.separator + filePath;
-            Path path = Paths.get(fullClassDumpPath);
+            Path path = Paths.get(DUMP_PATH, filePath);
             if (Files.exists(path)) {
                 try {
                     return Files.readAllBytes(path);
                 } catch (IOException exception) {
-                    System.out.println("Can't read file: " + fullClassDumpPath);
+                    System.out.println("Can't read file: " + path.toString());
                     exception.printStackTrace();
 
                     return null;

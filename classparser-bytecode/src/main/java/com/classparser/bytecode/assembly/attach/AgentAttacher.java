@@ -22,6 +22,8 @@ import java.nio.file.Paths;
  * @since 1.0.0
  */
 public class AgentAttacher {
+    
+    private static final Object LOCK = new Object();
 
     private static final String VIRTUAL_MACHINE_CLASS_NAME = "com.sun.tools.attach.VirtualMachine";
 
@@ -35,7 +37,7 @@ public class AgentAttacher {
 
     private static final String MAC_OS_TOOLS_PATH = "/../Classes/classes.jar";
 
-    private static volatile ClassLoader toolsJarClassLoader;
+    private static ClassLoader toolsJarClassLoader;
 
     private final ConfigurationManager configurationManager;
 
@@ -63,15 +65,17 @@ public class AgentAttacher {
      * @param parameters agent attach parameters
      */
     public void attach(String agentPath, String parameters) {
-        Path path = Paths.get(agentPath);
-        if (Files.exists(path)) {
-            if (isExistsInClassPathToolJar()) {
-                attachUsesToolJar(agentPath, parameters);
+        synchronized (LOCK) {
+            Path path = Paths.get(agentPath);
+            if (Files.exists(path)) {
+                if (isExistsInClassPathToolJar()) {
+                    attachUsesToolJar(agentPath, parameters);
+                } else {
+                    findToolsJarAndAttach(agentPath, parameters);
+                }
             } else {
-                findToolsJarAndAttach(agentPath, parameters);
-            }
-        } else {
-            throw new ByteCodeParserException("Could not find agent jar by follow path: " + agentPath);
+                throw new ByteCodeParserException("Could not find agent jar by follow path: " + agentPath);
+            } 
         }
     }
 
@@ -127,7 +131,7 @@ public class AgentAttacher {
      * @param agentPath  path to agent jar
      * @param parameters agent attach parameters
      */
-    private synchronized void findToolsJarAndAttach(String agentPath, String parameters) {
+    private void findToolsJarAndAttach(String agentPath, String parameters) {
         Path toolsPath = getToolsPath();
         if (toolsPath != null) {
             try {
@@ -175,17 +179,17 @@ public class AgentAttacher {
      * @return tools.jar path or null if jar is not found
      */
     private Path getToolsPath() {
-        Path defaultPath = Paths.get(JAVA_HOME + JAVA_TOOLS_PATH);
+        Path defaultPath = Paths.get(JAVA_HOME, JAVA_TOOLS_PATH);
         if (Files.exists(defaultPath)) {
             return defaultPath;
         }
 
-        Path jdkPath = Paths.get(JAVA_HOME + JDK_TOOLS_PATH);
+        Path jdkPath = Paths.get(JAVA_HOME, JDK_TOOLS_PATH);
         if (Files.exists(defaultPath)) {
             return jdkPath;
         }
 
-        Path macPath = Paths.get(JAVA_HOME + MAC_OS_TOOLS_PATH);
+        Path macPath = Paths.get(JAVA_HOME, MAC_OS_TOOLS_PATH);
         if (Files.exists(defaultPath)) {
             return macPath;
         }
@@ -208,7 +212,7 @@ public class AgentAttacher {
      * @return tools.jar class loader instance
      * @throws MalformedURLException if path to tools.jar is invalid
      */
-    private synchronized ClassLoader getToolsJarClassLoader(Path toolsPath) throws MalformedURLException {
+    private ClassLoader getToolsJarClassLoader(Path toolsPath) throws MalformedURLException {
         if (toolsJarClassLoader == null) {
             toolsJarClassLoader = new URLClassLoader(new URL[]{toolsPath.toUri().toURL()});
         }

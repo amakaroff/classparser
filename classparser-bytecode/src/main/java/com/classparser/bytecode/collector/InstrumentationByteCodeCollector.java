@@ -15,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Collector uses {@link Instrumentation} instance try obtain byte code of class
- * This collector is unstable and can drop JVM because of error in instrument lib
+ * This collector is unstable on java 8 and can drop JVM because of error in instrument lib
  *
  * @author Aleksei Makarov
  * @since 1.0.0
@@ -64,7 +64,7 @@ public class InstrumentationByteCodeCollector implements ByteCodeCollector {
     }
 
     @Override
-    public boolean isEnable() {
+    public boolean isEnabled() {
         return configurationManager.isEnableInstrumentationByteCodeCollector();
     }
 

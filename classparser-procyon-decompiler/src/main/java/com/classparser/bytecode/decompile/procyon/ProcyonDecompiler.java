@@ -60,13 +60,13 @@ public final class ProcyonDecompiler implements Decompiler {
     public String decompile(byte[] byteCode, Collection<byte[]> nestedClassesByteCodes) {
         if (byteCode != null && nestedClassesByteCodes != null) {
             String className = ClassNameConverter.getClassName(byteCode);
-            Map<String, byte[]> bytecodeMap = createInnerClassesByteCodeMap(nestedClassesByteCodes);
-            bytecodeMap.put(className, byteCode);
+            Map<String, byte[]> byteCodeMap = createInnerClassesByteCodeMap(nestedClassesByteCodes);
+            byteCodeMap.put(className, byteCode);
 
             PlainTextOutput output = new PlainTextOutput();
             DecompilerSettings settings = getDecompilerSettings();
 
-            ITypeLoader typeLoader = new ProcyonTypeLoader(className, bytecodeMap);
+            ITypeLoader typeLoader = new ProcyonTypeLoader(className, byteCodeMap);
             MetadataSystem metadataSystem = new MetadataSystem(typeLoader);
             TypeReference type = metadataSystem.lookupType(className);
 
@@ -91,7 +91,7 @@ public final class ProcyonDecompiler implements Decompiler {
      * Creates a map of inner classes where key is name of class,
      * and value is byte code of this class
      *
-     * @param classes collection of inner classes byte code
+     * @param classes collection of inner byte code classes 
      * @return inner classes map
      */
     private Map<String, byte[]> createInnerClassesByteCodeMap(Collection<byte[]> classes) {

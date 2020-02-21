@@ -120,7 +120,7 @@ public final class DefaultJavaAgent implements JavaAgent {
     }
 
     @Override
-    public Manifest getManifestFileName() {
+    public Manifest getManifest() {
         Manifest manifest = new Manifest();
         String agentClassName = ClassNameConverter.toJavaClassName(getAgentClass());
         Attributes attributes = manifest.getMainAttributes();

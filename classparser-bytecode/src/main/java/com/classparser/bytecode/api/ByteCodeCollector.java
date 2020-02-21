@@ -31,7 +31,7 @@ public interface ByteCodeCollector extends Comparable<ByteCodeCollector> {
      *
      * @return true if collector is enabled
      */
-    boolean isEnable();
+    boolean isEnabled();
 
     /**
      * Setter for configuration manger

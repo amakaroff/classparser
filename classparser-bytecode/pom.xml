@@ -25,10 +25,14 @@
         <tools.jar.location>/</tools.jar.location>
     </properties>
 
+    <!-- 
+    The jitpack repository for building the fernflower
+    from github.com by repo fesh0r/fernflower
+     -->
     <repositories>
         <repository>
             <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
+            <url>https://jitpack.io/</url>
         </repository>
     </repositories>
 

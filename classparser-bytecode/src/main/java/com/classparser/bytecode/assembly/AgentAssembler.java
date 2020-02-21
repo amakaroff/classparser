@@ -38,7 +38,7 @@ public class AgentAssembler {
      * {@link JavaAgent#getAgentClass()}
      * {@link JavaAgent#getAgentJarClasses()}
      * {@link JavaAgent#getAgentJarName()}
-     * {@link JavaAgent#getManifestFileName()}
+     * {@link JavaAgent#getManifest()}
      * and dynamically attach this jar to JVM
      * <p>
      * If agent already init, then method was skip
@@ -111,7 +111,7 @@ public class AgentAssembler {
                 .addAgentName(agent.getAgentJarName())
                 .addAgentDirLocation(agent.getAgentLocationPath())
                 .addAgentClass(agent.getAgentClass())
-                .addManifest(agent.getManifestFileName())
+                .addManifest(agent.getManifest())
                 .addClasses(agent.getAgentJarClasses())
                 .build();
     }

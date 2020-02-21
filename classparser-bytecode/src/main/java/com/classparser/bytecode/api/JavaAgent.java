@@ -52,7 +52,7 @@ public interface JavaAgent {
      *
      * @return path to manifest
      */
-    Manifest getManifestFileName();
+    Manifest getManifest();
 
     /**
      * Obtain classes which will be store to agent jar
