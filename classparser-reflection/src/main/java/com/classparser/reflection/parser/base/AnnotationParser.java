@@ -157,6 +157,7 @@ public class AnnotationParser {
      * @return map with annotation parameter values
      */
     private Map<String, Object> getAnnotationMemberTypes(Annotation annotation, ParseContext context) {
+        ValueParser valueParser = getValueParser();
         Map<String, Object> map = new HashMap<>();
 
         Class<? extends Annotation> annotationTypeClass = annotation.annotationType();
@@ -166,7 +167,7 @@ public class AnnotationParser {
             for (Method method : methods) {
                 Object value = Reflection.invoke(method, annotation);
                 if (!isDefaultValue(value, method.getDefaultValue())) {
-                    map.put(method.getName(), getValueParser().getValue(value, context));
+                    map.put(method.getName(), valueParser.getValue(value, context));
                 }
             }
         }
@@ -258,12 +259,14 @@ public class AnnotationParser {
      * @return true if value equal default value
      */
     private boolean isDefaultValue(Object value, Object defaultValue) {
+        ValueParser valueParser = getValueParser();
+
         if (!configurationManager.isDisplayDefaultValueInAnnotation()) {
             if (!value.getClass().isArray()) {
                 return value.equals(defaultValue);
             } else {
-                Object[] arrayValue = getValueParser().getArrayValues(value);
-                Object[] arrayDefaultValue = getValueParser().getArrayValues(defaultValue);
+                Object[] arrayValue = valueParser.getArrayValues(value);
+                Object[] arrayDefaultValue = valueParser.getArrayValues(defaultValue);
                 return Arrays.deepEquals(arrayValue, arrayDefaultValue);
             }
         }
