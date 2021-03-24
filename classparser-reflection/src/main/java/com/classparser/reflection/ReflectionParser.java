@@ -7,19 +7,11 @@ import com.classparser.reflection.exception.ReflectionParserException;
 import com.classparser.reflection.parser.ClassTypeParser;
 import com.classparser.reflection.parser.InheritanceParser;
 import com.classparser.reflection.parser.base.*;
-import com.classparser.reflection.parser.base.ImportParser;
-import com.classparser.reflection.parser.structure.BlockParser;
-import com.classparser.reflection.parser.structure.ClassesParser;
-import com.classparser.reflection.parser.structure.FieldParser;
-import com.classparser.reflection.parser.structure.PackageParser;
+import com.classparser.reflection.parser.structure.*;
 import com.classparser.reflection.parser.structure.executeble.ArgumentParser;
 import com.classparser.reflection.parser.structure.executeble.ConstructorParser;
 import com.classparser.reflection.parser.structure.executeble.ExceptionParser;
 import com.classparser.reflection.parser.structure.executeble.MethodParser;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link ClassParser} provides
@@ -35,60 +27,52 @@ import java.util.stream.Collectors;
  */
 public class ReflectionParser implements ClassParser {
 
-    private final AnnotationParser annotationParser;
-
-    private final GenericTypeParser genericTypeParser;
-
     private final IndentParser indentParser;
-
-    private final ModifierParser modifierParser;
-
-    private final ClassTypeParser classTypeParser;
 
     private final ImportParser importParser;
 
-    private final ClassNameParser classNameParser;
-
-    private final InheritanceParser inheritanceParser;
-
     private final PackageParser packageParser;
 
-    private final FieldParser fieldParser;
+    private final ClassContentParser classContentParser;
 
-    private final ClassesParser classesParser;
-
-    private final ConstructorParser constructorParser;
-
-    private final MethodParser methodParser;
-
-    private final BlockParser blockParser;
+    private final ClassSignatureParser classSignatureParser;
 
     private final ConfigurationManager manager;
 
     public ReflectionParser() {
         manager = new ConfigurationManager();
-        classTypeParser = new ClassTypeParser();
-        modifierParser = new ModifierParser(manager);
         indentParser = new IndentParser(manager);
-        classesParser = new ClassesParser(this, manager);
         importParser = new ImportParser(manager);
-        classNameParser = new ClassNameParser(importParser);
-        genericTypeParser = new GenericTypeParser(classNameParser, manager);
-        annotationParser = new AnnotationParser(indentParser, genericTypeParser, manager, modifierParser);
+        ClassNameParser classNameParser = new ClassNameParser(importParser);
+        GenericTypeParser genericTypeParser = new GenericTypeParser(classNameParser, manager);
+        ModifierParser modifierParser = new ModifierParser(manager);
+        AnnotationParser annotationParser = new AnnotationParser(indentParser, genericTypeParser, manager, modifierParser);
+        packageParser = new PackageParser(annotationParser, manager);
         ValueParser valueParser = new ValueParser(genericTypeParser, annotationParser, manager);
         annotationParser.setValueParser(valueParser);
         genericTypeParser.setAnnotationParser(annotationParser);
-        blockParser = new BlockParser(indentParser, manager);
-        inheritanceParser = new InheritanceParser(genericTypeParser, manager);
-        packageParser = new PackageParser(annotationParser, manager);
+
+        this.classSignatureParser = new ClassSignatureParser(
+                annotationParser,
+                indentParser,
+                modifierParser,
+                classNameParser,
+                new ClassTypeParser(),
+                genericTypeParser,
+                new InheritanceParser(genericTypeParser, manager)
+        );
+
         ArgumentParser argumentParser = new ArgumentParser(manager, genericTypeParser, modifierParser, annotationParser);
         ExceptionParser exceptionParser = new ExceptionParser(genericTypeParser, manager);
-        fieldParser = new FieldParser(manager, annotationParser, indentParser, modifierParser, genericTypeParser,
-                classNameParser, valueParser);
-        constructorParser = new ConstructorParser(manager, genericTypeParser, modifierParser, annotationParser,
-                argumentParser, indentParser, exceptionParser);
-        methodParser = new MethodParser(manager, genericTypeParser, modifierParser, annotationParser, argumentParser,
-                indentParser, exceptionParser, classNameParser, valueParser);
+
+        this.classContentParser = new ClassContentParser(
+                new FieldParser(manager, annotationParser, indentParser, modifierParser, genericTypeParser, classNameParser, valueParser),
+                new BlockParser(indentParser, manager),
+                new ConstructorParser(manager, genericTypeParser, modifierParser, annotationParser, argumentParser, indentParser, exceptionParser),
+                new MethodParser(manager, genericTypeParser, modifierParser, annotationParser, argumentParser, indentParser, exceptionParser, classNameParser, valueParser),
+                new ClassesParser(this, manager),
+                manager
+        );
     }
 
     @Override
@@ -103,8 +87,8 @@ public class ReflectionParser implements ClassParser {
                 String lineSeparator = manager.getLineSeparator();
                 String packageName = packageParser.parsePackage(clazz, context);
                 String indent = indentParser.getIndent(clazz, context);
-                String classSignature = getClassSignature(clazz, context);
-                String classContent = getClassContent(clazz, context);
+                String classSignature = classSignatureParser.getClassSignature(clazz, context);
+                String classContent = classContentParser.getClassContent(clazz, context);
                 String imports = getImports(clazz, context);
                 String classBody = '{' + lineSeparator + lineSeparator + classContent + indent + '}';
 
@@ -148,51 +132,6 @@ public class ReflectionParser implements ClassParser {
         }
 
         return "";
-    }
-
-    /**
-     * Parses signature for class
-     * Include annotations, modifiers, type, name, generics and inheritances
-     *
-     * @param clazz any class
-     * @return parsed signature of class
-     */
-    private String getClassSignature(Class<?> clazz, ParseContext context) {
-        String annotations = annotationParser.parseAnnotationsAsBlock(clazz, context);
-        String indent = indentParser.getIndent(clazz, context);
-        String modifiers = modifierParser.parseModifiers(clazz);
-        String name = classNameParser.parseTypeName(clazz, context);
-        String classType = classTypeParser.parseClassType(clazz);
-        String generics = genericTypeParser.parseGenerics(clazz, context);
-        String inheritances = inheritanceParser.parseInheritances(clazz, context);
-        String content = ContentJoiner.joinNotEmptyContentBySpace(modifiers, classType, name);
-        String specialContent = ContentJoiner.joinNotEmptyContentBySpace(generics, inheritances);
-
-        if (generics.isEmpty()) {
-            return annotations + indent + ContentJoiner.joinNotEmptyContentBySpace(content, specialContent);
-        } else {
-            return annotations + indent + content + specialContent;
-        }
-    }
-
-    /**
-     * Parses signature for class
-     * Includes fields, static initializer block, constructors, methods and inner classes
-     *
-     * @param clazz any class
-     * @return parsed class context
-     */
-    private String getClassContent(Class<?> clazz, ParseContext context) {
-        List<String> contents = new ArrayList<>();
-
-        contents.add(fieldParser.parseFields(clazz, context));
-        contents.add(blockParser.parseStaticBlock(clazz, context));
-        contents.add(constructorParser.parseConstructors(clazz, context));
-        contents.add(methodParser.parseMethods(clazz, context));
-        contents.add(classesParser.parseInnerClasses(clazz, context));
-        String lineSeparator = manager.getLineSeparator();
-
-        return contents.stream().filter(content -> !content.isEmpty()).collect(Collectors.joining(lineSeparator));
     }
 
     @Override
