@@ -1,12 +1,11 @@
 package com.classparser.reflection.parser.structure;
 
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.reflection.parser.base.AnnotationParser;
 
 /**
  * Class provides functionality for parsing package meta information
- * This class depends on parsing context {@link ReflectionParserManager}
  *
  * @author Aleksey Makarov
  * @author Valim Kiselev
@@ -16,14 +15,11 @@ public class PackageParser {
 
     private final AnnotationParser annotationParser;
 
-    private final ReflectionParserManager manager;
-
     private final ConfigurationManager configurationManager;
 
-    public PackageParser(AnnotationParser annotationParser, ReflectionParserManager manager) {
+    public PackageParser(AnnotationParser annotationParser, ConfigurationManager configurationManager) {
         this.annotationParser = annotationParser;
-        this.manager = manager;
-        this.configurationManager = manager.getConfigurationManager();
+        this.configurationManager = configurationManager;
     }
 
     /**
@@ -33,10 +29,10 @@ public class PackageParser {
      * @param clazz any class
      * @return string line with package meta information
      */
-    public String parsePackage(Class<?> clazz) {
-        if (isShouldBeDisplayed(clazz)) {
+    public String parsePackage(Class<?> clazz, ParseContext context) {
+        if (isShouldBeDisplayed(clazz, context)) {
             Package classPackage = clazz.getPackage();
-            String packageAnnotations = annotationParser.parseAnnotationsAsBlock(classPackage);
+            String packageAnnotations = annotationParser.parseAnnotationsAsBlock(classPackage, context);
             String lineSeparator = configurationManager.getLineSeparator();
 
             return packageAnnotations + "package " + classPackage.getName() + ';' + lineSeparator + lineSeparator;
@@ -51,10 +47,7 @@ public class PackageParser {
      * @param clazz any class
      * @return true if package section should be displayed
      */
-    private boolean isShouldBeDisplayed(Class<?> clazz) {
-        Package packageForClass = clazz.getPackage();
-        Class<?> parsedClass = manager.getBaseParsedClass();
-
-        return packageForClass != null && clazz == parsedClass;
+    private boolean isShouldBeDisplayed(Class<?> clazz, ParseContext context) {
+        return clazz.getPackage() != null && context.isBasedParsedClass(clazz);
     }
 }

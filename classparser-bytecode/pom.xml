@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.github.fesh0r</groupId>
             <artifactId>fernflower</artifactId>
-            <version>4ca282df94</version>
+            <version>master-14255d2f89-1</version>
         </dependency>
 
         <!-- Java dev tools -->

@@ -37,6 +37,10 @@ public interface ReflectionParserConfiguration extends Configuration {
 
     String LINE_SEPARATOR_KEY = "nlc";
 
+    String DISPLAY_STATIC_BLOCK = "dsb";
+
+    String PARSE_ENUM_AS_CLASS = "pec";
+
     /**
      * Set displaying annotation on types like
      * example {@link ElementType#TYPE_USE} or {@link ElementType#TYPE_PARAMETER}
@@ -173,4 +177,27 @@ public interface ReflectionParserConfiguration extends Configuration {
      * @return builder instance
      */
     ReflectionParserConfiguration defineLineSeparator(String character);
+
+    /**
+     * Set to enable showing static init block in classes
+     * <p>
+     * Default value: true
+     * </p>
+     *
+     * @param flag true if block should be shown
+     * @return builder instance
+     */
+    ReflectionParserConfiguration displayStaticBlock(boolean flag);
+
+
+    /**
+     * Set to parse enum type as simple java class
+     * <p>
+     * Default value: false
+     * </p>
+     *
+     * @param flag true if enum should be parsed as class
+     * @return builder instance
+     */
+    ReflectionParserConfiguration parseEnumsAsClass(boolean flag);
 }

@@ -1,13 +1,12 @@
 package com.classparser.reflection.parser.base;
 
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 
 import java.lang.reflect.Member;
 
 /**
  * Class provides functionality by counting indent spaces for class structure elements
- * These class depend on context {@link ReflectionParserManager} of parsing
  *
  * @author Aleksey Makarov
  * @author Valim Kiselev
@@ -15,13 +14,10 @@ import java.lang.reflect.Member;
  */
 public class IndentParser {
 
-    private final ReflectionParserManager manager;
-
     private final ConfigurationManager configurationManager;
 
-    public IndentParser(ReflectionParserManager manager) {
-        this.manager = manager;
-        this.configurationManager = manager.getConfigurationManager();
+    public IndentParser(ConfigurationManager configurationManager) {
+        this.configurationManager = configurationManager;
     }
 
     /**
@@ -31,7 +27,7 @@ public class IndentParser {
      * @param object any element of structure class
      * @return indent spaces
      */
-    public String getIndent(Object object) {
+    public String getIndent(Object object, ParseContext context) {
         StringBuilder indent = new StringBuilder();
 
         Class<?> declaringClass;
@@ -48,7 +44,7 @@ public class IndentParser {
             return "";
         }
 
-        Class<?> parsedClass = manager.getBaseParsedClass();
+        Class<?> parsedClass = context.getBaseParsedClass();
         if (declaringClass != null && !parsedClass.equals(declaringClass)) {
             while ((declaringClass = declaringClass.getDeclaringClass()) != null) {
                 indent.append(configurationManager.getIndentSpaces());

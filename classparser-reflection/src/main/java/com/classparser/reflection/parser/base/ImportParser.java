@@ -1,76 +1,26 @@
-package com.classparser.reflection.parser.imports;
+package com.classparser.reflection.parser.base;
 
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
 /**
  * Class provides functionality by storing information about all classes used in
  * based parsed class for collecting and build import section
- * This class depend on context {@link ReflectionParserManager} of parsing
  *
  * @author Aleksey Makarov
  * @since 1.0.0
  */
-public final class ImportParser {
+public class ImportParser {
 
     private static final String DEFAULT_JAVA_PACKAGE = "java.lang";
 
-    private final ThreadLocal<Set<Class<?>>> threadLocalClassesForImport;
-
-    private final ReflectionParserManager manager;
-
     private final ConfigurationManager configurationManager;
 
-    public ImportParser(ReflectionParserManager manager) {
-        this.manager = manager;
-        this.configurationManager = manager.getConfigurationManager();
-        this.threadLocalClassesForImport = new ThreadLocal<>();
-        this.threadLocalClassesForImport.set(getImportClasses());
-    }
-
-    /**
-     * Obtain {@link Set} for store imported classes
-     *
-     * @return import classes storage
-     */
-    private Set<Class<?>> getImportClasses() {
-        Set<Class<?>> classes = threadLocalClassesForImport.get();
-        if (classes == null) {
-            classes = new HashSet<>();
-            threadLocalClassesForImport.set(classes);
-        }
-
-        return classes;
-    }
-
-    /**
-     * Initialize import parser
-     */
-    public void initBeforeParsing() {
-        if (manager.getBaseParsedClass() == manager.getCurrentParsedClass()) {
-            getImportClasses().addAll(getAllInnerAndNestedClasses(manager.getBaseParsedClass()));
-        }
-    }
-
-    /**
-     * Loads all inner and nested classes to set for any class
-     *
-     * @param clazz any class
-     * @return set of all inner and nested classes
-     */
-    private Set<Class<?>> getAllInnerAndNestedClasses(Class<?> clazz) {
-        Set<Class<?>> classes = new HashSet<>();
-
-        classes.add(clazz);
-        for (Class<?> innerClass : clazz.getDeclaredClasses()) {
-            classes.addAll(getAllInnerAndNestedClasses(innerClass));
-        }
-
-        return classes;
+    public ImportParser(ConfigurationManager configurationManager) {
+        this.configurationManager = configurationManager;
     }
 
     /**
@@ -79,19 +29,15 @@ public final class ImportParser {
      * @param classForImport any class contains in meta information of based parsed class
      * @return true if class added to import section
      */
-    public boolean addToImportSection(Class<?> classForImport) {
-        if (manager.getBaseParsedClass() != null) {
-            classForImport = resolveClass(classForImport);
+    public boolean addToImportSection(Class<?> classForImport, ParseContext context) {
+        classForImport = resolveClass(classForImport);
 
-            if (!configurationManager.isEnabledImports() || isNeedFullName(classForImport)) {
-                return false;
-            } else {
-                getImportClasses().add(classForImport);
-                return true;
-            }
+        if (!configurationManager.isEnabledImports() || isNeedFullName(classForImport, context)) {
+            return false;
+        } else {
+            context.addImportClass(classForImport);
+            return true;
         }
-
-        return false;
     }
 
     /**
@@ -99,12 +45,12 @@ public final class ImportParser {
      *
      * @return string line with information import classes for based parsed class
      */
-    public String getImports() {
+    public String getImports(ParseContext context) {
         Set<String> imports = new TreeSet<>();
         String lineSeparator = configurationManager.getLineSeparator();
 
-        for (Class<?> clazz : getImportClasses()) {
-            if (isAppendToImports(clazz)) {
+        for (Class<?> clazz : context.getImportClasses()) {
+            if (isAppendToImports(clazz, context)) {
                 imports.add("import " + clazz.getName() + ';' + lineSeparator);
             }
         }
@@ -113,10 +59,20 @@ public final class ImportParser {
     }
 
     /**
-     * Clear current import context
+     * Obtains the simple name of class
+     *
+     * @param clazz any class
+     * @return class simple name
      */
-    public void tearDownAfterParsing() {
-        this.threadLocalClassesForImport.remove();
+    public String getSimpleName(Class<?> clazz) {
+        String typeName = clazz.getSimpleName();
+        if (typeName.isEmpty()) {
+            typeName = clazz.getName();
+            if (typeName.contains(".")) {
+                typeName = typeName.substring(typeName.lastIndexOf('.') + 1);
+            }
+        }
+        return typeName;
     }
 
     /**
@@ -125,8 +81,8 @@ public final class ImportParser {
      * @param classForImport any class
      * @return true if for class necessary full name displayed
      */
-    private boolean isNeedFullName(Class<?> classForImport) {
-        Set<Class<?>> classes = getImportClasses();
+    private boolean isNeedFullName(Class<?> classForImport, ParseContext context) {
+        Set<Class<?>> classes = context.getImportClasses();
         for (Class<?> clazz : classes) {
             if (areEqualBySimpleName(clazz, classForImport) && !areEqualByName(clazz, classForImport)) {
                 return !classes.contains(classForImport);
@@ -142,10 +98,10 @@ public final class ImportParser {
      * @param clazz any class
      * @return true if these class can be appended to import
      */
-    private boolean isAppendToImports(Class<?> clazz) {
+    private boolean isAppendToImports(Class<?> clazz, ParseContext context) {
         return !clazz.isPrimitive()
                 && !DEFAULT_JAVA_PACKAGE.equals(getPackageName(clazz))
-                && manager.getBaseParsedClass().getPackage() != clazz.getPackage();
+                && context.getBaseParsedClass().getPackage() != clazz.getPackage();
     }
 
     /**
@@ -216,22 +172,5 @@ public final class ImportParser {
      */
     private Class<?> resolveMemberClass(Class<?> clazz) {
         return clazz.isMemberClass() ? resolveMemberClass(clazz.getEnclosingClass()) : clazz;
-    }
-
-    /**
-     * Obtains the simple name of class
-     *
-     * @param clazz any class
-     * @return class simple name
-     */
-    public String getSimpleName(Class<?> clazz) {
-        String typeName = clazz.getSimpleName();
-        if (typeName.isEmpty()) {
-            typeName = clazz.getName();
-            if (typeName.contains(".")) {
-                typeName = typeName.substring(typeName.lastIndexOf('.') + 1);
-            }
-        }
-        return typeName;
     }
 }

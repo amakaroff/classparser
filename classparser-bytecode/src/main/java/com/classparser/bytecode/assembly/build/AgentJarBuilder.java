@@ -55,7 +55,7 @@ public interface AgentJarBuilder {
      * @param agentClass agent class
      * @return builder instance
      */
-    AgentJarBuilder addAgentClass(Class<?> agentClass);
+    AgentJarBuilder setAgentClass(Class<?> agentClass);
 
     /**
      * Process of building java agent jar

@@ -14,9 +14,7 @@ import org.benf.cfr.reader.bytecode.analysis.parse.utils.Pair;
 import org.benf.cfr.reader.entities.ClassFile;
 import org.benf.cfr.reader.state.ClassFileSourceImpl;
 import org.benf.cfr.reader.state.DCCommonState;
-import org.benf.cfr.reader.state.TypeUsageCollector;
-import org.benf.cfr.reader.state.TypeUsageCollectorImpl;
-import org.benf.cfr.reader.state.TypeUsageInformation;
+import org.benf.cfr.reader.state.TypeUsageCollectingDumper;
 import org.benf.cfr.reader.util.CannotLoadClassException;
 import org.benf.cfr.reader.util.bytestream.BaseByteData;
 import org.benf.cfr.reader.util.bytestream.ByteData;
@@ -24,16 +22,9 @@ import org.benf.cfr.reader.util.getopt.GetOptParser;
 import org.benf.cfr.reader.util.getopt.Options;
 import org.benf.cfr.reader.util.getopt.OptionsImpl;
 import org.benf.cfr.reader.util.output.Dumper;
-import org.benf.cfr.reader.util.output.IllegalIdentifierDump;
-import org.benf.cfr.reader.util.output.StdIODumper;
+import org.benf.cfr.reader.util.output.ToStringDumper;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.classparser.bytecode.decompile.cfr.configuration.CFRConfiguration.INT_OPTIONS;
 import static com.classparser.bytecode.decompile.cfr.configuration.CFRConfiguration.STRING_OPTIONS;
@@ -41,7 +32,7 @@ import static com.classparser.bytecode.decompile.cfr.configuration.CFRConfigurat
 /**
  * Adapter of CFR decompiler for {@link Decompiler} API
  * This decompiler was written of Lee Benfield
- * Decompiler version: 0.148
+ * Decompiler version: 0.151
  *
  * @author Aleksei Makarov
  * @since 1.0.0
@@ -75,19 +66,16 @@ public final class CFRDecompiler implements Decompiler {
             DCCommonState dcCommonState = new CFRDCCommonState(options, classFileSource, byteCode, nestedClassesByteCodes);
 
             ClassFile classFile = dcCommonState.getClassFileMaybePath(className);
-            TypeUsageCollector collectingDumper = new TypeUsageCollectorImpl(options, classFile);
-            IllegalIdentifierDump illegalIdentifierDump = IllegalIdentifierDump.Factory.get(options);
+            TypeUsageCollectingDumper typeUsageCollectingDumper = new TypeUsageCollectingDumper(options, classFile);
             dcCommonState.configureWith(classFile);
 
             classFile.loadInnerClasses(dcCommonState);
-            classFile.analyseTop(dcCommonState);
-            classFile.collectTypeUsages(collectingDumper);
+            classFile.analyseTop(dcCommonState, typeUsageCollectingDumper);
 
-            TypeUsageInformation typeUsageInformation = collectingDumper.getTypeUsageInformation();
-            Dumper dumper = new CFRBuilderDumper(typeUsageInformation, options, illegalIdentifierDump);
+            Dumper dumper = new ToStringDumper();
             classFile.dump(dumper);
 
-            return dumper.toString();
+            return dumper.toString().trim();
         }
 
         throw new DecompilationException("Byte code of classes for decompilation can't be a null!");
@@ -212,82 +200,6 @@ public final class CFRDecompiler implements Decompiler {
     public void setConfigurationManager(ConfigurationManager configurationManager) {
         this.configurationManager = configurationManager;
         this.utils.reloadConfiguration(configurationManager.getCustomDecompilerConfiguration());
-    }
-
-    /**
-     * Class extends {@link StdIODumper} and implements any fixes by correcting decompiled code
-     */
-    private static class CFRBuilderDumper extends StdIODumper {
-
-        private static final String DECOMPILER_INFO = "/*\n * Decompiled with CFR.\n */\n";
-
-        private final StringBuilder builder;
-
-        private boolean skipLineSeparator;
-
-        /**
-         * Default constructor for initialize {@link CFRBuilderDumper}
-         *
-         * @param typeUsageInformation  information about use type
-         * @param options               decompiler options
-         * @param illegalIdentifierDump illegal identifier dump instance
-         */
-        private CFRBuilderDumper(TypeUsageInformation typeUsageInformation,
-                                 Options options,
-                                 IllegalIdentifierDump illegalIdentifierDump) {
-            super(typeUsageInformation, options, illegalIdentifierDump, 0);
-            this.builder = new StringBuilder();
-            this.skipLineSeparator = false;
-        }
-
-        @Override
-        protected void write(String data) {
-            builder.append(getCorrectData(data));
-        }
-
-        /**
-         * Tryings fix line separator for signature of class
-         *
-         * @param data any class data
-         * @return corrected data
-         */
-        private String getCorrectData(String data) {
-            if ((data.equals("class ") ||
-                 data.equals("interface ") ||
-                 data.equals("enum ") ||
-                 data.equals("@interface ")) && !skipLineSeparator) {
-                skipLineSeparator = true;
-            }
-
-            if (data.equals("{")) {
-                skipLineSeparator = false;
-            }
-
-            if (skipLineSeparator && data.contains("    ")) {
-                data = "";
-            }
-
-            if (skipLineSeparator && data.contains("\n")) {
-                data = " ";
-            }
-
-            return data;
-        }
-
-        @Override
-        public String toString() {
-            return builder.toString().replace(DECOMPILER_INFO, "");
-        }
-
-        @Override
-        public void close() {
-            builder.delete(0, builder.length());
-        }
-
-        @Override
-        public Dumper withTypeUsageInformation(TypeUsageInformation innerclassTypeUsageInformation) {
-            return this;
-        }
     }
 
     /**

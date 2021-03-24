@@ -15,7 +15,7 @@
     <version>1.0.0</version>
 
     <properties>
-        <cfr.decompiler.version>0.148</cfr.decompiler.version>
+        <cfr.decompiler.version>0.151</cfr.decompiler.version>
     </properties>
 
     <dependencies>

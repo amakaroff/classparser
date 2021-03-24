@@ -1,7 +1,6 @@
 package com.classparser.reflection.parser.base;
 
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -22,8 +21,8 @@ public class ModifierParser {
 
     private final ConfigurationManager configurationManager;
 
-    public ModifierParser(ReflectionParserManager manager) {
-        this.configurationManager = manager.getConfigurationManager();
+    public ModifierParser(ConfigurationManager configurationManager) {
+        this.configurationManager = configurationManager;
     }
 
     /**
@@ -56,7 +55,7 @@ public class ModifierParser {
         }
 
         if (Modifier.isAbstract(modifierMask)) {
-            if (isDisplayExhaustiveModifiers() || !isEnumOrInterface(clazz)) {
+            if (isDisplayExhaustiveModifiers() || !clazz.isInterface() && !clazz.isEnum() && !clazz.isArray() && !clazz.isPrimitive()) {
                 modifiers.add("abstract");
             }
         }
@@ -64,6 +63,12 @@ public class ModifierParser {
         if (Modifier.isStatic(modifierMask)) {
             if (isDisplayExhaustiveModifiers() || !isOnlyStaticInnerClass(clazz)) {
                 modifiers.add("static");
+            }
+        }
+
+        if (Modifier.isFinal(modifierMask)) {
+            if (isDisplayExhaustiveModifiers() || !clazz.isEnum() && !clazz.isArray() && !clazz.isPrimitive()) {
+                modifiers.add("final");
             }
         }
 
@@ -125,6 +130,10 @@ public class ModifierParser {
             }
         }
 
+        if (isSynthetic(modifierMask)) {
+            modifiers.add("synthetic");
+        }
+
         return String.join(" ", modifiers);
     }
 
@@ -168,7 +177,9 @@ public class ModifierParser {
         }
 
         if (Modifier.isFinal(modifierMask)) {
-            modifiers.add("final");
+            if (isDisplayExhaustiveModifiers() || !Modifier.isStatic(modifierMask) && !field.getDeclaringClass().isEnum()) {
+                modifiers.add("final");
+            }
         }
 
         return String.join(" ", modifiers);
@@ -197,6 +208,10 @@ public class ModifierParser {
 
         if (Modifier.isPrivate(modifierMask)) {
             modifiers.add("private");
+        }
+
+        if (isSynthetic(modifierMask)) {
+            modifiers.add("synthetic");
         }
 
         if (Modifier.isAbstract(modifierMask)) {
@@ -277,16 +292,6 @@ public class ModifierParser {
     private boolean isOnlyStaticInnerClass(Class<?> clazz) {
         Class<?> enclosingClass = clazz.getEnclosingClass();
         return clazz.isMemberClass() && (clazz.isInterface() || clazz.isEnum() || enclosingClass.isAnnotation());
-    }
-
-    /**
-     * Checks if class interface or enum
-     *
-     * @param clazz any class
-     * @return true if class interface or enum
-     */
-    private boolean isEnumOrInterface(Class<?> clazz) {
-        return clazz.isInterface() || clazz.isEnum();
     }
 
     /**

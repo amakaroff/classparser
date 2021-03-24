@@ -1,7 +1,8 @@
 package com.classparser.reflection.parser.structure.executeble;
 
+import com.classparser.reflection.ParseContext;
+import com.classparser.reflection.ContentJoiner;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.reflection.parser.base.AnnotationParser;
 import com.classparser.reflection.parser.base.GenericTypeParser;
 import com.classparser.reflection.parser.base.IndentParser;
@@ -21,8 +22,6 @@ import java.util.List;
  */
 public class ConstructorParser {
 
-    private final ReflectionParserManager manager;
-
     private final ConfigurationManager configurationManager;
 
     private final GenericTypeParser genericParser;
@@ -37,12 +36,14 @@ public class ConstructorParser {
 
     private final ExceptionParser exceptionParser;
 
-    public ConstructorParser(ReflectionParserManager manager, GenericTypeParser genericParser,
-                             ModifierParser modifierParser, AnnotationParser annotationParser,
-                             ArgumentParser argumentParser, IndentParser indentParser,
+    public ConstructorParser(ConfigurationManager configurationManager,
+                             GenericTypeParser genericParser,
+                             ModifierParser modifierParser,
+                             AnnotationParser annotationParser,
+                             ArgumentParser argumentParser,
+                             IndentParser indentParser,
                              ExceptionParser exceptionParser) {
-        this.manager = manager;
-        this.configurationManager = manager.getConfigurationManager();
+        this.configurationManager = configurationManager;
         this.genericParser = genericParser;
         this.modifierParser = modifierParser;
         this.annotationParser = annotationParser;
@@ -59,16 +60,16 @@ public class ConstructorParser {
      * @param clazz any class
      * @return parsed constructors
      */
-    public String parseConstructors(Class<?> clazz) {
+    public String parseConstructors(Class<?> clazz, ParseContext context) {
         List<String> constructors = new ArrayList<>();
 
         for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
             if (isShouldBeDisplayed(constructor)) {
-                constructors.add(parseConstructor(constructor));
+                constructors.add(parseConstructor(constructor, context));
             }
         }
 
-        return manager.joinContentByLineSeparator(constructors);
+        return ContentJoiner.joinContent(constructors, configurationManager.getLineSeparator());
     }
 
     /**
@@ -88,18 +89,18 @@ public class ConstructorParser {
      * @param constructor any constructor
      * @return string line with constructor meta information
      */
-    private String parseConstructor(Constructor<?> constructor) {
-        String annotations = annotationParser.parseAnnotationsAsBlock(constructor);
-        String indent = indentParser.getIndent(constructor);
+    private String parseConstructor(Constructor<?> constructor, ParseContext context) {
+        String annotations = annotationParser.parseAnnotationsAsBlock(constructor, context);
+        String indent = indentParser.getIndent(constructor, context);
         String modifiers = modifierParser.parseModifiers(constructor);
-        String generics = genericParser.parseGenerics(constructor);
-        String constructorName = genericParser.parseType(constructor.getDeclaringClass());
-        String arguments = argumentParser.parseArguments(constructor);
-        String exceptions = exceptionParser.parseExceptions(constructor);
+        String generics = genericParser.parseGenerics(constructor, context);
+        String constructorName = genericParser.parseType(constructor.getDeclaringClass(), context);
+        String arguments = argumentParser.parseArguments(constructor, context);
+        String exceptions = exceptionParser.parseExceptions(constructor, context);
         String oneIndent = configurationManager.getIndentSpaces();
         String lineSeparator = configurationManager.getLineSeparator();
         String body = " {" + lineSeparator + indent + oneIndent + "/* Compiled code */" + lineSeparator + indent + '}';
-        String content = manager.joinNotEmptyContentBySpace(modifiers, generics, constructorName);
+        String content = ContentJoiner.joinNotEmptyContentBySpace(modifiers, generics, constructorName);
 
         return annotations + indent + content + arguments + exceptions + body;
     }

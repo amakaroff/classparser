@@ -1,7 +1,8 @@
 package com.classparser.reflection.parser;
 
+import com.classparser.reflection.ParseContext;
+import com.classparser.reflection.ContentJoiner;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.reflection.parser.base.GenericTypeParser;
 
 import java.lang.reflect.AnnotatedType;
@@ -23,12 +24,9 @@ public class InheritanceParser {
 
     private final ConfigurationManager configurationManager;
 
-    private final ReflectionParserManager manager;
-
-    public InheritanceParser(GenericTypeParser genericTypeParser, ReflectionParserManager manager) {
+    public InheritanceParser(GenericTypeParser genericTypeParser, ConfigurationManager configurationManager) {
         this.genericTypeParser = genericTypeParser;
-        this.configurationManager = manager.getConfigurationManager();
-        this.manager = manager;
+        this.configurationManager = configurationManager;
     }
 
     /**
@@ -42,8 +40,8 @@ public class InheritanceParser {
      * @param clazz any class
      * @return parsed inheritances or empty string if inheritances is absent
      */
-    public String parseInheritances(Class<?> clazz) {
-        return manager.joinNotEmptyContentBySpace(parseSuperClass(clazz), parseInterfaces(clazz));
+    public String parseInheritances(Class<?> clazz, ParseContext context) {
+        return ContentJoiner.joinNotEmptyContentBySpace(parseSuperClass(clazz, context), parseInterfaces(clazz, context));
     }
 
     /**
@@ -52,9 +50,11 @@ public class InheritanceParser {
      * @param clazz any class
      * @return parsed super class
      */
-    private String parseSuperClass(Class<?> clazz) {
+    private String parseSuperClass(Class<?> clazz, ParseContext context) {
         if (isNecessaryDisplayedSuperClass(clazz)) {
-            String superClass = genericTypeParser.parseType(getSuperClassForClass(clazz), clazz.getAnnotatedSuperclass());
+            String superClass = genericTypeParser.parseType(getSuperClassForClass(clazz),
+                    clazz.getAnnotatedSuperclass(),
+                    context);
 
             if (!superClass.isEmpty()) {
                 return "extends " + superClass;
@@ -70,9 +70,11 @@ public class InheritanceParser {
      * @param clazz any class
      * @return parsed interfaces
      */
-    private String parseInterfaces(Class<?> clazz) {
+    private String parseInterfaces(Class<?> clazz, ParseContext context) {
         if (isNecessaryDisplayedInterfaces(clazz)) {
-            List<String> types = parseMultipleParentTypes(getInterfacesForClass(clazz), clazz.getAnnotatedInterfaces());
+            List<String> types = parseMultipleParentTypes(getInterfacesForClass(clazz),
+                    clazz.getAnnotatedInterfaces(),
+                    context);
             String interfaces = String.join(", ", types);
             String relationship = clazz.isInterface() ? "extends " : "implements ";
 
@@ -92,10 +94,14 @@ public class InheritanceParser {
      * @param annotatedTypes array of annotated types for parent type
      * @return list of processed parent types for class
      */
-    private List<String> parseMultipleParentTypes(Type[] parentTypes, AnnotatedType[] annotatedTypes) {
+    private List<String> parseMultipleParentTypes(Type[] parentTypes,
+                                                  AnnotatedType[] annotatedTypes,
+                                                  ParseContext context) {
         List<String> multipleParentTypes = new ArrayList<>();
         for (int index = 0; index < parentTypes.length; index++) {
-            multipleParentTypes.add(genericTypeParser.parseType(parentTypes[index], ifEmpty(annotatedTypes, index)));
+            multipleParentTypes.add(genericTypeParser.parseType(parentTypes[index],
+                    ifEmpty(annotatedTypes, index),
+                    context));
         }
         return multipleParentTypes;
     }

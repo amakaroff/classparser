@@ -117,5 +117,17 @@ public class ReflectionParserBuilderConfiguration {
             configuration.put(LINE_SEPARATOR_KEY, character);
             return this;
         }
+
+        @Override
+        public ReflectionParserConfiguration displayStaticBlock(boolean flag) {
+            configuration.put(DISPLAY_STATIC_BLOCK, flag);
+            return this;
+        }
+
+        @Override
+        public ReflectionParserConfiguration parseEnumsAsClass(boolean flag) {
+            configuration.put(PARSE_ENUM_AS_CLASS, flag);
+            return this;
+        }
     }
 }

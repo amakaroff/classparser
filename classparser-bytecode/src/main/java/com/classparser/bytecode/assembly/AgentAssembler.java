@@ -110,7 +110,7 @@ public class AgentAssembler {
         return AgentBuilder.getBuilder()
                 .addAgentName(agent.getAgentJarName())
                 .addAgentDirLocation(agent.getAgentLocationPath())
-                .addAgentClass(agent.getAgentClass())
+                .setAgentClass(agent.getAgentClass())
                 .addManifest(agent.getManifest())
                 .addClasses(agent.getAgentJarClasses())
                 .build();

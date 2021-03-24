@@ -125,7 +125,7 @@ public class ByteCodeParser implements ClassParser {
 
         if (clazz.isPrimitive()) {
             String className = ClassNameConverter.toJavaClassName(clazz);
-            throw new IllegalClassException("Primitive type: \"" + className + "\" can'tbe decompiled", clazz);
+            throw new IllegalClassException("Primitive type: \"" + className + "\" can't be decompiled", clazz);
         }
 
         if (clazz.isArray()) {

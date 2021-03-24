@@ -96,7 +96,7 @@ public final class AgentBuilder {
         }
 
         @Override
-        public AgentJarBuilder addAgentClass(Class<?> agentClass) {
+        public AgentJarBuilder setAgentClass(Class<?> agentClass) {
             if (!isAgentClass(agentClass)) {
                 String className = ClassNameConverter.toJavaClassName(agentClass);
                 throw new IllegalClassException("Class \"" + className + "\" is can't be a agent class", agentClass);

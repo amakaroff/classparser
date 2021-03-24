@@ -246,7 +246,7 @@ public final class JavapDisassembler implements Decompiler {
 
         @Override
         public void println(Object obj) {
-            stringBuilder.append(String.valueOf(obj)).append("\n");
+            stringBuilder.append(obj).append("\n");
         }
 
         /**

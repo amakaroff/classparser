@@ -52,6 +52,8 @@ public class ConfigurationManager {
      *      <li>{@link #isDisplayVarArgs()} - yes</li>
      *      <li>{@link #isDisplayDefaultInheritance()} - false</li>
      *      <li>{@link #hideExhaustiveModifiers()} - true</li>
+     *      <li>{@link #isDisplayStaticBlock()} - true</li>
+     *      <li>{@link #isParseEnumAsClass()} - false</li>
      *      <li>{@link #isEnabledImports()} - yes</li>
      *      <li>{@link #getIndentSpaces()} - 4 spaces</li>
      *      <li>{@link #chooseSystemNewLineCharacter} - choice depend on the system</li>
@@ -72,6 +74,8 @@ public class ConfigurationManager {
                 .enableImportSection(true)
                 .hideExhaustiveModifiers(true)
                 .displayDefaultInheritance(false)
+                .displayStaticBlock(true)
+                .parseEnumsAsClass(false)
                 .setCountIndentSpaces(4)
                 .defineLineSeparator(chooseSystemNewLineCharacter())
                 .getConfiguration();
@@ -190,6 +194,27 @@ public class ConfigurationManager {
      */
     public boolean hideExhaustiveModifiers() {
         return utils.getConfigOption(HIDE_EXHAUSTIVE_MODIFIERS_KEY, Boolean.class);
+    }
+
+    /**
+     * Checks is static initializer block in classes should be displayed
+     * That options use special reflection hacks for display it and
+     * may be disabled in future versions
+     *
+     * @return true if static block should be shown
+     */
+    public boolean isDisplayStaticBlock() {
+        return utils.getConfigOption(DISPLAY_STATIC_BLOCK, Boolean.class);
+    }
+
+    /**
+     * Checks is parser should parse enum type as simple java class
+     * or display special enum information
+     *
+     * @return true if enum should be parsed as class
+     */
+    public boolean isParseEnumAsClass() {
+        return utils.getConfigOption(PARSE_ENUM_AS_CLASS, Boolean.class);
     }
 
     /**

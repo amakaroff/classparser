@@ -23,23 +23,24 @@
     </properties>
 
     <repositories>
-        <!-- Maven repository on Github where storage artifact of JD decompiler-->
+        <!-- Maven repository on Github where storage artifact of JD decompiler -->
+        <!-- https://github.com/java-decompiler/jd-core -->
         <repository>
             <id>bintray</id>
             <name>bintray-repository</name>
-            <url>https://dl.bintray.com/jaycroaker/maven</url>
+            <url>https://dl.bintray.com/java-decompiler/maven</url>
         </repository>
     </repositories>
 
     <dependencies>
-        <!-- JD Decompiler-->
+        <!-- JD Decompiler -->
         <dependency>
             <groupId>org.jd</groupId>
             <artifactId>jd-core</artifactId>
             <version>${jd.decompiler.version}</version>
         </dependency>
 
-        <!-- Modules-->
+        <!-- Modules -->
         <dependency>
             <groupId>com.classparser</groupId>
             <artifactId>classparser-bytecode</artifactId>

@@ -1,7 +1,8 @@
 package com.classparser.reflection.parser.structure.executeble;
 
+import com.classparser.reflection.ParseContext;
+import com.classparser.reflection.ContentJoiner;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.reflection.parser.base.AnnotationParser;
 import com.classparser.reflection.parser.base.GenericTypeParser;
 import com.classparser.reflection.parser.base.ModifierParser;
@@ -34,15 +35,14 @@ public class ArgumentParser {
 
     private final AnnotationParser annotationParser;
 
-    private final ReflectionParserManager manager;
-
-    public ArgumentParser(ReflectionParserManager manager, GenericTypeParser genericTypeParser,
-                          ModifierParser modifierParser, AnnotationParser annotationParser) {
-        this.configurationManager = manager.getConfigurationManager();
+    public ArgumentParser(ConfigurationManager configurationManager,
+                          GenericTypeParser genericTypeParser,
+                          ModifierParser modifierParser,
+                          AnnotationParser annotationParser) {
+        this.configurationManager = configurationManager;
         this.genericTypeParser = genericTypeParser;
         this.modifierParser = modifierParser;
         this.annotationParser = annotationParser;
-        this.manager = manager;
     }
 
     /**
@@ -58,11 +58,11 @@ public class ArgumentParser {
      * @param executable any executable
      * @return parsed string line with information about arguments
      */
-    public String parseArguments(Executable executable) {
+    public String parseArguments(Executable executable, ParseContext context) {
         List<String> strings = new ArrayList<>();
 
         if (isReceiverExplicitArgumentExists(executable)) {
-            strings.add(parseReceiverExplicitArgument(executable));
+            strings.add(parseReceiverExplicitArgument(executable, context));
         }
 
         AnnotatedType[] annotatedParameterTypes = executable.getAnnotatedParameterTypes();
@@ -71,7 +71,7 @@ public class ArgumentParser {
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
             if (isShouldBeDisplayed(parameter, index)) {
-                strings.add(getArgument(parameter, annotatedParameterTypes[index]));
+                strings.add(getArgument(parameter, annotatedParameterTypes[index], context));
             }
         }
 
@@ -86,7 +86,13 @@ public class ArgumentParser {
      * @return true if display argument is necessary
      */
     private boolean isShouldBeDisplayed(Parameter parameter, int index) {
-        return configurationManager.isDisplaySyntheticEntities() || !isSyntheticParameter(parameter, index);
+        Class<?> declaringClass = parameter.getDeclaringExecutable().getDeclaringClass();
+        if (declaringClass.isEnum()) {
+            return configurationManager.isDisplaySyntheticEntities() && configurationManager.isParseEnumAsClass() ||
+                    !isSyntheticParameter(parameter, index);
+        } else {
+            return configurationManager.isDisplaySyntheticEntities() || !isSyntheticParameter(parameter, index);
+        }
     }
 
     /**
@@ -140,13 +146,13 @@ public class ArgumentParser {
      * @param annotatedType annotation type on parameter
      * @return parsed string line with information about argument
      */
-    public String getArgument(Parameter parameter, AnnotatedType annotatedType) {
-        String annotations = annotationParser.parseAnnotationsAsInline(parameter);
-        String type = resolveVariableArguments(parameter, annotatedType);
+    public String getArgument(Parameter parameter, AnnotatedType annotatedType, ParseContext context) {
+        String annotations = annotationParser.parseAnnotationsAsInline(parameter, context);
+        String type = resolveVariableArguments(parameter, annotatedType, context);
         String modifiers = modifierParser.parseModifiers(parameter);
         String name = parameter.getName();
 
-        return manager.joinNotEmptyContentBySpace(annotations, modifiers, type, name);
+        return ContentJoiner.joinNotEmptyContentBySpace(annotations, modifiers, type, name);
     }
 
     /**
@@ -186,12 +192,13 @@ public class ArgumentParser {
      * @param executable any executable
      * @return parsed explicit receiver argument
      */
-    private String parseReceiverExplicitArgument(Executable executable) {
+    private String parseReceiverExplicitArgument(Executable executable, ParseContext context) {
         AnnotatedType annotatedReceiverType = executable.getAnnotatedReceiverType();
         Class<?> declaringClass = executable.getDeclaringClass();
 
-        String annotations = annotationParser.parseAnnotationsAsInline(annotatedReceiverType);
-        String type = genericTypeParser.parseType(declaringClass) + genericTypeParser.parseGenerics(declaringClass);
+        String annotations = annotationParser.parseAnnotationsAsInline(annotatedReceiverType, context);
+        String type = genericTypeParser.parseType(declaringClass, context) +
+                genericTypeParser.parseGenerics(declaringClass, context);
         String name = "this";
 
         return annotations + " " + type + name;
@@ -205,8 +212,8 @@ public class ArgumentParser {
      * @param annotatedType annotation on type for this argument
      * @return parsed argument
      */
-    private String resolveVariableArguments(Parameter parameter, AnnotatedType annotatedType) {
-        String type = genericTypeParser.parseType(getParameterType(parameter), annotatedType);
+    private String resolveVariableArguments(Parameter parameter, AnnotatedType annotatedType, ParseContext context) {
+        String type = genericTypeParser.parseType(getParameterType(parameter), annotatedType, context);
         if (parameter.isVarArgs() && configurationManager.isDisplayVarArgs()) {
             return type.substring(0, type.length() - 2) + "...";
         } else {

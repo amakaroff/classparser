@@ -1,7 +1,7 @@
 package com.classparser.reflection.parser.base;
 
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.util.Reflection;
 
 import java.lang.annotation.Annotation;
@@ -14,7 +14,6 @@ import java.util.List;
 
 /**
  * Class provides functionality by parsing value for any objects
- * Depending on context {@link ReflectionParserManager} of parsing
  *
  * @author Aleksey Makarov
  * @since 1.0.0
@@ -25,18 +24,16 @@ public class ValueParser {
 
     private final GenericTypeParser genericTypeParser;
 
-    private final ReflectionParserManager manager;
-
     private final AnnotationParser annotationParser;
 
     private final ConfigurationManager configurationManager;
 
-    public ValueParser(GenericTypeParser genericTypeParser, AnnotationParser annotationParser,
-                       ReflectionParserManager manager) {
+    public ValueParser(GenericTypeParser genericTypeParser,
+                       AnnotationParser annotationParser,
+                       ConfigurationManager configurationManager) {
         this.genericTypeParser = genericTypeParser;
         this.annotationParser = annotationParser;
-        this.manager = manager;
-        this.configurationManager = manager.getConfigurationManager();
+        this.configurationManager = configurationManager;
     }
 
     /**
@@ -47,30 +44,34 @@ public class ValueParser {
      * @param object any object
      * @return parsed value
      */
-    public String getValue(Object object) {
-        if (isField(object)) {
-            return getFieldValue((Field) object);
+    public String getValue(Object object, ParseContext context) {
+        if (isField(object, context)) {
+            return getFieldValue((Field) object, context);
         }
 
         if (isAnnotationMethod(object)) {
-            return getDefaultAnnotationValue((Method) object);
+            return getDefaultAnnotationValue((Method) object, context);
         }
 
         if (object != null) {
             Class<?> clazz = object.getClass();
             if (clazz.isArray()) {
                 List<String> listValues = new ArrayList<>();
+                boolean isAllElementsEmpty = true;
                 for (Object listValue : getArrayValues(object)) {
-                    if (!isObjectValue(listValue)) {
-                        listValues.add(getValue(listValue));
+                    String value = getValue(listValue, context);
+                    if (value != null && !value.isEmpty()) {
+                        isAllElementsEmpty = false;
                     }
+
+                    listValues.add(value);
                 }
 
-                String values = String.join(", ", listValues);
-                if (values.isEmpty()) {
-                    return values;
+
+                if (listValues.isEmpty() || isAllElementsEmpty) {
+                    return "";
                 } else {
-                    return '{' + values + '}';
+                    return '{' + String.join(", ", listValues) + '}';
                 }
             }
 
@@ -78,19 +79,21 @@ public class ValueParser {
                 if (!clazz.isEnum()) {
                     clazz = clazz.getSuperclass();
                 }
-                return genericTypeParser.parseType(clazz) + "." + object;
+                return genericTypeParser.parseType(clazz, context) + "." + object;
             } else if (object instanceof String) {
-                return "\"" + object + "\"";
+                return "\"" + escapeString((String) object) + "\"";
             } else if (object instanceof Character) {
-                return "'" + object + "'";
+                return "'" + escapeCharacter((Character) object) + "'";
             } else if (object instanceof Number || object instanceof Boolean) {
                 return object.toString() + getLiteral(object);
             } else if (object instanceof Class) {
-                return genericTypeParser.parseType((Class<?>) object) + ".class";
+                return genericTypeParser.parseType((Class<?>) object, context) + ".class";
             } else if (object instanceof Annotation) {
-                Class<? extends Annotation> annotationType = ((Annotation) object).annotationType();
-                if (annotationType != null && annotationType.isAnnotation()) {
-                    return annotationParser.parseAnnotation((Annotation) object);
+                if (context.getBaseParsedClass().isAnnotation()) {
+                    Class<? extends Annotation> annotationType = ((Annotation) object).annotationType();
+                    if (annotationType != null && annotationType.isAnnotation()) {
+                        return annotationParser.parseAnnotation((Annotation) object, context);
+                    }
                 }
             }
 
@@ -99,6 +102,45 @@ public class ValueParser {
         }
 
         return null;
+    }
+
+    /**
+     * Escapes special characters in string
+     *
+     * @param value any line
+     * @return escaped string
+     */
+    private String escapeString(String value) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (int i = 0; i < value.length(); i++) {
+            stringBuilder.append(escapeCharacter(value.charAt(i)));
+        }
+
+        return stringBuilder.toString();
+    }
+
+    /**
+     * Escapes special characters
+     *
+     * @param character any character
+     * @return escaped character
+     */
+    private String escapeCharacter(char character) {
+        switch (character) {
+            case '\n':
+                return "\\n";
+            case '\r':
+                return "\\r";
+            case '\t':
+                return "\\t";
+            case '\f':
+                return "\\f";
+            case '\b':
+                return "\\b";
+            default:
+                return String.valueOf(character);
+        }
     }
 
     /**
@@ -120,16 +162,6 @@ public class ValueParser {
         }
 
         return EMPTY_OBJECT_ARRAY;
-    }
-
-    /**
-     * Checks if object is non string value
-     *
-     * @param object any object
-     * @return true if this not string value
-     */
-    private boolean isObjectValue(Object object) {
-        return object != null && !(object instanceof String) && object.toString().isEmpty();
     }
 
     /**
@@ -162,10 +194,10 @@ public class ValueParser {
      * @param method any method
      * @return default value for method
      */
-    private String getDefaultAnnotationValue(Method method) {
+    private String getDefaultAnnotationValue(Method method, ParseContext context) {
         String defaultAnnotationValue = "";
 
-        String defaultValue = getValue(method.getDefaultValue());
+        String defaultValue = getValue(method.getDefaultValue(), context);
         if (defaultValue != null) {
             defaultAnnotationValue += " default " + defaultValue;
         }
@@ -179,13 +211,13 @@ public class ValueParser {
      * @param field any field
      * @return value from static field or empty string if value can't be obtained
      */
-    private String getFieldValue(Field field) {
+    private String getFieldValue(Field field, ParseContext context) {
         if (configurationManager.isDisplayFieldValue() &&
                 Modifier.isStatic(field.getModifiers()) &&
                 !isEnumConstant(field)) {
             Object value = Reflection.get(field);
-            if (!isField(value)) {
-                String fieldValue = getValue(value);
+            if (!isField(value, context)) {
+                String fieldValue = getValue(value, context);
                 if (!"".equals(fieldValue)) {
                     return " = " + fieldValue;
                 }
@@ -201,8 +233,8 @@ public class ValueParser {
      * @param object any field
      * @return true if field accessory to current parsed class
      */
-    private boolean isField(Object object) {
-        return object instanceof Field && ((Field) object).getDeclaringClass() == manager.getCurrentParsedClass();
+    private boolean isField(Object object, ParseContext context) {
+        return object instanceof Field && context.isCurrentParsedClass(((Field) object).getDeclaringClass());
     }
 
     /**

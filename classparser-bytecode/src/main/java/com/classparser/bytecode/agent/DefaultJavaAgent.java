@@ -40,6 +40,10 @@ public final class DefaultJavaAgent implements JavaAgent {
 
     private volatile boolean isInitialize;
 
+    public DefaultJavaAgent() {
+        this(new ConfigurationManager());
+    }
+
     public DefaultJavaAgent(ConfigurationManager configurationManager) {
         this(new AgentAssembler(configurationManager));
     }

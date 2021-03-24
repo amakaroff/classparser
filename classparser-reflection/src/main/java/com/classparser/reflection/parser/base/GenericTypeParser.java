@@ -1,7 +1,7 @@
 package com.classparser.reflection.parser.base;
 
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.reflection.exception.ReflectionParserException;
 
 import java.lang.reflect.AnnotatedArrayType;
@@ -20,7 +20,6 @@ import java.util.List;
 
 /**
  * Class provides functionality by obtaining meta information about types and generics
- * Depending on context {@link ReflectionParserManager} of parsing
  *
  * @author Aleksey Makarov
  * @author Valim Kiselev
@@ -30,16 +29,13 @@ public class GenericTypeParser {
 
     private final ClassNameParser classNameParser;
 
-    private final ReflectionParserManager manager;
-
     private final ConfigurationManager configurationManager;
 
     private AnnotationParser annotationParser;
 
-    public GenericTypeParser(ClassNameParser classNameParser, ReflectionParserManager manager) {
+    public GenericTypeParser(ClassNameParser classNameParser, ConfigurationManager configurationManager) {
         this.classNameParser = classNameParser;
-        this.manager = manager;
-        this.configurationManager = manager.getConfigurationManager();
+        this.configurationManager = configurationManager;
     }
 
     /**
@@ -75,14 +71,16 @@ public class GenericTypeParser {
      * @param genericDeclaration any generic declaration object
      * @return string line with meta information about generics
      */
-    public String parseGenerics(GenericDeclaration genericDeclaration) {
+    public String parseGenerics(GenericDeclaration genericDeclaration, ParseContext context) {
+        AnnotationParser annotationParser = getAnnotationParser();
+
         if (configurationManager.isDisplayGenericSignatures()) {
             List<String> generics = new ArrayList<>();
             TypeVariable<?>[] typeParameters = genericDeclaration.getTypeParameters();
 
             for (TypeVariable<?> parameter : typeParameters) {
-                String annotations = getAnnotationParser().parseAnnotationsAsInline(parameter);
-                String boundTypes = String.join(" & ", parseBounds(parameter));
+                String annotations = annotationParser.parseAnnotationsAsInline(parameter, context);
+                String boundTypes = String.join(" & ", parseBounds(parameter, context));
                 String bounds = !boundTypes.isEmpty() ? " extends " + boundTypes : "";
 
                 generics.add(getCorrectAnnotations(annotations) + parameter.getName() + bounds);
@@ -109,76 +107,113 @@ public class GenericTypeParser {
      * @param annotatedType annotation on this type
      * @return string line with meta information about type
      */
-    @SuppressWarnings("ConstantConditions")
-    public String parseType(Type type, AnnotatedType annotatedType) {
+    public String parseType(Type type, AnnotatedType annotatedType, ParseContext context) {
+        AnnotationParser annotationParser = getAnnotationParser();
         String annotations = "";
         String boundType = "";
 
         if (configurationManager.isDisplayAnnotationOnTypes() && annotatedType != null && !isArray(type)) {
             // If type is inner nested class then "use type" annotations for parametrized type is invisible
             // https://stackoverflow.com/questions/39952812/why-annotation-on-generic-type-argument-is-not-visible-for-nested-type
-            annotations = getAnnotationParser().parseAnnotationsAsInline(getAnnotatedArrayType(annotatedType));
+            annotations = annotationParser.parseAnnotationsAsInline(getAnnotatedArrayType(annotatedType), context);
         }
 
         if (type instanceof Class) {
             Class<?> clazz = (Class<?>) type;
-
-            if (clazz.isArray()) {
-                AnnotatedArrayType annotatedArrayType = (AnnotatedArrayType) annotatedType;
-                boundType = parseType(clazz.getComponentType(), annotatedArrayType);
-                AnnotatedType annotatedForArrayType = getAnnotatedTypeForArray(clazz, annotatedArrayType);
-                boundType += getAnnotationParser().parseAnnotationsAsInline(annotatedForArrayType) + "[]";
-            } else {
-                if (isNeedNameForInnerClass(clazz)) {
-                    String typeName = parseType(clazz.getDeclaringClass(), null);
-                    boundType = !typeName.isEmpty() ? typeName + "." + getCorrectAnnotations(annotations) : "";
-                    annotations = "";
-                }
-
-                boundType += classNameParser.parseTypeName(clazz);
-                if (isAnnotationOnClassWithFullName(clazz, boundType, annotations)) {
-                    String packageName = getPackageName(clazz);
-                    String simpleName = classNameParser.getSimpleName(clazz);
-                    boundType = packageName + "." + annotations + " " + simpleName;
-                    annotations = "";
-                }
-            }
+            return parseClassType(clazz, annotatedType, annotations, context);
         } else if (type instanceof TypeVariable) {
             TypeVariable<?> typeVariable = (TypeVariable<?>) type;
-            boundType = typeVariable.getName();
+            return parseTypeVariable(typeVariable);
         } else if (type instanceof ParameterizedType) {
             ParameterizedType parameterizedType = (ParameterizedType) type;
-            if (isNeedNameForInnerClass((Class<?>) parameterizedType.getRawType())) {
-                // Have problems because of https://bugs.openjdk.java.net/browse/JDK-8146861
-                // Fixed in Java 9
-                AnnotatedParameterizedType annotatedOwnerParametrizedType = null;
-                String correctAnnotations = getCorrectAnnotations(annotations);
-                Type ownerType = parameterizedType.getOwnerType();
-                boundType = parseType(ownerType, annotatedOwnerParametrizedType) + "." + correctAnnotations;
-                annotations = "";
-            }
-
-            String genericArguments = "";
-            Class<?> clazz = (Class<?>) parameterizedType.getRawType();
-            String parametrizedRawTypeName = classNameParser.parseTypeName(clazz);
-            annotatedType = getAnnotatedArrayType(annotatedType);
-            AnnotatedParameterizedType annotatedParameterizedType = (AnnotatedParameterizedType) annotatedType;
-
-            List<String> innerGenericTypes = parseGenericArguments(parameterizedType, annotatedParameterizedType);
-            if (!innerGenericTypes.isEmpty()) {
-                genericArguments = "<" + String.join(", ", innerGenericTypes) + ">";
-            }
-            boundType += parametrizedRawTypeName + genericArguments;
-
+            return parseParametrizedType(parameterizedType, annotatedType, annotations, context);
         } else if (type instanceof GenericArrayType) {
             GenericArrayType genericArrayType = (GenericArrayType) type;
             AnnotatedArrayType annotatedArrayType = (AnnotatedArrayType) annotatedType;
-            boundType = parseType(genericArrayType.getGenericComponentType(), annotatedArrayType);
-            AnnotatedType annotatedTypeForArray = getAnnotatedTypeForArray(genericArrayType, annotatedArrayType);
-            boundType += getAnnotationParser().parseAnnotationsAsInline(annotatedTypeForArray) + "[]";
+
+            return parseGenericArrayType(genericArrayType, annotatedArrayType, annotations, context);
         }
 
         return getCorrectAnnotations(annotations) + boundType;
+    }
+
+    private String parseClassType(Class<?> clazz, AnnotatedType annotatedType, String parsedAnnotations, ParseContext context) {
+        AnnotationParser annotationParser = getAnnotationParser();
+        String boundType = "";
+
+        if (clazz.isArray()) {
+            AnnotatedArrayType annotatedArrayType = (AnnotatedArrayType) annotatedType;
+            boundType = parseType(clazz.getComponentType(), annotatedArrayType, context);
+            AnnotatedType annotatedForArrayType = getAnnotatedTypeForArray(clazz, annotatedArrayType);
+            boundType += annotationParser.parseAnnotationsAsInline(annotatedForArrayType, context) + "[]";
+        } else {
+            if (isNeedNameForInnerClass(clazz, context)) {
+                String typeName = parseType(clazz.getDeclaringClass(), null, context);
+                boundType = !typeName.isEmpty() ? typeName + "." + getCorrectAnnotations(parsedAnnotations) : "";
+                parsedAnnotations = "";
+            }
+
+            boundType += classNameParser.parseTypeName(clazz, context);
+            if (isAnnotationOnClassWithFullName(clazz, boundType, parsedAnnotations)) {
+                String packageName = getPackageName(clazz);
+                String simpleName = classNameParser.getSimpleName(clazz);
+                boundType = packageName + "." + parsedAnnotations + " " + simpleName;
+                parsedAnnotations = "";
+            }
+        }
+
+        return getCorrectAnnotations(parsedAnnotations) + boundType;
+    }
+
+    private String parseTypeVariable(TypeVariable<?> typeVariable) {
+        return typeVariable.getName();
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private String parseParametrizedType(ParameterizedType parameterizedType,
+                                         AnnotatedType annotatedType,
+                                         String parsedAnnotations,
+                                         ParseContext context) {
+        String boundType = "";
+
+        if (isNeedNameForInnerClass((Class<?>) parameterizedType.getRawType(), context)) {
+            // Have problems because of https://bugs.openjdk.java.net/browse/JDK-8146861
+            // Fixed in Java 9
+            AnnotatedParameterizedType annotatedOwnerParametrizedType = null;
+            String correctAnnotations = getCorrectAnnotations(parsedAnnotations);
+            Type ownerType = parameterizedType.getOwnerType();
+            boundType = parseType(ownerType, annotatedOwnerParametrizedType, context) + "." + correctAnnotations;
+            parsedAnnotations = "";
+        }
+
+        String genericArguments = "";
+        Class<?> clazz = (Class<?>) parameterizedType.getRawType();
+        String parametrizedRawTypeName = classNameParser.parseTypeName(clazz, context);
+        annotatedType = getAnnotatedArrayType(annotatedType);
+        AnnotatedParameterizedType annotatedParameterizedType = (AnnotatedParameterizedType) annotatedType;
+
+        List<String> innerGenericTypes = parseGenericArguments(parameterizedType, annotatedParameterizedType, context);
+        if (!innerGenericTypes.isEmpty()) {
+            genericArguments = "<" + String.join(", ", innerGenericTypes) + ">";
+        }
+        boundType += parametrizedRawTypeName + genericArguments;
+
+        return getCorrectAnnotations(parsedAnnotations) + boundType;
+    }
+
+    private String parseGenericArrayType(GenericArrayType genericArrayType,
+                                         AnnotatedArrayType annotatedArrayType,
+                                         String parsedAnnotations,
+                                         ParseContext context) {
+        AnnotationParser annotationParser = getAnnotationParser();
+        String boundType;
+
+        boundType = parseType(genericArrayType.getGenericComponentType(), annotatedArrayType, context);
+
+        AnnotatedType annotatedTypeForArray = getAnnotatedTypeForArray(genericArrayType, annotatedArrayType);
+        boundType += annotationParser.parseAnnotationsAsInline(annotatedTypeForArray, context) + "[]";
+
+        return getCorrectAnnotations(parsedAnnotations) + boundType;
     }
 
     /**
@@ -193,8 +228,8 @@ public class GenericTypeParser {
      * @param type any type
      * @return string line with meta information about type
      */
-    public String parseType(Type type) {
-        return parseType(type, null);
+    public String parseType(Type type, ParseContext context) {
+        return parseType(type, null, context);
     }
 
     /**
@@ -203,16 +238,17 @@ public class GenericTypeParser {
      * @param parameter type variable
      * @return resolved list of string bound with meta information
      */
-    private List<String> parseBounds(TypeVariable<?> parameter) {
+    private List<String> parseBounds(TypeVariable<?> parameter, ParseContext context) {
+        AnnotationParser annotationParser = getAnnotationParser();
         List<String> bounds = new ArrayList<>();
         Type[] typeBounds = parameter.getBounds();
         AnnotatedType[] annotatedBounds = parameter.getAnnotatedBounds();
 
         for (int index = 0; index < typeBounds.length; index++) {
-            String annotations = getAnnotationParser().parseAnnotationsAsInline(annotatedBounds[index]);
+            String annotations = annotationParser.parseAnnotationsAsInline(annotatedBounds[index], context);
             Type typeBound = typeBounds[index];
             if (configurationManager.isDisplayDefaultInheritance() || typeBound != Object.class) {
-                String boundType = parseType(typeBound);
+                String boundType = parseType(typeBound, context);
                 if (!boundType.isEmpty()) {
                     bounds.add(getCorrectAnnotations(annotations) + boundType);
                 }
@@ -313,31 +349,34 @@ public class GenericTypeParser {
      * @return list of resolved parameterized types
      */
     private List<String> parseGenericArguments(ParameterizedType parameterizedType,
-                                               AnnotatedParameterizedType annotatedParameterizedType) {
+                                               AnnotatedParameterizedType annotatedParameterizedType,
+                                               ParseContext context) {
+        AnnotationParser annotationParser = getAnnotationParser();
         List<String> genericArguments = new ArrayList<>();
 
         Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
         AnnotatedType[] annotatedActualTypeArguments = ifNull(annotatedParameterizedType);
 
         for (int index = 0; index < actualTypeArguments.length; index++) {
-            if (actualTypeArguments[index] instanceof WildcardType) {
-                WildcardType wildcardType = (WildcardType) actualTypeArguments[index];
+            Type actualTypeArgument = actualTypeArguments[index];
+            if (actualTypeArgument instanceof WildcardType) {
+                WildcardType wildcardType = (WildcardType) actualTypeArgument;
                 AnnotatedType annotatedType = ifEmpty(annotatedActualTypeArguments, index);
 
                 AnnotatedWildcardType annotatedWildcardType = (AnnotatedWildcardType) annotatedType;
-                String annotations = getAnnotationParser().parseAnnotationsAsInline(annotatedWildcardType);
+                String annotations = annotationParser.parseAnnotationsAsInline(annotatedWildcardType, context);
                 String wildcard = getCorrectAnnotations(annotations) + "?";
 
                 AnnotatedType[] upper = ifNullUpper(annotatedWildcardType);
                 AnnotatedType[] lower = ifNullLower(annotatedWildcardType);
 
-                wildcard += parseWildCardsBound(wildcardType.getUpperBounds(), "extends", upper);
-                wildcard += parseWildCardsBound(wildcardType.getLowerBounds(), "super", lower);
+                wildcard += parseWildCardsBound(wildcardType.getUpperBounds(), "extends", upper, context);
+                wildcard += parseWildCardsBound(wildcardType.getLowerBounds(), "super", lower, context);
 
                 genericArguments.add(wildcard);
             } else {
                 AnnotatedType annotatedType = ifEmpty(annotatedActualTypeArguments, index);
-                genericArguments.add(parseType(actualTypeArguments[index], annotatedType));
+                genericArguments.add(parseType(actualTypeArguments[index], annotatedType, context));
             }
         }
 
@@ -352,14 +391,18 @@ public class GenericTypeParser {
      * @param annotatedTypes annotation for bounds
      * @return string with meta information about wild card bounds
      */
-    private String parseWildCardsBound(Type[] types, String boundCase, AnnotatedType[] annotatedTypes) {
+    private String parseWildCardsBound(Type[] types,
+                                       String boundCase,
+                                       AnnotatedType[] annotatedTypes,
+                                       ParseContext context) {
         String wildcard = "";
+
         if (types.length != 0) {
             List<String> bounds = new ArrayList<>();
             for (int index = 0; index < types.length; index++) {
                 Type type = types[index];
                 if (configurationManager.isDisplayDefaultInheritance() || type != Object.class) {
-                    bounds.add(parseType(type, ifEmpty(annotatedTypes, index)));
+                    bounds.add(parseType(type, ifEmpty(annotatedTypes, index), context));
                 }
             }
 
@@ -367,6 +410,7 @@ public class GenericTypeParser {
                 wildcard += " " + boundCase + " " + String.join(" & ", bounds);
             }
         }
+
         return wildcard;
     }
 
@@ -376,11 +420,11 @@ public class GenericTypeParser {
      * @param innerClass any class
      * @return true if name needed for inner class
      */
-    private boolean isNeedNameForInnerClass(Class<?> innerClass) {
-        Class<?> parsedClass = manager.getBaseParsedClass();
+    private boolean isNeedNameForInnerClass(Class<?> innerClass, ParseContext context) {
+        Class<?> parsedClass = context.getBaseParsedClass();
         return innerClass.isMemberClass()
                 && (!getTopClass(innerClass).equals(getTopClass(parsedClass))
-                || !isInVisibilityZone(innerClass));
+                || !isInVisibilityZone(innerClass, context));
     }
 
     /**
@@ -399,8 +443,8 @@ public class GenericTypeParser {
      * @param innerClass any class
      * @return true if class in visibility zone for current parsed class
      */
-    private boolean isInVisibilityZone(Class<?> innerClass) {
-        Class<?> currentClass = manager.getCurrentParsedClass();
+    private boolean isInVisibilityZone(Class<?> innerClass, ParseContext context) {
+        Class<?> currentClass = context.getCurrentParsedClass();
         while (currentClass != null) {
             List<Class<?>> innerClasses = Arrays.asList(currentClass.getDeclaredClasses());
             if (innerClasses.contains(innerClass)) {

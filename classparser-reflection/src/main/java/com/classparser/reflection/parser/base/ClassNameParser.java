@@ -1,13 +1,11 @@
 package com.classparser.reflection.parser.base;
 
-import com.classparser.reflection.configuration.ReflectionParserManager;
-import com.classparser.reflection.parser.imports.ImportParser;
+import com.classparser.reflection.ParseContext;
 
 import java.lang.reflect.Member;
 
 /**
  * Class provides functionality for parsing class names
- * This class depends on context {@link ReflectionParserManager} of parsing
  *
  * @author Aleksey Makarov
  * @author Valim Kiselev
@@ -17,22 +15,19 @@ public class ClassNameParser {
 
     private final ImportParser importParser;
 
-    private final ReflectionParserManager manager;
-
-    public ClassNameParser(ImportParser importParser, ReflectionParserManager manager) {
+    public ClassNameParser(ImportParser importParser) {
         this.importParser = importParser;
-        this.manager = manager;
     }
 
     /**
      * Parses name of class and stores it to current import context
-     * Returns full or simple name in depend on {@link ImportParser#addToImportSection(Class)} return value
+     * Returns full or simple name in depend on {@link ImportParser#addToImportSection(Class, ParseContext)} return value
      *
      * @param clazz any class
      * @return parsed name of class
      */
-    public String parseTypeName(Class<?> clazz) {
-        return importParser.addToImportSection(clazz) ? getSimpleName(clazz) : getName(clazz);
+    public String parseTypeName(Class<?> clazz, ParseContext context) {
+        return importParser.addToImportSection(clazz, context) ? getSimpleName(clazz) : getName(clazz, context);
     }
 
     /**
@@ -69,8 +64,8 @@ public class ClassNameParser {
      * @param clazz any class
      * @return parsed name of class
      */
-    private String getName(Class<?> clazz) {
-        if (clazz.isMemberClass() || clazz == manager.getCurrentParsedClass()) {
+    private String getName(Class<?> clazz, ParseContext context) {
+        if (clazz.isMemberClass() || context.isCurrentParsedClass(clazz)) {
             return getSimpleName(clazz);
         } else {
             return clazz.getName();

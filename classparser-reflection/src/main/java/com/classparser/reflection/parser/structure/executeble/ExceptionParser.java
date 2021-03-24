@@ -1,7 +1,7 @@
 package com.classparser.reflection.parser.structure.executeble;
 
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.reflection.parser.base.GenericTypeParser;
 
 import java.lang.reflect.AnnotatedType;
@@ -26,9 +26,9 @@ public class ExceptionParser {
 
     private final ConfigurationManager configurationManager;
 
-    public ExceptionParser(GenericTypeParser genericTypeParser, ReflectionParserManager manager) {
+    public ExceptionParser(GenericTypeParser genericTypeParser, ConfigurationManager configurationManager) {
         this.genericTypeParser = genericTypeParser;
-        this.configurationManager = manager.getConfigurationManager();
+        this.configurationManager = configurationManager;
     }
 
     /**
@@ -42,7 +42,7 @@ public class ExceptionParser {
      * @param executable any executable ({@link Method}, {@link Constructor})
      * @return parsed exceptions or empty string if throws exceptions is not exists
      */
-    public String parseExceptions(Executable executable) {
+    public String parseExceptions(Executable executable, ParseContext context) {
         String exceptions = "";
 
         AnnotatedType[] annotatedExceptionTypes = executable.getAnnotatedExceptionTypes();
@@ -50,7 +50,9 @@ public class ExceptionParser {
 
         List<String> exceptionTypesList = new ArrayList<>();
         for (int index = 0; index < exceptionTypes.length; index++) {
-            exceptionTypesList.add(genericTypeParser.parseType(exceptionTypes[index], annotatedExceptionTypes[index]));
+            exceptionTypesList.add(genericTypeParser.parseType(exceptionTypes[index],
+                    annotatedExceptionTypes[index],
+                    context));
         }
 
         if (!exceptionTypesList.isEmpty()) {

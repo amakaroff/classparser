@@ -20,7 +20,7 @@ public class ConfigurationUtils {
     /**
      * Fully, correctly configuration
      */
-    private final Map<String, Object> configuration;
+    private volatile Map<String, Object> configuration;
 
     /**
      * Default constructor for initialize {@link ConfigurationUtils}
@@ -54,8 +54,7 @@ public class ConfigurationUtils {
         if (newConfiguration != null) {
             Map<String, Object> configurationMap = newConfiguration.getConfiguration();
             if (configurationMap != null && !configurationMap.isEmpty()) {
-                this.configuration.clear();
-                this.configuration.putAll(configurationMap);
+                this.configuration = configurationMap;
             }
         }
     }
@@ -72,13 +71,14 @@ public class ConfigurationUtils {
      * @throws OptionNotFoundException if option is not defined in basic and default configuration
      */
     public <T> T getConfigOption(String config, Class<T> type) throws OptionNotFoundException {
+        Map<String, Object> configuration = this.configuration;
         Object option = configuration.get(config);
         if (configuration.containsKey(config)) {
             if (isInstance(option, type)) {
                 return type.cast(option);
             } else {
                 System.err.println("Option {" + config + "} have invalid default class type {" + type + "}!" +
-                                   "Will be get the default option.");
+                        "Will be get the default option.");
             }
         }
 

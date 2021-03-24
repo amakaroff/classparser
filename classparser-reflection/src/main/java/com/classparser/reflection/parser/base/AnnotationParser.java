@@ -1,7 +1,7 @@
 package com.classparser.reflection.parser.base;
 
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.reflection.exception.ReflectionParserException;
 import com.classparser.util.Reflection;
 
@@ -34,11 +34,13 @@ public class AnnotationParser {
 
     private ValueParser valueParser;
 
-    public AnnotationParser(IndentParser indentParser, GenericTypeParser genericTypeParser,
-                            ReflectionParserManager manager, ModifierParser modifierParser) {
+    public AnnotationParser(IndentParser indentParser,
+                            GenericTypeParser genericTypeParser,
+                            ConfigurationManager configurationManager,
+                            ModifierParser modifierParser) {
         this.indentParser = indentParser;
         this.genericTypeParser = genericTypeParser;
-        this.configurationManager = manager.getConfigurationManager();
+        this.configurationManager = configurationManager;
         this.modifierParser = modifierParser;
     }
 
@@ -54,14 +56,14 @@ public class AnnotationParser {
      * @param annotatedElement any annotated element
      * @return string line with parsed annotation meta information
      */
-    public String parseAnnotationsAsInline(AnnotatedElement annotatedElement) {
+    public String parseAnnotationsAsInline(AnnotatedElement annotatedElement, ParseContext context) {
         List<String> annotations = new ArrayList<>();
 
         if (annotatedElement != null) {
-            String indent = indentParser.getIndent(annotatedElement);
+            String indent = indentParser.getIndent(annotatedElement, context);
 
             for (Annotation annotation : unrollAnnotations(annotatedElement.getDeclaredAnnotations())) {
-                annotations.add(parseAnnotation(annotation));
+                annotations.add(parseAnnotation(annotation, context));
             }
 
             return indent + String.join(" ", annotations);
@@ -82,15 +84,15 @@ public class AnnotationParser {
      * @param annotatedElement any annotated element
      * @return string line with parsed annotation meta information
      */
-    public String parseAnnotationsAsBlock(AnnotatedElement annotatedElement) {
+    public String parseAnnotationsAsBlock(AnnotatedElement annotatedElement, ParseContext context) {
         StringBuilder annotations = new StringBuilder();
 
         if (annotatedElement != null) {
-            String indent = indentParser.getIndent(annotatedElement);
+            String indent = indentParser.getIndent(annotatedElement, context);
             String lineSeparator = configurationManager.getLineSeparator();
 
             for (Annotation annotation : unrollAnnotations(annotatedElement.getDeclaredAnnotations())) {
-                annotations.append(indent).append(parseAnnotation(annotation)).append(lineSeparator);
+                annotations.append(indent).append(parseAnnotation(annotation, context)).append(lineSeparator);
             }
 
             if (annotatedElement instanceof Method) {
@@ -110,12 +112,12 @@ public class AnnotationParser {
      * @param annotation any annotation
      * @return string meta information about annotation
      */
-    public String parseAnnotation(Annotation annotation) {
+    public String parseAnnotation(Annotation annotation, ParseContext context) {
         String annotationSignature = "";
 
         if (annotation != null) {
-            String annotationName = genericTypeParser.parseType(annotation.annotationType());
-            String annotationArguments = parseAnnotationArguments(annotation);
+            String annotationName = genericTypeParser.parseType(annotation.annotationType(), context);
+            String annotationArguments = parseAnnotationArguments(annotation, context);
             annotationSignature += '@' + annotationName + annotationArguments;
         }
 
@@ -128,11 +130,11 @@ public class AnnotationParser {
      * @param annotation any annotation
      * @return string line with annotation parameters information
      */
-    private String parseAnnotationArguments(Annotation annotation) {
+    private String parseAnnotationArguments(Annotation annotation, ParseContext context) {
         String annotationArguments = "";
 
         List<String> arguments = new ArrayList<>();
-        Set<Map.Entry<String, Object>> annotationParameters = getAnnotationMemberTypes(annotation).entrySet();
+        Set<Map.Entry<String, Object>> annotationParameters = getAnnotationMemberTypes(annotation, context).entrySet();
         for (Map.Entry<String, Object> entry : annotationParameters) {
             if (DEFAULT_ANNOTATION_METHOD.equals(entry.getKey()) && annotationParameters.size() == 1) {
                 arguments.add(String.valueOf(entry.getValue()));
@@ -154,7 +156,7 @@ public class AnnotationParser {
      * @param annotation any annotation
      * @return map with annotation parameter values
      */
-    private Map<String, Object> getAnnotationMemberTypes(Annotation annotation) {
+    private Map<String, Object> getAnnotationMemberTypes(Annotation annotation, ParseContext context) {
         Map<String, Object> map = new HashMap<>();
 
         Class<? extends Annotation> annotationTypeClass = annotation.annotationType();
@@ -164,7 +166,7 @@ public class AnnotationParser {
             for (Method method : methods) {
                 Object value = Reflection.invoke(method, annotation);
                 if (!isDefaultValue(value, method.getDefaultValue())) {
-                    map.put(method.getName(), getValueParser().getValue(value));
+                    map.put(method.getName(), getValueParser().getValue(value, context));
                 }
             }
         }
@@ -341,17 +343,15 @@ public class AnnotationParser {
     private boolean isInterfaceMethodOverridden(Class<?> declaringClass, Method method) {
         Class<?>[] interfaces = declaringClass.getInterfaces();
 
-        if (interfaces != null) {
-            for (Class<?> interfaceOfClass : interfaces) {
-                for (Method interfaceMethod : interfaceOfClass.getDeclaredMethods()) {
-                    if (isMethodOverriddenEquals(method, interfaceMethod)) {
-                        return true;
-                    }
-                }
-
-                if (isInterfaceMethodOverridden(interfaceOfClass, method)) {
+        for (Class<?> interfaceOfClass : interfaces) {
+            for (Method interfaceMethod : interfaceOfClass.getDeclaredMethods()) {
+                if (isMethodOverriddenEquals(method, interfaceMethod)) {
                     return true;
                 }
+            }
+
+            if (isInterfaceMethodOverridden(interfaceOfClass, method)) {
+                return true;
             }
         }
 

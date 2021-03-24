@@ -4,6 +4,7 @@ import com.classparser.bytecode.api.ByteCodeCollector;
 import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.exception.ByteCodeParserException;
 import com.classparser.bytecode.utils.ClassNameConverter;
+import com.classparser.exception.file.FileReadingException;
 
 import java.io.File;
 import java.io.IOException;
@@ -108,10 +109,7 @@ public class DumperByteCodeCollector implements ByteCodeCollector {
                 try {
                     return Files.readAllBytes(path);
                 } catch (IOException exception) {
-                    System.out.println("Can't read file: " + path.toString());
-                    exception.printStackTrace();
-
-                    return null;
+                    throw new FileReadingException("Can't read file: " + path.toString(), exception, path.toString());
                 }
             }
         }

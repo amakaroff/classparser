@@ -1,12 +1,11 @@
 package com.classparser.reflection.parser.structure;
 
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 import com.classparser.reflection.parser.base.IndentParser;
+import com.classparser.util.Reflection;
 
 import java.io.ObjectStreamClass;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
 /**
@@ -18,16 +17,16 @@ import java.lang.reflect.Method;
  */
 public class BlockParser {
 
-    private final MethodHandle methodHandle;
-
     private final IndentParser indentParser;
 
     private final ConfigurationManager configurationManager;
 
-    public BlockParser(IndentParser indentParser, ReflectionParserManager manager) {
+    private final Method method;
+
+    public BlockParser(IndentParser indentParser, ConfigurationManager configurationManager) {
         this.indentParser = indentParser;
-        this.configurationManager = manager.getConfigurationManager();
-        this.methodHandle = loadHasStaticInitializerHandle();
+        this.configurationManager = configurationManager;
+        this.method = loadHasStaticInitializerHandle();
     }
 
     /**
@@ -37,16 +36,21 @@ public class BlockParser {
      * @param clazz any class
      * @return string line with initialization blocks
      */
-    public String parseStaticBlock(Class<?> clazz) {
-        if (hasStaticInitializer(clazz)) {
+    public String parseStaticBlock(Class<?> clazz, ParseContext context) {
+        if (isStaticInitializerAllowed(clazz) && hasStaticInitializer(clazz)) {
             String oneIndent = configurationManager.getIndentSpaces();
             String lineSeparator = configurationManager.getLineSeparator();
-            String indent = indentParser.getIndent(clazz) + oneIndent;
+            String indent = indentParser.getIndent(clazz, context) + oneIndent;
             return indent + "static {" + lineSeparator + indent + oneIndent +
                     "/* Compiled code */" + lineSeparator + indent + '}' + lineSeparator;
         }
 
         return "";
+    }
+
+    private boolean isStaticInitializerAllowed(Class<?> clazz) {
+        return configurationManager.isDisplayStaticBlock() &&
+                (!clazz.isEnum() || configurationManager.isParseEnumAsClass());
     }
 
     /**
@@ -56,14 +60,10 @@ public class BlockParser {
      * @return true if static init block is exists
      */
     private boolean hasStaticInitializer(Class<?> clazz) {
-        if (methodHandle != null) {
+        if (method != null) {
             try {
-                return (boolean) methodHandle.invokeExact(clazz);
-            } catch (Throwable exception) {
-                if (exception instanceof Error) {
-                    throw (Error) exception;
-                }
-
+                return (boolean) Reflection.invoke(method, clazz);
+            } catch (Exception exception) {
                 return false;
             }
         }
@@ -76,15 +76,9 @@ public class BlockParser {
      *
      * @return method #hasStaticInitializer() or null if method can't be a loaded
      */
-    private MethodHandle loadHasStaticInitializerHandle() {
+    private Method loadHasStaticInitializerHandle() {
         try {
-            Method method = ObjectStreamClass.class.getDeclaredMethod("hasStaticInitializer", Class.class);
-            try {
-                method.setAccessible(true);
-                return MethodHandles.lookup().unreflect(method);
-            } finally {
-                method.setAccessible(false);
-            }
+            return ObjectStreamClass.class.getDeclaredMethod("hasStaticInitializer", Class.class);
         } catch (ReflectiveOperationException exception) {
             return null;
         }

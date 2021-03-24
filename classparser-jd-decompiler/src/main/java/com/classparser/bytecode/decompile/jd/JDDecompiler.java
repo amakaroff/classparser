@@ -106,7 +106,7 @@ public final class JDDecompiler implements Decompiler {
      */
     private static class JDLoader implements Loader {
 
-        private Map<String, byte[]> byteCodesMap;
+        private final Map<String, byte[]> byteCodesMap;
 
         /**
          * Default constructor for creating jd loader

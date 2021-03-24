@@ -1,13 +1,9 @@
 package com.classparser.reflection.parser.structure.executeble;
 
+import com.classparser.reflection.ParseContext;
+import com.classparser.reflection.ContentJoiner;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
-import com.classparser.reflection.parser.base.AnnotationParser;
-import com.classparser.reflection.parser.base.ClassNameParser;
-import com.classparser.reflection.parser.base.GenericTypeParser;
-import com.classparser.reflection.parser.base.IndentParser;
-import com.classparser.reflection.parser.base.ModifierParser;
-import com.classparser.reflection.parser.base.ValueParser;
+import com.classparser.reflection.parser.base.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -24,8 +20,6 @@ import java.util.List;
  * @since 1.0.0
  */
 public class MethodParser {
-
-    private final ReflectionParserManager manager;
 
     private final ConfigurationManager configurationManager;
 
@@ -45,13 +39,16 @@ public class MethodParser {
 
     private final ValueParser valueParser;
 
-    public MethodParser(ReflectionParserManager manager, GenericTypeParser genericTypeParser,
-                        ModifierParser modifierParser, AnnotationParser annotationParser,
-                        ArgumentParser argumentParser, IndentParser indentParser,
-                        ExceptionParser exceptionParser, ClassNameParser classNameParser,
+    public MethodParser(ConfigurationManager configurationManager,
+                        GenericTypeParser genericTypeParser,
+                        ModifierParser modifierParser,
+                        AnnotationParser annotationParser,
+                        ArgumentParser argumentParser,
+                        IndentParser indentParser,
+                        ExceptionParser exceptionParser,
+                        ClassNameParser classNameParser,
                         ValueParser valueParser) {
-        this.manager = manager;
-        this.configurationManager = manager.getConfigurationManager();
+        this.configurationManager = configurationManager;
         this.genericTypeParser = genericTypeParser;
         this.modifierParser = modifierParser;
         this.annotationParser = annotationParser;
@@ -68,16 +65,24 @@ public class MethodParser {
      * @param clazz any class
      * @return parsed methods
      */
-    public String parseMethods(Class<?> clazz) {
-        List<String> methods = new ArrayList<>();
+    public String parseMethods(Class<?> clazz, ParseContext context) {
+        List<String> staticMethods = new ArrayList<>();
+        List<String> instanceMethods = new ArrayList<>();
 
         for (Method method : clazz.getDeclaredMethods()) {
             if (isDisplayMethod(method)) {
-                methods.add(parseMethod(method));
+                String parsedMethod = parseMethod(method, context);
+                if (Modifier.isStatic(method.getModifiers())) {
+                    staticMethods.add(parsedMethod);
+                } else {
+                    instanceMethods.add(parsedMethod);
+                }
             }
         }
 
-        return manager.joinContentByLineSeparator(methods);
+        staticMethods.addAll(instanceMethods);
+
+        return ContentJoiner.joinContent(staticMethods, configurationManager.getLineSeparator());
     }
 
     /**
@@ -87,7 +92,12 @@ public class MethodParser {
      * @return true if display is needed
      */
     private boolean isDisplayMethod(Method method) {
-        return configurationManager.isDisplaySyntheticEntities() || !method.isSynthetic() && !method.isBridge();
+        if (method.getDeclaringClass().isEnum()) {
+            return configurationManager.isParseEnumAsClass() || !isSpecialEnumMethod(method);
+        } else {
+            return configurationManager.isDisplaySyntheticEntities() ||
+                    !method.isSynthetic() && !method.isBridge();
+        }
     }
 
     /**
@@ -97,21 +107,21 @@ public class MethodParser {
      * @param method any method
      * @return parsed method
      */
-    public String parseMethod(Method method) {
-        String indent = indentParser.getIndent(method);
-        String annotations = annotationParser.parseAnnotationsAsBlock(method);
+    public String parseMethod(Method method, ParseContext context) {
+        String indent = indentParser.getIndent(method, context);
+        String annotations = annotationParser.parseAnnotationsAsBlock(method, context);
         String modifiers = modifierParser.parseModifiers(method);
-        String generics = genericTypeParser.parseGenerics(method);
-        String returnType = genericTypeParser.parseType(getReturnType(method), method.getAnnotatedReturnType());
+        String generics = genericTypeParser.parseGenerics(method, context);
+        String returnType = genericTypeParser.parseType(getReturnType(method), method.getAnnotatedReturnType(), context);
         String methodName = classNameParser.getMemberName(method);
-        String arguments = argumentParser.parseArguments(method);
-        String defaultAnnotationValue = valueParser.getValue(method);
-        String exceptions = exceptionParser.parseExceptions(method);
-        String body = parseBody(method);
-        String content = manager.joinNotEmptyContentBySpace(modifiers, generics, returnType);
+        String arguments = argumentParser.parseArguments(method, context);
+        String defaultAnnotationValue = valueParser.getValue(method, context);
+        String exceptions = exceptionParser.parseExceptions(method, context);
+        String body = parseBody(method, context);
+        String content = ContentJoiner.joinNotEmptyContentBySpace(modifiers, generics, returnType);
 
         return annotations + indent + content + " " + methodName + arguments +
-               defaultAnnotationValue + exceptions + body;
+                defaultAnnotationValue + exceptions + body;
     }
 
     /**
@@ -135,10 +145,10 @@ public class MethodParser {
      * @param method any method
      * @return parsed method body
      */
-    private String parseBody(Method method) {
+    private String parseBody(Method method, ParseContext context) {
         String lineSeparator = configurationManager.getLineSeparator();
         String oneIndent = configurationManager.getIndentSpaces();
-        String indent = indentParser.getIndent(method);
+        String indent = indentParser.getIndent(method, context);
 
         if (isMethodExistsRealization(method)) {
             return " {" + lineSeparator + indent + oneIndent + "/* Compiled code */" + lineSeparator + indent + '}';
@@ -155,5 +165,28 @@ public class MethodParser {
      */
     private boolean isMethodExistsRealization(Method method) {
         return !Modifier.isAbstract(method.getModifiers()) && !Modifier.isNative(method.getModifiers());
+    }
+
+    private boolean isSpecialEnumMethod(Method method) {
+        Class<?> declaringClass = method.getDeclaringClass();
+        if (declaringClass.isEnum() && Modifier.isStatic(method.getModifiers())) {
+            Class<?> returnType = method.getReturnType();
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            String methodName = method.getName();
+
+            if (methodName.equals("valueOf") &&
+                    returnType.equals(declaringClass) &&
+                    parameterTypes.length == 1 &&
+                    parameterTypes[0].equals(String.class)) {
+                return true;
+            } else {
+                return methodName.equals("values") &&
+                        returnType.isArray() &&
+                        returnType.getComponentType().equals(declaringClass) &&
+                        parameterTypes.length == 0;
+            }
+        }
+
+        return false;
     }
 }

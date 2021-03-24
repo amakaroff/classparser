@@ -1,15 +1,15 @@
 package com.classparser.reflection.parser.structure;
 
-import com.classparser.api.ClassParser;
+import com.classparser.reflection.ParseContext;
+import com.classparser.reflection.ContentJoiner;
+import com.classparser.reflection.ReflectionParser;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Class provides functionality for parsing meta information about inner and nested classes
- * This class depends on parsing context {@link ReflectionParserManager}
  *
  * @author Aleksey Makarov
  * @author Valim Kiselev
@@ -17,16 +17,13 @@ import java.util.List;
  */
 public class ClassesParser {
 
-    private final ClassParser classParser;
-
-    private final ReflectionParserManager manager;
+    private final ReflectionParser classParser;
 
     private final ConfigurationManager configurationManager;
 
-    public ClassesParser(ClassParser classParser, ReflectionParserManager manager) {
+    public ClassesParser(ReflectionParser classParser, ConfigurationManager configurationManager) {
         this.classParser = classParser;
-        this.manager = manager;
-        this.configurationManager = manager.getConfigurationManager();
+        this.configurationManager = configurationManager;
     }
 
     /**
@@ -35,17 +32,17 @@ public class ClassesParser {
      * @param clazz any class
      * @return string line of meta information for inner and nested classes
      */
-    public String parseInnerClasses(Class<?> clazz) {
+    public String parseInnerClasses(Class<?> clazz, ParseContext context) {
         if (configurationManager.isDisplayInnerClasses()) {
             List<String> classes = new ArrayList<>();
 
             for (Class<?> declaredClass : clazz.getDeclaredClasses()) {
                 if (isShouldBeDisplayed(clazz)) {
-                    classes.add(classParser.parseClass(declaredClass));
+                    classes.add(classParser.parseClass(declaredClass, context));
                 }
             }
 
-            return manager.joinContentByLineSeparator(classes);
+            return ContentJoiner.joinContent(classes, configurationManager.getLineSeparator());
         }
 
         return "";

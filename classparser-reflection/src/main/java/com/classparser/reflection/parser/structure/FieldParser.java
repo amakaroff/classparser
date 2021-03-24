@@ -1,15 +1,12 @@
 package com.classparser.reflection.parser.structure;
 
+import com.classparser.reflection.ParseContext;
+import com.classparser.reflection.ContentJoiner;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.reflection.configuration.ReflectionParserManager;
-import com.classparser.reflection.parser.base.ClassNameParser;
-import com.classparser.reflection.parser.base.AnnotationParser;
-import com.classparser.reflection.parser.base.GenericTypeParser;
-import com.classparser.reflection.parser.base.IndentParser;
-import com.classparser.reflection.parser.base.ModifierParser;
-import com.classparser.reflection.parser.base.ValueParser;
+import com.classparser.reflection.parser.base.*;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +20,6 @@ import java.util.List;
  * @since 1.0.0
  */
 public class FieldParser {
-
-    private final ReflectionParserManager manager;
 
     private final ConfigurationManager configurationManager;
 
@@ -40,11 +35,14 @@ public class FieldParser {
 
     private final ValueParser valueParser;
 
-    public FieldParser(ReflectionParserManager manager, AnnotationParser annotationParser, IndentParser indentParser,
-                       ModifierParser modifierParser, GenericTypeParser genericTypeParser,
-                       ClassNameParser classNameParser, ValueParser valueParser) {
-        this.manager = manager;
-        this.configurationManager = manager.getConfigurationManager();
+    public FieldParser(ConfigurationManager configurationManager,
+                       AnnotationParser annotationParser,
+                       IndentParser indentParser,
+                       ModifierParser modifierParser,
+                       GenericTypeParser genericTypeParser,
+                       ClassNameParser classNameParser,
+                       ValueParser valueParser) {
+        this.configurationManager = configurationManager;
         this.annotationParser = annotationParser;
         this.indentParser = indentParser;
         this.modifierParser = modifierParser;
@@ -59,20 +57,58 @@ public class FieldParser {
      * @param clazz any class
      * @return parsed fields
      */
-    public String parseFields(Class<?> clazz) {
-        List<String> fields = new ArrayList<>();
+    public String parseFields(Class<?> clazz, ParseContext context) {
+        List<String> enumConstants = new ArrayList<>();
+        List<String> staticFields = new ArrayList<>();
+        List<String> instanceFields = new ArrayList<>();
 
         for (Field field : clazz.getDeclaredFields()) {
             if (isShouldBeDisplayed(field)) {
-                fields.add(parseField(field));
+                String parsedField = parseField(field, context);
+
+                if (!configurationManager.isParseEnumAsClass() && field.isEnumConstant()) {
+                    enumConstants.add(parsedField);
+                } else if (Modifier.isStatic(field.getModifiers())) {
+                    staticFields.add(parsedField);
+                } else {
+                    instanceFields.add(parsedField);
+                }
+
             }
         }
 
         if (clazz.isArray()) {
-            fields.add(parseArrayLengthField(clazz));
+            instanceFields.add(parseArrayLengthField(clazz, context));
         }
 
-        return manager.joinContentByLineSeparator(fields);
+        if (clazz.equals(Throwable.class)) {
+            instanceFields.add(parseSpecialThrowableField(clazz, context));
+        }
+
+        if (clazz.isEnum() && !configurationManager.isParseEnumAsClass()) {
+            String lineSeparator = configurationManager.getLineSeparator();
+            String doubleLineSeparator = lineSeparator + lineSeparator;
+
+            String parsedEnumConstants = "";
+            if (!enumConstants.isEmpty()) {
+                parsedEnumConstants = String.join("," + doubleLineSeparator, enumConstants) + ";" + lineSeparator;
+            }
+
+            String parsedStaticFields = "";
+            if (!staticFields.isEmpty()) {
+                parsedStaticFields = lineSeparator + String.join(doubleLineSeparator, staticFields);
+            }
+
+            String parsedInstanceFields = "";
+            if (!staticFields.isEmpty()) {
+                parsedInstanceFields = lineSeparator + String.join(doubleLineSeparator, instanceFields) + lineSeparator;
+            }
+
+            return parsedEnumConstants + parsedStaticFields + parsedInstanceFields;
+        } else {
+            staticFields.addAll(instanceFields);
+            return ContentJoiner.joinContent(staticFields, configurationManager.getLineSeparator());
+        }
     }
 
     /**
@@ -82,7 +118,12 @@ public class FieldParser {
      * @return true if display is needed
      */
     private boolean isShouldBeDisplayed(Field field) {
-        return configurationManager.isDisplaySyntheticEntities() || !field.isSynthetic();
+        if (field.getDeclaringClass().isEnum()) {
+            return configurationManager.isDisplaySyntheticEntities() && configurationManager.isParseEnumAsClass() ||
+                    !field.isSynthetic();
+        } else {
+            return configurationManager.isDisplaySyntheticEntities() || !field.isSynthetic();
+        }
     }
 
     /**
@@ -92,15 +133,24 @@ public class FieldParser {
      * @param field any field
      * @return parsed field
      */
-    public String parseField(Field field) {
-        String annotations = annotationParser.parseAnnotationsAsBlock(field);
-        String indent = indentParser.getIndent(field);
-        String modifiers = modifierParser.parseModifiers(field);
-        String type = genericTypeParser.parseType(getType(field), field.getAnnotatedType());
-        String name = classNameParser.getMemberName(field);
-        String value = valueParser.getValue(field);
+    public String parseField(Field field, ParseContext context) {
+        Class<?> declaringClass = field.getDeclaringClass();
 
-        return annotations + indent + manager.joinNotEmptyContentBySpace(modifiers, type, name) + value + ';';
+        if (declaringClass.isEnum() && field.isEnumConstant() && !configurationManager.isParseEnumAsClass()) {
+            String annotations = annotationParser.parseAnnotationsAsBlock(field, context);
+            String indent = indentParser.getIndent(field, context);
+
+            return annotations + indent + field.getName();
+        } else {
+            String annotations = annotationParser.parseAnnotationsAsBlock(field, context);
+            String indent = indentParser.getIndent(field, context);
+            String modifiers = modifierParser.parseModifiers(field);
+            String type = genericTypeParser.parseType(getType(field), field.getAnnotatedType(), context);
+            String name = classNameParser.getMemberName(field);
+            String value = valueParser.getValue(field, context);
+
+            return annotations + indent + ContentJoiner.joinNotEmptyContentBySpace(modifiers, type, name) + value + ';';
+        }
     }
 
     /**
@@ -123,11 +173,20 @@ public class FieldParser {
      * @param clazz any array class
      * @return parsed "length" field
      */
-    private String parseArrayLengthField(Class<?> clazz) {
-        String indent = configurationManager.getIndentSpaces() + indentParser.getIndent(clazz);
+    private String parseArrayLengthField(Class<?> clazz, ParseContext context) {
+        String indent = configurationManager.getIndentSpaces() + indentParser.getIndent(clazz, context);
         String modifiers = "public final";
         String type = "int";
         String name = "length";
+
+        return indent + modifiers + " " + type + " " + name + ";";
+    }
+
+    private String parseSpecialThrowableField(Class<?> clazz, ParseContext context) {
+        String indent = configurationManager.getIndentSpaces() + indentParser.getIndent(clazz, context);
+        String modifiers = "private transient";
+        String type = "Object";
+        String name = "backtrace";
 
         return indent + modifiers + " " + type + " " + name + ";";
     }
