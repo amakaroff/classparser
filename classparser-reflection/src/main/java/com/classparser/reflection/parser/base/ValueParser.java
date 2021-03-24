@@ -2,7 +2,6 @@ package com.classparser.reflection.parser.base;
 
 import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
-import com.classparser.util.Reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -19,6 +18,8 @@ import java.util.List;
  * @since 1.0.0
  */
 public class ValueParser {
+
+    private static final Object EMPTY = new Object();
 
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
@@ -58,7 +59,7 @@ public class ValueParser {
             if (clazz.isArray()) {
                 List<String> listValues = new ArrayList<>();
                 boolean isAllElementsEmpty = true;
-                for (Object listValue : getArrayValues(object)) {
+                for (Object listValue : toObjectArray(object)) {
                     String value = getValue(listValue, context);
                     if (value != null && !value.isEmpty()) {
                         isAllElementsEmpty = false;
@@ -90,9 +91,10 @@ public class ValueParser {
                 return genericTypeParser.parseType((Class<?>) object, context) + ".class";
             } else if (object instanceof Annotation) {
                 if (context.getBaseParsedClass().isAnnotation()) {
-                    Class<? extends Annotation> annotationType = ((Annotation) object).annotationType();
+                    Annotation annotation = (Annotation) object;
+                    Class<? extends Annotation> annotationType = annotation.annotationType();
                     if (annotationType != null && annotationType.isAnnotation()) {
-                        return annotationParser.parseAnnotation((Annotation) object, context);
+                        return annotationParser.parseAnnotation(annotation, context);
                     }
                 }
             }
@@ -149,7 +151,7 @@ public class ValueParser {
      * @param object any object
      * @return array or empty array if object is not array
      */
-    public Object[] getArrayValues(Object object) {
+    public Object[] toObjectArray(Object object) {
         if (object != null && object.getClass().isArray()) {
             int length = Array.getLength(object);
             Object[] objects = new Object[length];
@@ -212,11 +214,9 @@ public class ValueParser {
      * @return value from static field or empty string if value can't be obtained
      */
     private String getFieldValue(Field field, ParseContext context) {
-        if (configurationManager.isDisplayFieldValue() &&
-                Modifier.isStatic(field.getModifiers()) &&
-                !isEnumConstant(field)) {
-            Object value = Reflection.get(field);
-            if (!isField(value, context)) {
+        if (isDisplayField(field)) {
+            Object value = getStaticValue(field);
+            if (value != EMPTY && !isField(value, context)) {
                 String fieldValue = getValue(value, context);
                 if (!"".equals(fieldValue)) {
                     return " = " + fieldValue;
@@ -225,6 +225,36 @@ public class ValueParser {
         }
 
         return "";
+    }
+
+    /**
+     * Checks if value displayed is necessary
+     *
+     * @param field any field
+     * @return true if value of field should be displayed
+     */
+    private boolean isDisplayField(Field field) {
+        return configurationManager.isDisplayFieldValue() &&
+                Modifier.isStatic(field.getModifiers()) &&
+                !isEnumConstant(field);
+    }
+
+    /**
+     * Obtains static accessible field value
+     *
+     * @param field any field
+     * @return static field value
+     */
+    private Object getStaticValue(Field field) {
+        if (field.isAccessible()) {
+            try {
+                return field.get(null);
+            } catch (ReflectiveOperationException exception) {
+                return EMPTY;
+            }
+        }
+
+        return EMPTY;
     }
 
     /**
