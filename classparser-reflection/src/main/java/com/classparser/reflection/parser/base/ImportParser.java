@@ -29,7 +29,7 @@ public class ImportParser {
      * @param classForImport any class contains in meta information of based parsed class
      * @return true if class added to import section
      */
-    public boolean addToImportSection(Class<?> classForImport, ParseContext context) {
+    public boolean tryAddToImport(Class<?> classForImport, ParseContext context) {
         classForImport = resolveClass(classForImport);
 
         if (!configurationManager.isEnabledImports() || isNeedFullName(classForImport, context)) {

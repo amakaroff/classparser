@@ -22,7 +22,7 @@ import com.classparser.reflection.parser.structure.executeble.MethodParser;
  * Thread safe
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class ReflectionParser implements ClassParser {
@@ -44,13 +44,12 @@ public class ReflectionParser implements ClassParser {
         indentParser = new IndentParser(manager);
         importParser = new ImportParser(manager);
         ClassNameParser classNameParser = new ClassNameParser(importParser);
-        GenericTypeParser genericTypeParser = new GenericTypeParser(classNameParser, manager);
         ModifierParser modifierParser = new ModifierParser(manager);
-        AnnotationParser annotationParser = new AnnotationParser(indentParser, genericTypeParser, manager, modifierParser);
+        AnnotationParser annotationParser = new AnnotationParser(indentParser, classNameParser, manager, modifierParser);
+        GenericTypeParser genericTypeParser = new GenericTypeParser(classNameParser, annotationParser, manager);
         packageParser = new PackageParser(annotationParser, manager);
         ValueParser valueParser = new ValueParser(genericTypeParser, annotationParser, manager);
         annotationParser.setValueParser(valueParser);
-        genericTypeParser.setAnnotationParser(annotationParser);
 
         this.classSignatureParser = new ClassSignatureParser(
                 annotationParser,
@@ -66,10 +65,13 @@ public class ReflectionParser implements ClassParser {
         ExceptionParser exceptionParser = new ExceptionParser(genericTypeParser, manager);
 
         this.classContentParser = new ClassContentParser(
-                new FieldParser(manager, annotationParser, indentParser, modifierParser, genericTypeParser, classNameParser, valueParser),
+                new FieldParser(manager, annotationParser, indentParser, modifierParser, genericTypeParser,
+                        classNameParser, valueParser),
                 new BlockParser(indentParser, manager),
-                new ConstructorParser(manager, genericTypeParser, modifierParser, annotationParser, argumentParser, indentParser, exceptionParser),
-                new MethodParser(manager, genericTypeParser, modifierParser, annotationParser, argumentParser, indentParser, exceptionParser, classNameParser, valueParser),
+                new ConstructorParser(manager, genericTypeParser, modifierParser, annotationParser, argumentParser,
+                        indentParser, exceptionParser),
+                new MethodParser(manager, genericTypeParser, modifierParser, annotationParser, argumentParser,
+                        indentParser, exceptionParser, classNameParser, valueParser),
                 new ClassesParser(this, manager),
                 manager
         );

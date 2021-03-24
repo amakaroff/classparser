@@ -10,7 +10,7 @@ import java.util.List;
  * Class provides functionality by resolving masks with modifiers information
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class ModifierParser {

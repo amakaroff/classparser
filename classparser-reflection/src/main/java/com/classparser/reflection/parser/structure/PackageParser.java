@@ -8,7 +8,7 @@ import com.classparser.reflection.parser.base.AnnotationParser;
  * Class provides functionality for parsing package meta information
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class PackageParser {

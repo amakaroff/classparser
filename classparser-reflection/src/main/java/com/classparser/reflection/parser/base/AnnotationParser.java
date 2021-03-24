@@ -17,7 +17,7 @@ import java.util.*;
  * for any annotated class elements
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class AnnotationParser {
@@ -28,25 +28,25 @@ public class AnnotationParser {
 
     private final ConfigurationManager configurationManager;
 
-    private final GenericTypeParser genericTypeParser;
+    private final ClassNameParser classNameParser;
 
     private final ModifierParser modifierParser;
 
     private ValueParser valueParser;
 
     public AnnotationParser(IndentParser indentParser,
-                            GenericTypeParser genericTypeParser,
+                            ClassNameParser classNameParser,
                             ConfigurationManager configurationManager,
                             ModifierParser modifierParser) {
         this.indentParser = indentParser;
-        this.genericTypeParser = genericTypeParser;
+        this.classNameParser = classNameParser;
         this.configurationManager = configurationManager;
         this.modifierParser = modifierParser;
     }
 
     /**
-     * Parse annotation meta information and collecting it to inline string
-     * This method used for the parameter or use type annotations
+     * Parses annotation meta information and collecting it to inline string
+     * This method used for parameter or use type annotations
      * <code>
      * {
      * {@literal @}Annotation {@literal @}OtherAnnotation
@@ -63,13 +63,40 @@ public class AnnotationParser {
             String indent = indentParser.getIndent(annotatedElement, context);
 
             for (Annotation annotation : unrollAnnotations(annotatedElement.getDeclaredAnnotations())) {
-                annotations.add(parseAnnotation(annotation, context));
+                annotations.add(parseAnnotation(annotation, false, context));
             }
 
             return indent + String.join(" ", annotations);
         }
 
         return "";
+    }
+
+    /**
+     * Parses annotation meta information and collecting it to inline string
+     * <code>
+     * {
+     * {@literal @}Annotation
+     * {@literal @}OtherAnnotation
+     * }
+     * </code>
+     *
+     * @param annotatedElement any annotated element
+     * @return string line with parsed annotation meta information
+     */
+    public String parseAnnotationsAsBlock(AnnotatedElement annotatedElement, ParseContext context) {
+        return parseAnnotationsAsBlock(annotatedElement, false, context);
+    }
+
+    /**
+     * Parses annotation meta information and collecting it to inline string
+     * Uses in case if annotation located above any class
+     *
+     * @param annotatedElement any annotated element
+     * @return string line with parsed annotation meta information
+     */
+    public String parseAnnotationsAsBlockAboveClass(AnnotatedElement annotatedElement, ParseContext context) {
+        return parseAnnotationsAsBlock(annotatedElement, true, context);
     }
 
     /**
@@ -84,7 +111,7 @@ public class AnnotationParser {
      * @param annotatedElement any annotated element
      * @return string line with parsed annotation meta information
      */
-    public String parseAnnotationsAsBlock(AnnotatedElement annotatedElement, ParseContext context) {
+    private String parseAnnotationsAsBlock(AnnotatedElement annotatedElement, boolean isAboveClass, ParseContext context) {
         StringBuilder annotations = new StringBuilder();
 
         if (annotatedElement != null) {
@@ -92,7 +119,7 @@ public class AnnotationParser {
             String lineSeparator = configurationManager.getLineSeparator();
 
             for (Annotation annotation : unrollAnnotations(annotatedElement.getDeclaredAnnotations())) {
-                annotations.append(indent).append(parseAnnotation(annotation, context)).append(lineSeparator);
+                annotations.append(indent).append(parseAnnotation(annotation, isAboveClass, context)).append(lineSeparator);
             }
 
             if (annotatedElement instanceof Method) {
@@ -113,15 +140,24 @@ public class AnnotationParser {
      * @return string meta information about annotation
      */
     public String parseAnnotation(Annotation annotation, ParseContext context) {
-        String annotationSignature = "";
+        return parseAnnotation(annotation, false, context);
+    }
 
+    /**
+     * Parse annotation meta information and collecting it to {@link String}
+     *
+     * @param annotation   any annotation
+     * @param isAboveClass flag uses for mark if this annotation located above class
+     * @return string meta information about annotation
+     */
+    private String parseAnnotation(Annotation annotation, boolean isAboveClass, ParseContext context) {
         if (annotation != null) {
-            String annotationName = genericTypeParser.parseType(annotation.annotationType(), context);
+            String annotationName = classNameParser.parseAnnotationName(annotation.annotationType(), isAboveClass, context);
             String annotationArguments = parseAnnotationArguments(annotation, context);
-            annotationSignature += '@' + annotationName + annotationArguments;
+            return '@' + annotationName + annotationArguments;
         }
 
-        return annotationSignature;
+        return "";
     }
 
     /**
@@ -131,8 +167,6 @@ public class AnnotationParser {
      * @return string line with annotation parameters information
      */
     private String parseAnnotationArguments(Annotation annotation, ParseContext context) {
-        String annotationArguments = "";
-
         List<String> arguments = new ArrayList<>();
         Set<Map.Entry<String, Object>> annotationParameters = getAnnotationMemberTypes(annotation, context).entrySet();
         for (Map.Entry<String, Object> entry : annotationParameters) {
@@ -144,10 +178,10 @@ public class AnnotationParser {
         }
 
         if (!arguments.isEmpty()) {
-            annotationArguments += '(' + String.join(", ", arguments) + ')';
+            return '(' + String.join(", ", arguments) + ')';
         }
 
-        return annotationArguments;
+        return "";
     }
 
     /**
@@ -166,7 +200,7 @@ public class AnnotationParser {
 
             for (Method method : methods) {
                 Object value = Reflection.invoke(method, annotation);
-                if (!isDefaultValue(value, method.getDefaultValue())) {
+                if (value != null && !isDefaultValue(value, method.getDefaultValue())) {
                     map.put(method.getName(), valueParser.getValue(value, context));
                 }
             }
@@ -229,7 +263,9 @@ public class AnnotationParser {
         Method valueMethod = retrieveValueMethodFromAnnotation(annotationType);
         if (valueMethod != null) {
             Annotation[] retrievedAnnotations = (Annotation[]) Reflection.invoke(valueMethod, annotation);
-            annotations.addAll(Arrays.asList(retrievedAnnotations));
+            if (retrievedAnnotations != null) {
+                annotations.addAll(Arrays.asList(retrievedAnnotations));
+            }
         }
 
         return annotations;
@@ -275,7 +311,7 @@ public class AnnotationParser {
     }
 
     /**
-     * Get value parser or throw exception if it not initialized
+     * Get value parser or throw exception if it not initialize
      *
      * @return instance of value parser
      */

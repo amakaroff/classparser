@@ -18,7 +18,7 @@ import java.nio.file.Paths;
  * Class provides functionality by dynamically attach java agent to JVM
  *
  * @author Aleksei Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class AgentAttacher {

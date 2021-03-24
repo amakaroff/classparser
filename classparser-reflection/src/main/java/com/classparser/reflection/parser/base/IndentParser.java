@@ -9,7 +9,7 @@ import java.lang.reflect.Member;
  * Class provides functionality by counting indent spaces for class structure elements
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class IndentParser {

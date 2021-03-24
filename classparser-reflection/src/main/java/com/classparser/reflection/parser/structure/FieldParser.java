@@ -16,7 +16,7 @@ import java.util.List;
  * Parsing includes annotation, generics and values for static fields
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class FieldParser {

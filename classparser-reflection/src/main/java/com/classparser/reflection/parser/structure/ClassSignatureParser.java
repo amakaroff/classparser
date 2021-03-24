@@ -46,7 +46,7 @@ public class ClassSignatureParser {
      * @return parsed signature of class
      */
     public String getClassSignature(Class<?> clazz, ParseContext context) {
-        String annotations = annotationParser.parseAnnotationsAsBlock(clazz, context);
+        String annotations = annotationParser.parseAnnotationsAsBlockAboveClass(clazz, context);
         String indent = indentParser.getIndent(clazz, context);
         String modifiers = modifierParser.parseModifiers(clazz);
         String name = classNameParser.parseTypeName(clazz, context);

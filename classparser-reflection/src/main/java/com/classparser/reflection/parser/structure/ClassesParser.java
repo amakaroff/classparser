@@ -12,7 +12,7 @@ import java.util.List;
  * Class provides functionality for parsing meta information about inner and nested classes
  *
  * @author Aleksey Makarov
- * @author Valim Kiselev
+ * @author Vadim Kiselev
  * @since 1.0.0
  */
 public class ClassesParser {
