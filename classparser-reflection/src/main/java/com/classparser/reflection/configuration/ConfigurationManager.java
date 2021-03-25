@@ -4,7 +4,6 @@ import com.classparser.configuration.Configuration;
 import com.classparser.reflection.ReflectionParser;
 import com.classparser.util.ConfigurationUtils;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.classparser.reflection.configuration.api.ReflectionParserConfiguration.*;
@@ -24,7 +23,7 @@ public class ConfigurationManager {
     private final ConfigurationUtils utils;
 
     public ConfigurationManager() {
-        this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
+        this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
 
     /**
@@ -51,10 +50,10 @@ public class ConfigurationManager {
      *      <li>{@link #isDisplayGenericSignatures()} - yes</li>
      *      <li>{@link #isDisplayVarArgs()} - yes</li>
      *      <li>{@link #isDisplayDefaultInheritance()} - false</li>
-     *      <li>{@link #hideExhaustiveModifiers()} - true</li>
+     *      <li>{@link #isDisplayImplicitModifiers()} - false</li>
      *      <li>{@link #isDisplayStaticBlock()} - true</li>
-     *      <li>{@link #isParseEnumAsClass()} - false</li>
-     *      <li>{@link #isEnabledImports()} - yes</li>
+     *      <li>{@link #isDisplayEnumAsClass()} - false</li>
+     *      <li>{@link #isDisplayImports()} - yes</li>
      *      <li>{@link #getIndentSpaces()} - 4 spaces</li>
      *      <li>{@link #chooseSystemNewLineCharacter} - choice depend on the system</li>
      * </ul>
@@ -71,11 +70,11 @@ public class ConfigurationManager {
                 .displayValueForFields(true)
                 .displayGenericSignatures(true)
                 .displayVarArgs(true)
-                .enableImportSection(true)
-                .hideExhaustiveModifiers(true)
+                .displayImplicitModifiers(false)
                 .displayDefaultInheritance(false)
                 .displayStaticBlock(true)
-                .parseEnumsAsClass(false)
+                .displayEnumsAsClass(false)
+                .displayImports(true)
                 .setCountIndentSpaces(4)
                 .defineLineSeparator(chooseSystemNewLineCharacter())
                 .getConfiguration();
@@ -162,7 +161,7 @@ public class ConfigurationManager {
      *
      * @return true if import section is enabled
      */
-    public boolean isEnabledImports() {
+    public boolean isDisplayImports() {
         return utils.getConfigOption(DISPLAY_IMPORT_SECTION_KEY, Boolean.class);
     }
 
@@ -192,8 +191,8 @@ public class ConfigurationManager {
      *
      * @return true if should hide exhaustive modifiers
      */
-    public boolean hideExhaustiveModifiers() {
-        return utils.getConfigOption(HIDE_EXHAUSTIVE_MODIFIERS_KEY, Boolean.class);
+    public boolean isDisplayImplicitModifiers() {
+        return utils.getConfigOption(DISPLAY_IMPLICIT_MODIFIERS_KEY, Boolean.class);
     }
 
     /**
@@ -213,7 +212,7 @@ public class ConfigurationManager {
      *
      * @return true if enum should be parsed as class
      */
-    public boolean isParseEnumAsClass() {
+    public boolean isDisplayEnumAsClass() {
         return utils.getConfigOption(PARSE_ENUM_AS_CLASS, Boolean.class);
     }
 

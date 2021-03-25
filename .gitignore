@@ -23,9 +23,10 @@
 hs_err_pid*
 
 # test package
-/classparser-test
+/classparser-tests/
 
 #idea metafiles
 /.idea
 *.iml
+
 

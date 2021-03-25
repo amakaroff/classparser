@@ -26,8 +26,8 @@ public class ExceptionParser {
 
     private final ConfigurationManager configurationManager;
 
-    public ExceptionParser(GenericTypeParser genericTypeParser, ConfigurationManager configurationManager) {
-        this.genericTypeParser = genericTypeParser;
+    public ExceptionParser(ConfigurationManager configurationManager) {
+        this.genericTypeParser = new GenericTypeParser(configurationManager);
         this.configurationManager = configurationManager;
     }
 
@@ -40,6 +40,7 @@ public class ExceptionParser {
      * This method returns the follow string: " throws Exception, RuntimeException"
      *
      * @param executable any executable ({@link Method}, {@link Constructor})
+     * @param context    context of parsing class process
      * @return parsed exceptions or empty string if throws exceptions is not exists
      */
     public String parseExceptions(Executable executable, ParseContext context) {

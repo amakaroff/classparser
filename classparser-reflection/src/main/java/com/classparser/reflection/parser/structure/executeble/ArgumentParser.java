@@ -1,19 +1,15 @@
 package com.classparser.reflection.parser.structure.executeble;
 
-import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.ContentJoiner;
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.parser.base.AnnotationParser;
+import com.classparser.reflection.parser.base.ClassNameParser;
 import com.classparser.reflection.parser.base.GenericTypeParser;
 import com.classparser.reflection.parser.base.ModifierParser;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,22 +23,22 @@ import java.util.List;
  */
 public class ArgumentParser {
 
-    private final ConfigurationManager configurationManager;
-
     private final GenericTypeParser genericTypeParser;
 
     private final ModifierParser modifierParser;
 
     private final AnnotationParser annotationParser;
 
-    public ArgumentParser(ConfigurationManager configurationManager,
-                          GenericTypeParser genericTypeParser,
-                          ModifierParser modifierParser,
-                          AnnotationParser annotationParser) {
+    private final ClassNameParser classNameParser;
+
+    private final ConfigurationManager configurationManager;
+
+    public ArgumentParser(ConfigurationManager configurationManager) {
+        this.genericTypeParser = new GenericTypeParser(configurationManager);
+        this.modifierParser = new ModifierParser(configurationManager);
+        this.annotationParser = new AnnotationParser(configurationManager);
+        this.classNameParser = new ClassNameParser(configurationManager);
         this.configurationManager = configurationManager;
-        this.genericTypeParser = genericTypeParser;
-        this.modifierParser = modifierParser;
-        this.annotationParser = annotationParser;
     }
 
     /**
@@ -70,8 +66,8 @@ public class ArgumentParser {
 
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
-            if (isShouldBeDisplayed(parameter, index)) {
-                strings.add(getArgument(parameter, annotatedParameterTypes[index], context));
+            if (isShouldBeDisplayed(parameter)) {
+                strings.add(parseArgument(parameter, annotatedParameterTypes[index], context));
             }
         }
 
@@ -82,61 +78,11 @@ public class ArgumentParser {
      * Checks if display argument is necessary
      *
      * @param parameter any argument
-     * @param index     index of argument
      * @return true if display argument is necessary
      */
-    private boolean isShouldBeDisplayed(Parameter parameter, int index) {
-        Class<?> declaringClass = parameter.getDeclaringExecutable().getDeclaringClass();
-        if (declaringClass.isEnum()) {
-            return configurationManager.isDisplaySyntheticEntities() && configurationManager.isParseEnumAsClass() ||
-                    !isSyntheticParameter(parameter, index);
-        } else {
-            return configurationManager.isDisplaySyntheticEntities() || !isSyntheticParameter(parameter, index);
-        }
-    }
-
-    /**
-     * Checks if argument is synthetic or implicit
-     *
-     * @param parameter any argument
-     * @param index     index of argument
-     * @return true if argument is synthetic or implicit
-     */
-    private boolean isSyntheticParameter(Parameter parameter, int index) {
-        return parameter.isSynthetic() ||
-                parameter.isImplicit() ||
-                isSyntheticConstructorFirstParameter(parameter, index) ||
-                isSyntheticEnumConstructorParameters(parameter, index);
-    }
-
-    /**
-     * Checks if argument is first argument in nested class
-     *
-     * @param parameter any argument
-     * @param index     argument index
-     * @return true if argument is first in constructor for nested class
-     */
-    private boolean isSyntheticConstructorFirstParameter(Parameter parameter, int index) {
-        Executable executable = parameter.getDeclaringExecutable();
-        Class<?> clazz = executable.getDeclaringClass();
-        return executable instanceof Constructor &&
-                clazz.isMemberClass() &&
-                !Modifier.isStatic(clazz.getModifiers()) &&
-                index == 0;
-    }
-
-    /**
-     * Checks first or second parameter in enum class
-     *
-     * @param parameter any parameter
-     * @param index     parameter index
-     * @return true if parameter is first or second in constructor for enum
-     */
-    private boolean isSyntheticEnumConstructorParameters(Parameter parameter, int index) {
-        Executable executable = parameter.getDeclaringExecutable();
-        return (executable instanceof Constructor &&
-                executable.getDeclaringClass().isEnum() &&
-                (index == 0 || index == 1));
+    private boolean isShouldBeDisplayed(Parameter parameter) {
+        return configurationManager.isDisplaySyntheticEntities() ||
+                !modifierParser.isSynthetic(parameter) && !modifierParser.isImplicit(parameter);
     }
 
     /**
@@ -146,7 +92,7 @@ public class ArgumentParser {
      * @param annotatedType annotation type on parameter
      * @return parsed string line with information about argument
      */
-    public String getArgument(Parameter parameter, AnnotatedType annotatedType, ParseContext context) {
+    public String parseArgument(Parameter parameter, AnnotatedType annotatedType, ParseContext context) {
         String annotations = annotationParser.parseAnnotationsAsInline(parameter, context);
         String type = resolveVariableArguments(parameter, annotatedType, context);
         String modifiers = modifierParser.parseModifiers(parameter);
@@ -198,7 +144,7 @@ public class ArgumentParser {
 
         String annotations = annotationParser.parseAnnotationsAsInline(annotatedReceiverType, context);
         String type = genericTypeParser.parseType(declaringClass, context) +
-                genericTypeParser.parseGenerics(declaringClass, context);
+                genericTypeParser.parseGenerics(declaringClass, true, context);
         String name = "this";
 
         return annotations + " " + type + name;
@@ -213,7 +159,10 @@ public class ArgumentParser {
      * @return parsed argument
      */
     private String resolveVariableArguments(Parameter parameter, AnnotatedType annotatedType, ParseContext context) {
-        String type = genericTypeParser.parseType(getParameterType(parameter), annotatedType, context);
+        String type = genericTypeParser.parseType(getParameterType(parameter),
+                classNameParser.isInnerClassInStaticContext(parameter.getDeclaringExecutable(), parameter.getType()),
+                annotatedType,
+                context);
         if (parameter.isVarArgs() && configurationManager.isDisplayVarArgs()) {
             return type.substring(0, type.length() - 2) + "...";
         } else {

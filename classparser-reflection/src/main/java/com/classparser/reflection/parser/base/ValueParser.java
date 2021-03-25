@@ -23,57 +23,62 @@ public class ValueParser {
 
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
-    private final GenericTypeParser genericTypeParser;
-
     private final AnnotationParser annotationParser;
+
+    private final GenericTypeParser genericTypeParser;
 
     private final ConfigurationManager configurationManager;
 
-    public ValueParser(GenericTypeParser genericTypeParser,
-                       AnnotationParser annotationParser,
-                       ConfigurationManager configurationManager) {
-        this.genericTypeParser = genericTypeParser;
-        this.annotationParser = annotationParser;
+    public ValueParser(ConfigurationManager configurationManager) {
+        this.annotationParser = new AnnotationParser(this, configurationManager);
+        this.genericTypeParser = new GenericTypeParser(annotationParser, configurationManager);
         this.configurationManager = configurationManager;
+    }
+
+    public ValueParser(AnnotationParser annotationParser, ConfigurationManager configurationManager) {
+        this.annotationParser = annotationParser;
+        this.genericTypeParser = new GenericTypeParser(annotationParser, configurationManager);
+        this.configurationManager = configurationManager;
+    }
+
+    public String parseValue(Field field, ParseContext context) {
+        if (isDisplayField(field)) {
+            Object value = getStaticValue(field);
+            if (value != EMPTY && !isField(value, context)) {
+                String fieldValue = parseValue(value, context);
+                if (!"".equals(fieldValue)) {
+                    return " = " + fieldValue;
+                }
+            }
+        }
+
+        return "";
+    }
+
+    public String parseValue(Method method, ParseContext context) {
+        String defaultAnnotationValue = "";
+
+        String defaultValue = parseValue(method.getDefaultValue(), context);
+        if (defaultValue != null) {
+            defaultAnnotationValue += " default " + defaultValue;
+        }
+
+        return defaultAnnotationValue;
     }
 
     /**
      * Try obtain and parse value for any object
      * This method supported: numbers, chars, strings, annotations, classes, enums, arrays
-     * And also static fields and default methods in annotations
      *
      * @param object any object
+     * @param context context of parsing class process
      * @return parsed value
      */
-    public String getValue(Object object, ParseContext context) {
-        if (isField(object, context)) {
-            return getFieldValue((Field) object, context);
-        }
-
-        if (isAnnotationMethod(object)) {
-            return getDefaultAnnotationValue((Method) object, context);
-        }
-
+    public String parseValue(Object object, ParseContext context) {
         if (object != null) {
             Class<?> clazz = object.getClass();
             if (clazz.isArray()) {
-                List<String> listValues = new ArrayList<>();
-                boolean isAllElementsEmpty = true;
-                for (Object listValue : toObjectArray(object)) {
-                    String value = getValue(listValue, context);
-                    if (value != null && !value.isEmpty()) {
-                        isAllElementsEmpty = false;
-                    }
-
-                    listValues.add(value);
-                }
-
-
-                if (listValues.isEmpty() || isAllElementsEmpty) {
-                    return "";
-                } else {
-                    return '{' + String.join(", ", listValues) + '}';
-                }
+                return parseArray(toObjectArray(object), context);
             }
 
             if (isEnum(clazz)) {
@@ -90,7 +95,7 @@ public class ValueParser {
             } else if (object instanceof Class) {
                 return genericTypeParser.parseType((Class<?>) object, context) + ".class";
             } else if (object instanceof Annotation) {
-                if (context.getBaseParsedClass().isAnnotation()) {
+                if (context.getCurrentParsedClass().isAnnotation()) {
                     Annotation annotation = (Annotation) object;
                     Class<? extends Annotation> annotationType = annotation.annotationType();
                     if (annotationType != null && annotationType.isAnnotation()) {
@@ -104,6 +109,26 @@ public class ValueParser {
         }
 
         return null;
+    }
+
+    private String parseArray(Object[] array, ParseContext context) {
+        List<String> listValues = new ArrayList<>();
+        boolean isAllElementsEmpty = true;
+
+        for (Object listValue : array) {
+            String value = parseValue(listValue, context);
+            if (value != null && !value.isEmpty()) {
+                isAllElementsEmpty = false;
+            }
+
+            listValues.add(value);
+        }
+
+        if (listValues.isEmpty() || isAllElementsEmpty) {
+            return "";
+        } else {
+            return '{' + String.join(", ", listValues) + '}';
+        }
     }
 
     /**
@@ -140,6 +165,12 @@ public class ValueParser {
                 return "\\f";
             case '\b':
                 return "\\b";
+            case '\"':
+                return "\\\"";
+            case '\\':
+                return "\\\\";
+            case '\'':
+                return "\\'";
             default:
                 return String.valueOf(character);
         }
@@ -191,43 +222,6 @@ public class ValueParser {
     }
 
     /**
-     * Obtains default value for annotation method
-     *
-     * @param method any method
-     * @return default value for method
-     */
-    private String getDefaultAnnotationValue(Method method, ParseContext context) {
-        String defaultAnnotationValue = "";
-
-        String defaultValue = getValue(method.getDefaultValue(), context);
-        if (defaultValue != null) {
-            defaultAnnotationValue += " default " + defaultValue;
-        }
-
-        return defaultAnnotationValue;
-    }
-
-    /**
-     * Obtains value from static field
-     *
-     * @param field any field
-     * @return value from static field or empty string if value can't be obtained
-     */
-    private String getFieldValue(Field field, ParseContext context) {
-        if (isDisplayField(field)) {
-            Object value = getStaticValue(field);
-            if (value != EMPTY && !isField(value, context)) {
-                String fieldValue = getValue(value, context);
-                if (!"".equals(fieldValue)) {
-                    return " = " + fieldValue;
-                }
-            }
-        }
-
-        return "";
-    }
-
-    /**
      * Checks if value displayed is necessary
      *
      * @param field any field
@@ -246,35 +240,22 @@ public class ValueParser {
      * @return static field value
      */
     private Object getStaticValue(Field field) {
-        if (field.isAccessible()) {
-            try {
-                return field.get(null);
-            } catch (ReflectiveOperationException exception) {
-                return EMPTY;
-            }
+        try {
+            return field.get(null);
+        } catch (IllegalAccessException exception) {
+            return EMPTY;
         }
-
-        return EMPTY;
     }
 
     /**
      * Checks field for accessory to current parsed class
      *
      * @param object any field
+     * @param context context of parsing class process
      * @return true if field accessory to current parsed class
      */
     private boolean isField(Object object, ParseContext context) {
         return object instanceof Field && context.isCurrentParsedClass(((Field) object).getDeclaringClass());
-    }
-
-    /**
-     * Checks method for accessory to annotation
-     *
-     * @param object any method
-     * @return true if method is accessory to annotation
-     */
-    private boolean isAnnotationMethod(Object object) {
-        return object instanceof Method && ((Method) object).getDeclaringClass().isAnnotation();
     }
 
     /**

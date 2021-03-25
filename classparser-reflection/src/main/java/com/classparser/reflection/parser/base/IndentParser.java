@@ -24,7 +24,8 @@ public class IndentParser {
      * Resolving count of indent for any class structure element
      * It's may be field, method, constructor or inner class
      *
-     * @param object any element of structure class
+     * @param object  any element of structure class
+     * @param context context of parsing class process
      * @return indent spaces
      */
     public String getIndent(Object object, ParseContext context) {

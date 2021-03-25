@@ -4,14 +4,11 @@ import com.classparser.api.ClassParser;
 import com.classparser.configuration.Configuration;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.exception.ReflectionParserException;
-import com.classparser.reflection.parser.ClassTypeParser;
-import com.classparser.reflection.parser.InheritanceParser;
-import com.classparser.reflection.parser.base.*;
-import com.classparser.reflection.parser.structure.*;
-import com.classparser.reflection.parser.structure.executeble.ArgumentParser;
-import com.classparser.reflection.parser.structure.executeble.ConstructorParser;
-import com.classparser.reflection.parser.structure.executeble.ExceptionParser;
-import com.classparser.reflection.parser.structure.executeble.MethodParser;
+import com.classparser.reflection.parser.structure.ImportParser;
+import com.classparser.reflection.parser.base.IndentParser;
+import com.classparser.reflection.parser.structure.ClassContentParser;
+import com.classparser.reflection.parser.structure.ClassSignatureParser;
+import com.classparser.reflection.parser.structure.PackageParser;
 
 /**
  * Implementation of {@link ClassParser} provides
@@ -37,44 +34,19 @@ public class ReflectionParser implements ClassParser {
 
     private final ClassSignatureParser classSignatureParser;
 
-    private final ConfigurationManager manager;
+    private final ConfigurationManager configurationManager;
 
     public ReflectionParser() {
-        manager = new ConfigurationManager();
-        indentParser = new IndentParser(manager);
-        importParser = new ImportParser(manager);
-        ClassNameParser classNameParser = new ClassNameParser(importParser);
-        ModifierParser modifierParser = new ModifierParser(manager);
-        AnnotationParser annotationParser = new AnnotationParser(indentParser, classNameParser, manager, modifierParser);
-        GenericTypeParser genericTypeParser = new GenericTypeParser(classNameParser, annotationParser, manager);
-        packageParser = new PackageParser(annotationParser, manager);
-        ValueParser valueParser = new ValueParser(genericTypeParser, annotationParser, manager);
-        annotationParser.setValueParser(valueParser);
+        this(new ConfigurationManager());
+    }
 
-        this.classSignatureParser = new ClassSignatureParser(
-                annotationParser,
-                indentParser,
-                modifierParser,
-                classNameParser,
-                new ClassTypeParser(),
-                genericTypeParser,
-                new InheritanceParser(genericTypeParser, manager)
-        );
-
-        ArgumentParser argumentParser = new ArgumentParser(manager, genericTypeParser, modifierParser, annotationParser);
-        ExceptionParser exceptionParser = new ExceptionParser(genericTypeParser, manager);
-
-        this.classContentParser = new ClassContentParser(
-                new FieldParser(manager, annotationParser, indentParser, modifierParser, genericTypeParser,
-                        classNameParser, valueParser),
-                new BlockParser(indentParser, manager),
-                new ConstructorParser(manager, genericTypeParser, modifierParser, annotationParser, argumentParser,
-                        indentParser, exceptionParser),
-                new MethodParser(manager, genericTypeParser, modifierParser, annotationParser, argumentParser,
-                        indentParser, exceptionParser, classNameParser, valueParser),
-                new ClassesParser(this, manager),
-                manager
-        );
+    public ReflectionParser(ConfigurationManager configurationManager) {
+        this.configurationManager = configurationManager;
+        this.indentParser = new IndentParser(configurationManager);
+        this.importParser = new ImportParser(configurationManager);
+        this.packageParser = new PackageParser(configurationManager);
+        this.classSignatureParser = new ClassSignatureParser(configurationManager);
+        this.classContentParser = new ClassContentParser(this, configurationManager);
     }
 
     @Override
@@ -86,7 +58,7 @@ public class ReflectionParser implements ClassParser {
         if (clazz != null) {
             setUp(clazz, context);
             try {
-                String lineSeparator = manager.getLineSeparator();
+                String lineSeparator = configurationManager.getLineSeparator();
                 String packageName = packageParser.parsePackage(clazz, context);
                 String indent = indentParser.getIndent(clazz, context);
                 String classSignature = classSignatureParser.getClassSignature(clazz, context);
@@ -106,7 +78,7 @@ public class ReflectionParser implements ClassParser {
     /**
      * Initializes current parser context
      *
-     * @param clazz class to be parsed
+     * @param clazz   class to be parsed
      * @param context context of parsing class process
      */
     private void setUp(Class<?> clazz, ParseContext context) {
@@ -126,10 +98,11 @@ public class ReflectionParser implements ClassParser {
      * Parses import section for class
      *
      * @param clazz any class
-     * @return parsed import section or empty string if {@link ConfigurationManager#isEnabledImports()} disable
+     * @param context context of parsing class process
+     * @return parsed import section or empty string if {@link ConfigurationManager#isDisplayImports()} disable
      */
     private String getImports(Class<?> clazz, ParseContext context) {
-        if (context.isBasedParsedClass(clazz) && manager.isEnabledImports()) {
+        if (context.isBasedParsedClass(clazz) && configurationManager.isDisplayImports()) {
             return importParser.getImports(context);
         }
 
@@ -138,6 +111,6 @@ public class ReflectionParser implements ClassParser {
 
     @Override
     public void setConfiguration(Configuration configuration) {
-        manager.reloadConfiguration(configuration);
+        configurationManager.reloadConfiguration(configuration);
     }
 }

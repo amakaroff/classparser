@@ -39,12 +39,7 @@ public final class JDDecompiler implements Decompiler {
      * Default constructor for creating {@link JDDecompiler} instance
      */
     public JDDecompiler() {
-        this.utils = new ConfigurationUtils(new HashMap<>(), getDefaultConfiguration());
-    }
-
-    @Override
-    public String decompile(byte[] byteCode) {
-        return decompile(byteCode, Collections.emptyList());
+        this.utils = new ConfigurationUtils(getDefaultConfiguration());
     }
 
     @Override

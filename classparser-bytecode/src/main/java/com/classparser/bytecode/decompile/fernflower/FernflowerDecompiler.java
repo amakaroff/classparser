@@ -19,7 +19,6 @@ import org.jetbrains.java.decompiler.struct.lazy.LazyLoader;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,11 +38,6 @@ public final class FernflowerDecompiler implements Decompiler {
 
     public FernflowerDecompiler() {
         this.configurationMap = new ConcurrentHashMap<>();
-    }
-
-    @Override
-    public String decompile(byte[] byteCode) {
-        return decompile(byteCode, Collections.emptyList());
     }
 
     @Override

@@ -6,6 +6,8 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class provides functionality by converting class name
@@ -19,6 +21,16 @@ public class ClassNameConverter {
     private static final int MAGIC = 0xCAFEBABE;
 
     private static final String CLASS_FILE_SUFFIX = ".class";
+
+    private static final Map<String, String> PRIMITIVE_NAMES = new HashMap<String, String>() {{
+        put("B", "byte");
+        put("S", "short");
+        put("I", "int");
+        put("F", "float");
+        put("C", "char");
+        put("D", "double");
+        put("J", "long");
+    }};
 
     /**
      * Obtains full java class name from class instance
@@ -75,7 +87,39 @@ public class ClassNameConverter {
      */
     public static String toJavaClassSimpleName(String className) {
         String fullName = toJavaClassName(className);
+
+        String simpleName;
+        if (className.startsWith("[")) {
+            int countBlocks = className.lastIndexOf('[') + 1;
+            if (className.endsWith(";")) {
+                simpleName = className.substring(countBlocks + 1, className.length() - 1);
+                if (simpleName.contains(".")) {
+                    simpleName = simpleName.substring(simpleName.lastIndexOf('.') + 1);
+                }
+            } else {
+                simpleName = PRIMITIVE_NAMES.get(className.substring(countBlocks));
+            }
+
+            return simpleName + createBlocks(countBlocks);
+        }
+
         return fullName.substring(fullName.lastIndexOf('.') + 1);
+    }
+
+    /**
+     * Create array blocks by input count
+     *
+     * @param count count of blocks
+     * @return string of array blocks
+     */
+    private static String createBlocks(int count) {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (int i = 0; i < count; i++) {
+            stringBuilder.append("[]");
+        }
+
+        return stringBuilder.toString();
     }
 
     /**

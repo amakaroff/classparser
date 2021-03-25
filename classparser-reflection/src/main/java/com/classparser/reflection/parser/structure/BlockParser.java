@@ -3,7 +3,6 @@ package com.classparser.reflection.parser.structure;
 import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.parser.base.IndentParser;
-import com.classparser.util.Reflection;
 
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Method;
@@ -21,23 +20,21 @@ public class BlockParser {
 
     private final ConfigurationManager configurationManager;
 
-    private final Method method;
-
-    public BlockParser(IndentParser indentParser, ConfigurationManager configurationManager) {
-        this.indentParser = indentParser;
+    public BlockParser(ConfigurationManager configurationManager) {
+        this.indentParser = new IndentParser(configurationManager);
         this.configurationManager = configurationManager;
-        this.method = loadHasStaticInitializerHandle();
     }
 
     /**
      * Parses and obtains information about initialization blocks
      * Information may be incorrectly
      *
-     * @param clazz any class
+     * @param clazz   any class
+     * @param context context of parsing class process
      * @return string line with initialization blocks
      */
     public String parseStaticBlock(Class<?> clazz, ParseContext context) {
-        if (isStaticInitializerAllowed(clazz) && hasStaticInitializer(clazz)) {
+        if (isShouldBeDisplayed(clazz) && hasStaticInitializer(clazz)) {
             String oneIndent = configurationManager.getIndentSpaces();
             String lineSeparator = configurationManager.getLineSeparator();
             String indent = indentParser.getIndent(clazz, context) + oneIndent;
@@ -48,9 +45,14 @@ public class BlockParser {
         return "";
     }
 
-    private boolean isStaticInitializerAllowed(Class<?> clazz) {
+    /**
+     * Is static initializer should be displayed
+     * @param clazz any class
+     * @return true for display static initializer
+     */
+    private boolean isShouldBeDisplayed(Class<?> clazz) {
         return configurationManager.isDisplayStaticBlock() &&
-                (!clazz.isEnum() || configurationManager.isParseEnumAsClass());
+                (configurationManager.isDisplayEnumAsClass() || !clazz.isEnum());
     }
 
     /**
@@ -60,11 +62,19 @@ public class BlockParser {
      * @return true if static init block is exists
      */
     private boolean hasStaticInitializer(Class<?> clazz) {
-        if (method != null) {
-            try {
-                return (boolean) Reflection.invoke(method, clazz);
-            } catch (Exception exception) {
-                return false;
+        if (configurationManager.isDisplayStaticBlock()) {
+            Method methodChecker = loadCheckerMethod();
+            if (methodChecker != null) {
+                try {
+                    methodChecker.setAccessible(true);
+                    try {
+                        return (boolean) methodChecker.invoke(null, clazz);
+                    } finally {
+                        methodChecker.setAccessible(false);
+                    }
+                } catch (Exception exception) {
+                    return false;
+                }
             }
         }
 
@@ -76,10 +86,10 @@ public class BlockParser {
      *
      * @return method #hasStaticInitializer() or null if method can't be a loaded
      */
-    private Method loadHasStaticInitializerHandle() {
+    private Method loadCheckerMethod() {
         try {
             return ObjectStreamClass.class.getDeclaredMethod("hasStaticInitializer", Class.class);
-        } catch (ReflectiveOperationException exception) {
+        } catch (NoSuchMethodException exception) {
             return null;
         }
     }

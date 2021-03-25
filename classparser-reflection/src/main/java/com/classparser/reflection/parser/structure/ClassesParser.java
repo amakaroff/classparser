@@ -30,6 +30,7 @@ public class ClassesParser {
      * Parses inner and nested class meta information and collects info to {@link String}
      *
      * @param clazz any class
+     * @param context context of parsing class process
      * @return string line of meta information for inner and nested classes
      */
     public String parseInnerClasses(Class<?> clazz, ParseContext context) {

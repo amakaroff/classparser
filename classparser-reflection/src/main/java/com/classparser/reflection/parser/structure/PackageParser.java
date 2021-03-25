@@ -17,8 +17,8 @@ public class PackageParser {
 
     private final ConfigurationManager configurationManager;
 
-    public PackageParser(AnnotationParser annotationParser, ConfigurationManager configurationManager) {
-        this.annotationParser = annotationParser;
+    public PackageParser(ConfigurationManager configurationManager) {
+        this.annotationParser = new AnnotationParser(configurationManager);
         this.configurationManager = configurationManager;
     }
 
@@ -26,7 +26,8 @@ public class PackageParser {
      * Parses package meta information of given class
      * Includes package annotation from special {package-info} classes
      *
-     * @param clazz any class
+     * @param clazz   any class
+     * @param context context of parsing class process
      * @return string line with package meta information
      */
     public String parsePackage(Class<?> clazz, ParseContext context) {
@@ -44,7 +45,8 @@ public class PackageParser {
     /**
      * Checks if displaying package section for class is necessary
      *
-     * @param clazz any class
+     * @param clazz   any class
+     * @param context context of parsing class process
      * @return true if package section should be displayed
      */
     private boolean isShouldBeDisplayed(Class<?> clazz, ParseContext context) {

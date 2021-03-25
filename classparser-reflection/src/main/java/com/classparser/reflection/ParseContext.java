@@ -3,6 +3,14 @@ package com.classparser.reflection;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Class usage for store context of parsing classes
+ * <p>
+ * Not thread safe
+ *
+ * @author Aleksey Makarov
+ * @since 1.0.0
+ */
 public class ParseContext {
 
     private final Class<?> baseClass;

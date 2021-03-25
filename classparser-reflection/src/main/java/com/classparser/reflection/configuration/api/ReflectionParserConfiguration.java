@@ -27,11 +27,11 @@ public interface ReflectionParserConfiguration extends Configuration {
 
     String DISPLAY_VALUE_IN_STATIC_FIELDS_KEY = "dvf";
 
-    String DISPLAY_IMPORT_SECTION_KEY = "dim";
+    String DISPLAY_IMPORT_SECTION_KEY = "dis";
 
     String DISPLAY_DEFAULT_INHERITANCE_KEY = "doi";
 
-    String HIDE_EXHAUSTIVE_MODIFIERS_KEY = "hem";
+    String DISPLAY_IMPLICIT_MODIFIERS_KEY = "dim";
 
     String COUNT_INDENT_SPACES_KEY = "cis";
 
@@ -129,7 +129,7 @@ public interface ReflectionParserConfiguration extends Configuration {
      * @param flag true/false value
      * @return builder instance
      */
-    ReflectionParserConfiguration enableImportSection(boolean flag);
+    ReflectionParserConfiguration displayImports(boolean flag);
 
     /**
      * Set display default inheritance from object class
@@ -152,7 +152,29 @@ public interface ReflectionParserConfiguration extends Configuration {
      * @param flag true/false value
      * @return builder instance
      */
-    ReflectionParserConfiguration hideExhaustiveModifiers(boolean flag);
+    ReflectionParserConfiguration displayImplicitModifiers(boolean flag);
+
+    /**
+     * Set to enable showing static init block in classes
+     * <p>
+     * Default value: true
+     * </p>
+     *
+     * @param flag true if block should be shown
+     * @return builder instance
+     */
+    ReflectionParserConfiguration displayStaticBlock(boolean flag);
+
+    /**
+     * Set to parse enum type as simple java class
+     * <p>
+     * Default value: false
+     * </p>
+     *
+     * @param flag true if enum should be parsed as class
+     * @return builder instance
+     */
+    ReflectionParserConfiguration displayEnumsAsClass(boolean flag);
 
     /**
      * Set count of indent for parser structure of class
@@ -177,27 +199,4 @@ public interface ReflectionParserConfiguration extends Configuration {
      * @return builder instance
      */
     ReflectionParserConfiguration defineLineSeparator(String character);
-
-    /**
-     * Set to enable showing static init block in classes
-     * <p>
-     * Default value: true
-     * </p>
-     *
-     * @param flag true if block should be shown
-     * @return builder instance
-     */
-    ReflectionParserConfiguration displayStaticBlock(boolean flag);
-
-
-    /**
-     * Set to parse enum type as simple java class
-     * <p>
-     * Default value: false
-     * </p>
-     *
-     * @param flag true if enum should be parsed as class
-     * @return builder instance
-     */
-    ReflectionParserConfiguration parseEnumsAsClass(boolean flag);
 }

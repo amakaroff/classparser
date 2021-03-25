@@ -1,4 +1,4 @@
-package com.classparser.reflection.parser.base;
+package com.classparser.reflection.parser.structure;
 
 import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
@@ -27,12 +27,13 @@ public class ImportParser {
      * Appends class for import section and checks can be this class added
      *
      * @param classForImport any class contains in meta information of based parsed class
+     * @param context        context of parsing class process
      * @return true if class added to import section
      */
     public boolean tryAddToImport(Class<?> classForImport, ParseContext context) {
         classForImport = resolveClass(classForImport);
 
-        if (!configurationManager.isEnabledImports() || isNeedFullName(classForImport, context)) {
+        if (!configurationManager.isDisplayImports() || isNeedFullName(classForImport, context)) {
             return false;
         } else {
             context.addImportClass(classForImport);
@@ -43,6 +44,7 @@ public class ImportParser {
     /**
      * Build import section for current parsed context
      *
+     * @param context context of parsing class process
      * @return string line with information import classes for based parsed class
      */
     public String getImports(ParseContext context) {
@@ -79,6 +81,7 @@ public class ImportParser {
      * Checks if for this class should be displayed full name
      *
      * @param classForImport any class
+     * @param context        context of parsing class process
      * @return true if for class necessary full name displayed
      */
     private boolean isNeedFullName(Class<?> classForImport, ParseContext context) {
@@ -95,7 +98,8 @@ public class ImportParser {
     /**
      * Checking class for append to import section
      *
-     * @param clazz any class
+     * @param clazz   any class
+     * @param context context of parsing class process
      * @return true if these class can be appended to import
      */
     private boolean isAppendToImports(Class<?> clazz, ParseContext context) {

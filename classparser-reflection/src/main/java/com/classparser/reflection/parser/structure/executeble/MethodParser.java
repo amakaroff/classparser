@@ -1,7 +1,7 @@
 package com.classparser.reflection.parser.structure.executeble;
 
-import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.ContentJoiner;
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.parser.base.*;
 
@@ -9,7 +9,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Class provides functionality for parsing methods of class meta information
@@ -20,8 +22,6 @@ import java.util.List;
  * @since 1.0.0
  */
 public class MethodParser {
-
-    private final ConfigurationManager configurationManager;
 
     private final GenericTypeParser genericTypeParser;
 
@@ -39,30 +39,25 @@ public class MethodParser {
 
     private final ValueParser valueParser;
 
-    public MethodParser(ConfigurationManager configurationManager,
-                        GenericTypeParser genericTypeParser,
-                        ModifierParser modifierParser,
-                        AnnotationParser annotationParser,
-                        ArgumentParser argumentParser,
-                        IndentParser indentParser,
-                        ExceptionParser exceptionParser,
-                        ClassNameParser classNameParser,
-                        ValueParser valueParser) {
+    private final ConfigurationManager configurationManager;
+
+    public MethodParser(ConfigurationManager configurationManager) {
+        this.genericTypeParser = new GenericTypeParser(configurationManager);
+        this.modifierParser = new ModifierParser(configurationManager);
+        this.annotationParser = new AnnotationParser(configurationManager);
+        this.argumentParser = new ArgumentParser(configurationManager);
+        this.indentParser = new IndentParser(configurationManager);
+        this.exceptionParser = new ExceptionParser(configurationManager);
+        this.classNameParser = new ClassNameParser(configurationManager);
+        this.valueParser = new ValueParser(configurationManager);
         this.configurationManager = configurationManager;
-        this.genericTypeParser = genericTypeParser;
-        this.modifierParser = modifierParser;
-        this.annotationParser = annotationParser;
-        this.argumentParser = argumentParser;
-        this.indentParser = indentParser;
-        this.exceptionParser = exceptionParser;
-        this.classNameParser = classNameParser;
-        this.valueParser = valueParser;
     }
 
     /**
      * Parses meta information of class about all methods and collects data to {@link String}
      *
-     * @param clazz any class
+     * @param clazz   any class
+     * @param context context of parsing class process
      * @return parsed methods
      */
     public String parseMethods(Class<?> clazz, ParseContext context) {
@@ -80,9 +75,42 @@ public class MethodParser {
             }
         }
 
-        staticMethods.addAll(instanceMethods);
+        staticMethods.addAll(getStaticImplicitMethods(clazz, context));
 
-        return ContentJoiner.joinContent(staticMethods, configurationManager.getLineSeparator());
+        List<String> methods = new ArrayList<>();
+
+        methods.addAll(staticMethods);
+        methods.addAll(instanceMethods);
+
+        return ContentJoiner.joinContent(methods, configurationManager.getLineSeparator());
+    }
+
+    /**
+     * Parses method meta information and collects data about method,
+     * includes the name, types, generics, annotation etc.
+     *
+     * @param method  any method
+     * @param context context of parsing class process
+     * @return parsed method
+     */
+    public String parseMethod(Method method, ParseContext context) {
+        String indent = indentParser.getIndent(method, context);
+        String annotations = annotationParser.parseAnnotationsAsBlock(method, context);
+        String modifiers = modifierParser.parseModifiers(method);
+        String generics = genericTypeParser.parseGenerics(method, true, context);
+        String returnType = genericTypeParser.parseType(getReturnType(method),
+                classNameParser.isInnerClassInStaticContext(method, method.getReturnType()),
+                method.getAnnotatedReturnType(),
+                context);
+        String methodName = classNameParser.getMemberName(method);
+        String arguments = argumentParser.parseArguments(method, context);
+        String defaultAnnotationValue = valueParser.parseValue(method, context);
+        String exceptions = exceptionParser.parseExceptions(method, context);
+        String body = parseBody(method, context);
+        String content = ContentJoiner.joinNotEmptyContentBySpace(modifiers, generics, returnType);
+
+        return annotations + indent + content + " " + methodName + arguments +
+                defaultAnnotationValue + exceptions + body;
     }
 
     /**
@@ -93,7 +121,7 @@ public class MethodParser {
      */
     private boolean isDisplayMethod(Method method) {
         if (method.getDeclaringClass().isEnum()) {
-            return configurationManager.isParseEnumAsClass() || !isSpecialEnumMethod(method);
+            return configurationManager.isDisplayEnumAsClass() || !isSpecialEnumMethod(method);
         } else {
             return configurationManager.isDisplaySyntheticEntities() ||
                     !method.isSynthetic() && !method.isBridge();
@@ -101,27 +129,20 @@ public class MethodParser {
     }
 
     /**
-     * Parses method meta information and collects data about method,
-     * includes the name, types, generics, annotation etc.
+     * Collect static implicit methods, which cannot be obtained by reflection
      *
-     * @param method any method
-     * @return parsed method
+     * @param declaredClass declared class for methods
+     * @param context       context of parsing class process
+     * @return list of implicit methods
      */
-    public String parseMethod(Method method, ParseContext context) {
-        String indent = indentParser.getIndent(method, context);
-        String annotations = annotationParser.parseAnnotationsAsBlock(method, context);
-        String modifiers = modifierParser.parseModifiers(method);
-        String generics = genericTypeParser.parseGenerics(method, context);
-        String returnType = genericTypeParser.parseType(getReturnType(method), method.getAnnotatedReturnType(), context);
-        String methodName = classNameParser.getMemberName(method);
-        String arguments = argumentParser.parseArguments(method, context);
-        String defaultAnnotationValue = valueParser.getValue(method, context);
-        String exceptions = exceptionParser.parseExceptions(method, context);
-        String body = parseBody(method, context);
-        String content = ContentJoiner.joinNotEmptyContentBySpace(modifiers, generics, returnType);
+    private List<String> getStaticImplicitMethods(Class<?> declaredClass, ParseContext context) {
+        List<String> staticMethods = new ArrayList<>();
 
-        return annotations + indent + content + " " + methodName + arguments +
-                defaultAnnotationValue + exceptions + body;
+        if (declaredClass.equals(getUnsafeClass())) {
+            staticMethods.add(parseUnsafeImplicitMethod(declaredClass, context));
+        }
+
+        return staticMethods;
     }
 
     /**
@@ -142,7 +163,8 @@ public class MethodParser {
      * Obtains body for method
      * As reflection is can't be access to byte code body not contained java code
      *
-     * @param method any method
+     * @param method  any method
+     * @param context context of parsing class process
      * @return parsed method body
      */
     private String parseBody(Method method, ParseContext context) {
@@ -167,6 +189,12 @@ public class MethodParser {
         return !Modifier.isAbstract(method.getModifiers()) && !Modifier.isNative(method.getModifiers());
     }
 
+    /**
+     * Is default implicit enum methods
+     *
+     * @param method any enum method
+     * @return true if method is implicit
+     */
     private boolean isSpecialEnumMethod(Method method) {
         Class<?> declaringClass = method.getDeclaringClass();
         if (declaringClass.isEnum() && Modifier.isStatic(method.getModifiers())) {
@@ -188,5 +216,34 @@ public class MethodParser {
         }
 
         return false;
+    }
+
+    private String parseImplicitMethod(Class<?> declaredClass,
+                                       ParseContext context,
+                                       int modifiers,
+                                       Type returnType,
+                                       String name,
+                                       Type[] parameters) {
+        String lineSeparator = configurationManager.getLineSeparator();
+        String oneIndent = configurationManager.getIndentSpaces();
+        String indent = indentParser.getIndent(declaredClass, context) + oneIndent;
+        String parsedParameters = Arrays.stream(parameters)
+                .map(type -> genericTypeParser.parseType(type, context))
+                .collect(Collectors.joining(", "));
+
+        return indent +
+                modifierParser.parseMethodModifiers(modifiers, declaredClass) + " " +
+                genericTypeParser.parseType(returnType, context) + " " +
+                name + "(" + parsedParameters + ")" +
+                " {" + lineSeparator + indent + oneIndent + "/* Compiled code */" + lineSeparator + indent + '}';
+    }
+
+    private String parseUnsafeImplicitMethod(Class<?> declaredClass, ParseContext context) {
+        int modifiers = Modifier.PUBLIC | Modifier.STATIC;
+        return parseImplicitMethod(declaredClass, context, modifiers, declaredClass, "getUnsafe", new Type[0]);
+    }
+
+    private Class<?> getUnsafeClass() {
+        return classNameParser.forNameOrNull("sun.misc.Unsafe");
     }
 }

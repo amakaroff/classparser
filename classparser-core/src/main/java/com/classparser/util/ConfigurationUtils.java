@@ -3,6 +3,7 @@ package com.classparser.util;
 import com.classparser.configuration.Configuration;
 import com.classparser.exception.option.OptionNotFoundException;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -21,6 +22,15 @@ public class ConfigurationUtils {
      * Fully, correctly configuration
      */
     private volatile Map<String, Object> configuration;
+
+    /**
+     * Default constructor for initialize {@link ConfigurationUtils}
+     *
+     * @param defaultConfiguration map with all correctly options
+     */
+    public ConfigurationUtils(Map<String, Object> defaultConfiguration) {
+        this(new HashMap<>(), defaultConfiguration);
+    }
 
     /**
      * Default constructor for initialize {@link ConfigurationUtils}

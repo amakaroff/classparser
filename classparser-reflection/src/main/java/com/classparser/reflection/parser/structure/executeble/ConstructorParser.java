@@ -22,8 +22,6 @@ import java.util.List;
  */
 public class ConstructorParser {
 
-    private final ConfigurationManager configurationManager;
-
     private final GenericTypeParser genericParser;
 
     private final ModifierParser modifierParser;
@@ -36,20 +34,16 @@ public class ConstructorParser {
 
     private final ExceptionParser exceptionParser;
 
-    public ConstructorParser(ConfigurationManager configurationManager,
-                             GenericTypeParser genericParser,
-                             ModifierParser modifierParser,
-                             AnnotationParser annotationParser,
-                             ArgumentParser argumentParser,
-                             IndentParser indentParser,
-                             ExceptionParser exceptionParser) {
+    private final ConfigurationManager configurationManager;
+
+    public ConstructorParser(ConfigurationManager configurationManager) {
+        this.genericParser = new GenericTypeParser(configurationManager);
+        this.modifierParser = new ModifierParser(configurationManager);
+        this.annotationParser = new AnnotationParser(configurationManager);
+        this.argumentParser = new ArgumentParser(configurationManager);
+        this.indentParser = new IndentParser(configurationManager);
+        this.exceptionParser = new ExceptionParser(configurationManager);
         this.configurationManager = configurationManager;
-        this.genericParser = genericParser;
-        this.modifierParser = modifierParser;
-        this.annotationParser = annotationParser;
-        this.argumentParser = argumentParser;
-        this.indentParser = indentParser;
-        this.exceptionParser = exceptionParser;
     }
 
     /**
@@ -57,7 +51,8 @@ public class ConstructorParser {
      * about constructors for any {@link Class} instance.
      * Parsing result includes name, types, generics, annotations, modifiers, exceptions etc.
      *
-     * @param clazz any class
+     * @param clazz   any class
+     * @param context context of parsing class process
      * @return parsed constructors
      */
     public String parseConstructors(Class<?> clazz, ParseContext context) {
@@ -73,27 +68,18 @@ public class ConstructorParser {
     }
 
     /**
-     * Checks if display constructor is necessary
-     *
-     * @param constructor any constructor
-     * @return true if display constructor is necessary
-     */
-    private boolean isShouldBeDisplayed(Constructor<?> constructor) {
-        return configurationManager.isDisplaySyntheticEntities() || !constructor.isSynthetic();
-    }
-
-    /**
      * Parses the constructor meta information and collects data about method,
      * includes the name, generics, annotation etc.
      *
      * @param constructor any constructor
+     * @param context     context of parsing class process
      * @return string line with constructor meta information
      */
     private String parseConstructor(Constructor<?> constructor, ParseContext context) {
         String annotations = annotationParser.parseAnnotationsAsBlock(constructor, context);
         String indent = indentParser.getIndent(constructor, context);
         String modifiers = modifierParser.parseModifiers(constructor);
-        String generics = genericParser.parseGenerics(constructor, context);
+        String generics = genericParser.parseGenerics(constructor, true, context);
         String constructorName = genericParser.parseType(constructor.getDeclaringClass(), context);
         String arguments = argumentParser.parseArguments(constructor, context);
         String exceptions = exceptionParser.parseExceptions(constructor, context);
@@ -103,5 +89,15 @@ public class ConstructorParser {
         String content = ContentJoiner.joinNotEmptyContentBySpace(modifiers, generics, constructorName);
 
         return annotations + indent + content + arguments + exceptions + body;
+    }
+
+    /**
+     * Checks if display constructor is necessary
+     *
+     * @param constructor any constructor
+     * @return true if display constructor is necessary
+     */
+    private boolean isShouldBeDisplayed(Constructor<?> constructor) {
+        return configurationManager.isDisplaySyntheticEntities() || !constructor.isSynthetic();
     }
 }

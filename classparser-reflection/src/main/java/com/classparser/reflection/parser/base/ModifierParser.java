@@ -19,6 +19,8 @@ public class ModifierParser {
 
     private static final int IMPLICIT = 0x00008000;
 
+    private static final int BRIDGE = 0x00000040;
+
     private final ConfigurationManager configurationManager;
 
     public ModifierParser(ConfigurationManager configurationManager) {
@@ -37,7 +39,7 @@ public class ModifierParser {
         int modifierMask = clazz.getModifiers();
 
         if (Modifier.isPublic(modifierMask)) {
-            if (isDisplayExhaustiveModifiers() || !isInnerClassInAnnotation(clazz)) {
+            if (configurationManager.isDisplayImplicitModifiers() || !isInnerClassInAnnotation(clazz)) {
                 modifiers.add("public");
             }
         }
@@ -55,19 +57,21 @@ public class ModifierParser {
         }
 
         if (Modifier.isAbstract(modifierMask)) {
-            if (isDisplayExhaustiveModifiers() || !clazz.isInterface() && !clazz.isEnum() && !clazz.isArray() && !clazz.isPrimitive()) {
+            if (configurationManager.isDisplayImplicitModifiers() ||
+                    !clazz.isInterface() && !clazz.isEnum() && !clazz.isArray() && !clazz.isPrimitive()) {
                 modifiers.add("abstract");
             }
         }
 
         if (Modifier.isStatic(modifierMask)) {
-            if (isDisplayExhaustiveModifiers() || !isOnlyStaticInnerClass(clazz)) {
+            if (configurationManager.isDisplayImplicitModifiers() || !isOnlyStaticInnerClass(clazz)) {
                 modifiers.add("static");
             }
         }
 
         if (Modifier.isFinal(modifierMask)) {
-            if (isDisplayExhaustiveModifiers() || !clazz.isEnum() && !clazz.isArray() && !clazz.isPrimitive()) {
+            if (configurationManager.isDisplayImplicitModifiers() ||
+                    !clazz.isEnum() && !clazz.isArray() && !clazz.isPrimitive()) {
                 modifiers.add("final");
             }
         }
@@ -88,17 +92,15 @@ public class ModifierParser {
     public String parseModifiers(Parameter parameter) {
         List<String> modifiers = new ArrayList<>();
 
-        int modifierMask = parameter.getModifiers();
-
-        if (isSynthetic(modifierMask)) {
+        if (isSynthetic(parameter)) {
             modifiers.add("synthetic");
         }
 
-        if (isImplicit(modifierMask)) {
+        if (isImplicit(parameter)) {
             modifiers.add("implicit");
         }
 
-        if (Modifier.isFinal(modifierMask)) {
+        if (isFinal(parameter)) {
             modifiers.add("final");
         }
 
@@ -125,7 +127,7 @@ public class ModifierParser {
         }
 
         if (Modifier.isPrivate(modifierMask)) {
-            if (isDisplayExhaustiveModifiers() || !constructor.getDeclaringClass().isEnum()) {
+            if (configurationManager.isDisplayImplicitModifiers() || !constructor.getDeclaringClass().isEnum()) {
                 modifiers.add("private");
             }
         }
@@ -137,19 +139,13 @@ public class ModifierParser {
         return String.join(" ", modifiers);
     }
 
-    /**
-     * Parses modifiers for field
-     *
-     * @param field any field
-     * @return parsed modifiers
-     */
-    public String parseModifiers(Field field) {
+    public String parseFieldModifiers(int modifierMask, Class<?> declaredClass) {
         List<String> modifiers = new ArrayList<>();
 
-        int modifierMask = field.getModifiers();
-
         if (Modifier.isPublic(modifierMask)) {
-            modifiers.add("public");
+            if (configurationManager.isDisplayImplicitModifiers() || !declaredClass.isInterface()) {
+                modifiers.add("public");
+            }
         }
 
         if (Modifier.isProtected(modifierMask)) {
@@ -173,11 +169,13 @@ public class ModifierParser {
         }
 
         if (Modifier.isStatic(modifierMask)) {
-            modifiers.add("static");
+            if (configurationManager.isDisplayImplicitModifiers() || !declaredClass.isInterface()) {
+                modifiers.add("static");
+            }
         }
 
         if (Modifier.isFinal(modifierMask)) {
-            if (isDisplayExhaustiveModifiers() || !Modifier.isStatic(modifierMask) && !field.getDeclaringClass().isEnum()) {
+            if (configurationManager.isDisplayImplicitModifiers() || !declaredClass.isEnum() && !declaredClass.isInterface()) {
                 modifiers.add("final");
             }
         }
@@ -186,18 +184,20 @@ public class ModifierParser {
     }
 
     /**
-     * Parses modifiers for method
+     * Parses modifiers for field
      *
-     * @param method any method
+     * @param field any field
      * @return parsed modifiers
      */
-    public String parseModifiers(Method method) {
+    public String parseModifiers(Field field) {
+        return parseFieldModifiers(field.getModifiers(), field.getDeclaringClass());
+    }
+
+    public String parseMethodModifiers(int modifierMask, Class<?> declaringClass) {
         List<String> modifiers = new ArrayList<>();
 
-        int modifierMask = method.getModifiers();
-
         if (Modifier.isPublic(modifierMask)) {
-            if (isDisplayExhaustiveModifiers() || !method.getDeclaringClass().isInterface()) {
+            if (configurationManager.isDisplayImplicitModifiers() || !declaringClass.isInterface()) {
                 modifiers.add("public");
             }
         }
@@ -215,16 +215,16 @@ public class ModifierParser {
         }
 
         if (Modifier.isAbstract(modifierMask)) {
-            if (isDisplayExhaustiveModifiers() || !method.getDeclaringClass().isInterface()) {
+            if (configurationManager.isDisplayImplicitModifiers() || !declaringClass.isInterface()) {
                 modifiers.add("abstract");
             }
         }
 
-        if (method.isDefault()) {
+        if (isDefault(modifierMask, declaringClass)) {
             modifiers.add("default");
         }
 
-        if (method.isBridge()) {
+        if (isBridge(modifierMask)) {
             modifiers.add("bridge");
         }
 
@@ -252,6 +252,48 @@ public class ModifierParser {
     }
 
     /**
+     * Parses modifiers for method
+     *
+     * @param method any method
+     * @return parsed modifiers
+     */
+    public String parseModifiers(Method method) {
+        return parseMethodModifiers(method.getModifiers(), method.getDeclaringClass());
+    }
+
+    /**
+     * Checks if argument is synthetic
+     *
+     * @param parameter any argument
+     * @return true if argument is synthetic or implicit
+     */
+    public boolean isSynthetic(Parameter parameter) {
+        return parameter.isSynthetic() ||
+                isImplicitInnerClassConstructorParameter(parameter) ||
+                isImplicitEnumConstructorParameter(parameter);
+    }
+
+    /**
+     * Checks if argument is implicit
+     *
+     * @param parameter any argument
+     * @return true if argument is implicit
+     */
+    public boolean isImplicit(Parameter parameter) {
+        return isImplicit(parameter.getModifiers()) || isImplicitInnerClassConstructorParameter(parameter);
+    }
+
+    /**
+     * Checks if argument is final
+     *
+     * @param parameter any argument
+     * @return true if argument is final
+     */
+    public boolean isFinal(Parameter parameter) {
+        return Modifier.isFinal(parameter.getModifiers()) || isImplicitInnerClassConstructorParameter(parameter);
+    }
+
+    /**
      * Check is exists synthetic modifier
      *
      * @param modifierMask modifiers mask
@@ -269,6 +311,29 @@ public class ModifierParser {
      */
     public boolean isImplicit(int modifierMask) {
         return (modifierMask & IMPLICIT) != 0;
+    }
+
+    /**
+     * Check is method in declared class is default
+     * Copied from java.lang.reflect.Method
+     *
+     * @param modifierMask modifiers mask
+     * @param declaredClass class which exists method
+     * @return true if modifier mask have default
+     */
+    public boolean isDefault(int modifierMask, Class<?> declaredClass) {
+        return (modifierMask & (Modifier.ABSTRACT | Modifier.PUBLIC | Modifier.STATIC)) == Modifier.PUBLIC &&
+                declaredClass.isInterface();
+    }
+
+    /**
+     * Check is method is bridge
+     *
+     * @param modifierMask modifiers mask
+     * @return true if modifier have bridge mask
+     */
+    public boolean isBridge(int modifierMask) {
+        return (modifierMask & BRIDGE) != 0;
     }
 
     /**
@@ -306,11 +371,50 @@ public class ModifierParser {
     }
 
     /**
-     * Checks is should be displayed exhaustive modifiers
+     * Checks if argument is first argument in nested class
      *
-     * @return true if exhaustive modifiers should be displayed
+     * @param parameter any argument
+     * @return true if argument is first in constructor for nested class
      */
-    private boolean isDisplayExhaustiveModifiers() {
-        return !configurationManager.hideExhaustiveModifiers();
+    private boolean isImplicitInnerClassConstructorParameter(Parameter parameter) {
+        Executable executable = parameter.getDeclaringExecutable();
+        Class<?> clazz = executable.getDeclaringClass();
+        return executable instanceof Constructor &&
+                clazz.isMemberClass() &&
+                !Modifier.isStatic(clazz.getModifiers()) &&
+                getArgumentIndex(parameter) == 0;
+    }
+
+    /**
+     * Checks first or second parameter in enum class
+     *
+     * @param parameter any parameter
+     * @return true if parameter is first or second in constructor for enum
+     */
+    private boolean isImplicitEnumConstructorParameter(Parameter parameter) {
+        Executable executable = parameter.getDeclaringExecutable();
+        int index = getArgumentIndex(parameter);
+        return (executable instanceof Constructor &&
+                executable.getDeclaringClass().isEnum() &&
+                (index == 0 || index == 1));
+    }
+
+    /**
+     * Tries to get real parameter index
+     * Watch at the future for existing getter for Parameter#index field
+     *
+     * @param parameter any parameter of executable
+     * @return parameter index
+     */
+    private int getArgumentIndex(Parameter parameter) {
+        Executable executable = parameter.getDeclaringExecutable();
+        Parameter[] parameters = executable.getParameters();
+        for (int i = 0; i < parameters.length; i++) {
+            if (parameter == parameters[i]) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 }

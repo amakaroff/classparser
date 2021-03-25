@@ -83,7 +83,7 @@ public class ReflectionParserBuilderConfiguration {
         }
 
         @Override
-        public ReflectionParserConfiguration enableImportSection(boolean flag) {
+        public ReflectionParserConfiguration displayImports(boolean flag) {
             configuration.put(DISPLAY_IMPORT_SECTION_KEY, flag);
             return this;
         }
@@ -95,8 +95,8 @@ public class ReflectionParserBuilderConfiguration {
         }
 
         @Override
-        public ReflectionParserConfiguration hideExhaustiveModifiers(boolean flag) {
-            configuration.put(HIDE_EXHAUSTIVE_MODIFIERS_KEY, flag);
+        public ReflectionParserConfiguration displayImplicitModifiers(boolean flag) {
+            configuration.put(DISPLAY_IMPLICIT_MODIFIERS_KEY, flag);
             return this;
         }
 
@@ -125,7 +125,7 @@ public class ReflectionParserBuilderConfiguration {
         }
 
         @Override
-        public ReflectionParserConfiguration parseEnumsAsClass(boolean flag) {
+        public ReflectionParserConfiguration displayEnumsAsClass(boolean flag) {
             configuration.put(PARSE_ENUM_AS_CLASS, flag);
             return this;
         }

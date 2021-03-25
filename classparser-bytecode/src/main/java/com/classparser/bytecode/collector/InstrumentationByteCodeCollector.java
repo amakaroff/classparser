@@ -12,6 +12,8 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.security.ProtectionDomain;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Collector uses {@link Instrumentation} instance try obtain byte code of class
@@ -21,6 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 1.0.0
  */
 public class InstrumentationByteCodeCollector implements ByteCodeCollector {
+
+    private static final Lock LOCK = new ReentrantLock();
 
     private static volatile ClassFileTransformer classFileTransformer;
 
@@ -80,13 +84,16 @@ public class InstrumentationByteCodeCollector implements ByteCodeCollector {
      */
     private void initializeTransformer(JavaAgent agent) {
         if (classFileTransformer == null) {
-            synchronized (InstrumentationByteCodeCollector.class) {
+            LOCK.lock();
+            try {
                 if (classFileTransformer == null) {
                     classFileTransformer = new ByteCodeStoreClassFileTransformer();
                     byteCodeStorage = new ConcurrentHashMap<>();
                     Instrumentation instrumentation = agent.getInstrumentation();
                     instrumentation.addTransformer(classFileTransformer, true);
                 }
+            } finally {
+                LOCK.unlock();
             }
         }
     }

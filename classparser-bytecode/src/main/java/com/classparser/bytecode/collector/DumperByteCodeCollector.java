@@ -103,6 +103,8 @@ public class DumperByteCodeCollector implements ByteCodeCollector {
     @Override
     public byte[] getByteCode(Class<?> clazz) {
         if (clazz != null) {
+            checkingDumpingPropertyForEnabling();
+
             String filePath = ClassNameConverter.toFileJavaClassName(clazz);
             Path path = Paths.get(DUMP_PATH, filePath);
             if (Files.exists(path)) {
@@ -115,5 +117,19 @@ public class DumperByteCodeCollector implements ByteCodeCollector {
         }
 
         return null;
+    }
+
+    private void checkingDumpingPropertyForEnabling() {
+        boolean isMethodHandleDumpEnabled = Boolean.getBoolean(DUMP_MH_PROPERTY);
+        if (!isMethodHandleDumpEnabled) {
+            System.err.println("Please add property \"-D" + DUMP_MH_PROPERTY + "=true\"" +
+                    " for obtaining dump of method handle classes.");
+        }
+
+        String lambdaDumpPathProperty = System.getProperty(DUMP_LAMBDA_PROPERTY);
+        if (lambdaDumpPathProperty == null) {
+            System.err.println("Please add property \"-D" + DUMP_LAMBDA_PROPERTY + "=DUMP_CLASS_FILES\"" +
+                    " for obtaining dump of lambda classes.");
+        }
     }
 }

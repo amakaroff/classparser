@@ -1,6 +1,7 @@
 package com.classparser.reflection.parser.structure;
 
 import com.classparser.reflection.ParseContext;
+import com.classparser.reflection.ReflectionParser;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.parser.structure.executeble.ConstructorParser;
 import com.classparser.reflection.parser.structure.executeble.MethodParser;
@@ -23,25 +24,21 @@ public class ClassContentParser {
 
     private final ConfigurationManager manager;
 
-    public ClassContentParser(FieldParser fieldParser,
-                              BlockParser blockParser,
-                              ConstructorParser constructorParser,
-                              MethodParser methodParser,
-                              ClassesParser classesParser,
-                              ConfigurationManager manager) {
-        this.fieldParser = fieldParser;
-        this.classesParser = classesParser;
-        this.constructorParser = constructorParser;
-        this.methodParser = methodParser;
-        this.blockParser = blockParser;
-        this.manager = manager;
+    public ClassContentParser(ReflectionParser parser, ConfigurationManager configurationManager) {
+        this.fieldParser = new FieldParser(configurationManager);
+        this.classesParser = new ClassesParser(parser, configurationManager);
+        this.constructorParser = new ConstructorParser(configurationManager);
+        this.methodParser = new MethodParser(configurationManager);
+        this.blockParser = new BlockParser(configurationManager);
+        this.manager = configurationManager;
     }
 
     /**
      * Parses signature for class
      * Includes fields, static initializer block, constructors, methods and inner classes
      *
-     * @param clazz any class
+     * @param clazz   any class
+     * @param context context of parsing class process
      * @return parsed class context
      */
     public String getClassContent(Class<?> clazz, ParseContext context) {
@@ -52,6 +49,7 @@ public class ClassContentParser {
         contents.add(constructorParser.parseConstructors(clazz, context));
         contents.add(methodParser.parseMethods(clazz, context));
         contents.add(classesParser.parseInnerClasses(clazz, context));
+
         String lineSeparator = manager.getLineSeparator();
 
         return contents.stream().filter(content -> !content.isEmpty()).collect(Collectors.joining(lineSeparator));

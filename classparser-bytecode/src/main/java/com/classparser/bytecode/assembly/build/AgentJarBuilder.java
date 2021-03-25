@@ -43,12 +43,13 @@ public interface AgentJarBuilder {
     AgentJarBuilder addManifest(Manifest manifest);
 
     /**
-     * Adds java agent class
+     * Set the java agent class
+     * Agent class should contains method with the following signature:
      * <p>
-     * Agent class need contains method
-     * with signature
      * static void agentmain(String args, Instrumentation instrumentation)
+     * </p>
      * or
+     * <p>
      * static void premain(String args, Instrumentation instrumentation)
      * </p>
      *
