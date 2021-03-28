@@ -123,8 +123,7 @@ public class MethodParser {
         if (method.getDeclaringClass().isEnum()) {
             return configurationManager.isDisplayEnumAsClass() || !isSpecialEnumMethod(method);
         } else {
-            return configurationManager.isDisplaySyntheticEntities() ||
-                    !method.isSynthetic() && !method.isBridge();
+            return configurationManager.isDisplaySyntheticEntities() || !method.isSynthetic() && !method.isBridge();
         }
     }
 

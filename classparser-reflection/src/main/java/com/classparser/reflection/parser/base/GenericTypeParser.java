@@ -181,10 +181,12 @@ public class GenericTypeParser {
                                      AnnotatedType annotatedType,
                                      ParseContext context) {
         String parsedAnnotations = "";
+
         if (configurationManager.isDisplayAnnotationOnTypes() && annotatedType != null) {
             AnnotatedType annotatedArrayType = getAnnotatedArrayType(annotatedType);
             parsedAnnotations = annotationParser.parseAnnotationsAsInline(annotatedArrayType, isInsideClass, context);
         }
+
         return ContentJoiner.joinNotEmptyContentBySpace(parsedAnnotations, typeVariable.getName());
     }
 
@@ -213,7 +215,6 @@ public class GenericTypeParser {
             parsedAnnotations = "";
         }
 
-        String genericArguments = "";
         Class<?> clazz = (Class<?>) parameterizedType.getRawType();
         String parametrizedRawTypeName = classNameParser.parseTypeName(clazz, context);
 
@@ -225,9 +226,11 @@ public class GenericTypeParser {
                 annotatedParameterizedType,
                 context);
 
+        String genericArguments = "";
         if (!innerGenericTypes.isEmpty()) {
             genericArguments = "<" + String.join(", ", innerGenericTypes) + ">";
         }
+
         boundType += parametrizedRawTypeName + genericArguments;
 
         return ContentJoiner.joinNotEmptyContentBySpace(parsedAnnotations, boundType);
@@ -237,14 +240,12 @@ public class GenericTypeParser {
                                          boolean isInsideClass,
                                          AnnotatedArrayType annotatedArrayType,
                                          ParseContext context) {
-        String boundType;
-
-        boundType = parseType(genericArrayType.getGenericComponentType(), annotatedArrayType, context);
+        String boundType = parseType(genericArrayType.getGenericComponentType(), annotatedArrayType, context);
 
         AnnotatedType annotatedTypeForArray = getAnnotatedTypeForArray(genericArrayType, annotatedArrayType);
-        boundType += annotationParser.parseAnnotationsAsInline(annotatedTypeForArray, isInsideClass, context) + "[]";
+        String annotations = annotationParser.parseAnnotationsAsInline(annotatedTypeForArray, isInsideClass, context);
 
-        return boundType;
+        return boundType + annotations + "[]";
     }
 
     /**
@@ -266,6 +267,7 @@ public class GenericTypeParser {
                 bounds.add(parseType(typeBound, isInsideClass, annotatedBound, context));
             }
         }
+
         return bounds;
     }
 
@@ -376,15 +378,17 @@ public class GenericTypeParser {
                 WildcardType wildcardType = (WildcardType) actualTypeArgument;
                 AnnotatedType annotatedType = ifEmpty(annotatedActualTypeArguments, index);
 
-                String annotations = "";
                 AnnotatedWildcardType annotatedWildcardType = (AnnotatedWildcardType) annotatedType;
-                if (annotatedWildcardType != null) {
-                    annotations = annotationParser.parseAnnotationsAsInline(annotatedWildcardType, isInsideClass, context);
-                }
-                String wildcard = ContentJoiner.joinNotEmptyContentBySpace(annotations, "?");
 
                 AnnotatedType[] upper = ifNullUpper(annotatedWildcardType);
                 AnnotatedType[] lower = ifNullLower(annotatedWildcardType);
+
+                String annotations = "";
+                if (annotatedWildcardType != null) {
+                    annotations = annotationParser.parseAnnotationsAsInline(annotatedWildcardType, isInsideClass, context);
+                }
+
+                String wildcard = ContentJoiner.joinNotEmptyContentBySpace(annotations, "?");
 
                 wildcard += parseWildCardsBound(wildcardType.getUpperBounds(), "extends", upper, context);
                 wildcard += parseWildCardsBound(wildcardType.getLowerBounds(), "super", lower, context);
@@ -408,12 +412,7 @@ public class GenericTypeParser {
      * @param context        context of parsing class process
      * @return string with meta information about wild card bounds
      */
-    private String parseWildCardsBound(Type[] types,
-                                       String boundCase,
-                                       AnnotatedType[] annotatedTypes,
-                                       ParseContext context) {
-        String wildcard = "";
-
+    private String parseWildCardsBound(Type[] types, String boundCase, AnnotatedType[] annotatedTypes, ParseContext context) {
         if (types.length != 0) {
             List<String> bounds = new ArrayList<>();
             for (int index = 0; index < types.length; index++) {
@@ -424,11 +423,11 @@ public class GenericTypeParser {
             }
 
             if (!bounds.isEmpty()) {
-                wildcard += " " + boundCase + " " + String.join(" & ", bounds);
+                return " " + boundCase + " " + String.join(" & ", bounds);
             }
         }
 
-        return wildcard;
+        return "";
     }
 
 

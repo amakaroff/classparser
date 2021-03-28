@@ -56,14 +56,13 @@ public class ValueParser {
     }
 
     public String parseValue(Method method, ParseContext context) {
-        String defaultAnnotationValue = "";
-
         String defaultValue = parseValue(method.getDefaultValue(), context);
+
         if (defaultValue != null) {
-            defaultAnnotationValue += " default " + defaultValue;
+            return " default " + defaultValue;
         }
 
-        return defaultAnnotationValue;
+        return "";
     }
 
     /**

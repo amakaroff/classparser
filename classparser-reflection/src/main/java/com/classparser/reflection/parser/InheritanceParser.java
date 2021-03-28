@@ -105,12 +105,14 @@ public class InheritanceParser {
                                                   AnnotatedType[] annotatedTypes,
                                                   ParseContext context) {
         List<String> multipleParentTypes = new ArrayList<>();
+
         for (int index = 0; index < parentTypes.length; index++) {
             multipleParentTypes.add(genericTypeParser.parseType(parentTypes[index],
                     false,
                     ifEmpty(annotatedTypes, index),
                     context));
         }
+
         return multipleParentTypes;
     }
 

@@ -196,8 +196,8 @@ public class AnnotationParser {
      * @return string line with annotation parameters information
      */
     private String parseAnnotationArguments(Annotation annotation, ParseContext context) {
-        List<String> arguments = new ArrayList<>();
         Set<Map.Entry<String, Object>> annotationParameters = getAnnotationMemberTypes(annotation, context).entrySet();
+        List<String> arguments = new ArrayList<>();
 
         for (Map.Entry<String, Object> entry : annotationParameters) {
             if (DEFAULT_ANNOTATION_METHOD.equals(entry.getKey()) && annotationParameters.size() == 1) {
@@ -268,6 +268,7 @@ public class AnnotationParser {
     private boolean isRepeatableAnnotation(Annotation annotation) {
         Class<? extends Annotation> annotationType = annotation.annotationType();
         Method valueMethod = retrieveValueMethodFromAnnotation(annotationType);
+
         if (valueMethod != null) {
             Class<?> returnType = valueMethod.getReturnType();
 
@@ -277,6 +278,7 @@ public class AnnotationParser {
                 return repeatable != null && annotationType.equals(repeatable.value());
             }
         }
+
         return false;
     }
 
@@ -346,6 +348,7 @@ public class AnnotationParser {
             } else {
                 Object[] arrayValue = valueParser.toObjectArray(value);
                 Object[] arrayDefaultValue = valueParser.toObjectArray(defaultValue);
+
                 return Arrays.deepEquals(arrayValue, arrayDefaultValue);
             }
         }

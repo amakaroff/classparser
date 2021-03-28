@@ -44,8 +44,6 @@ public class ExceptionParser {
      * @return parsed exceptions or empty string if throws exceptions is not exists
      */
     public String parseExceptions(Executable executable, ParseContext context) {
-        String exceptions = "";
-
         AnnotatedType[] annotatedExceptionTypes = executable.getAnnotatedExceptionTypes();
         Type[] exceptionTypes = getExceptionTypes(executable);
 
@@ -56,11 +54,11 @@ public class ExceptionParser {
                     context));
         }
 
-        if (!exceptionTypesList.isEmpty()) {
-            exceptions += " throws " + String.join(", ", exceptionTypesList);
+        if (exceptionTypesList.isEmpty()) {
+            return  " throws " + String.join(", ", exceptionTypesList);
+        } else {
+            return "";
         }
-
-        return exceptions;
     }
 
     /**
