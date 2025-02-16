@@ -4,6 +4,7 @@ import com.classparser.bytecode.configuration.ConfigurationManager;
 import com.classparser.bytecode.exception.ByteCodeParserException;
 import com.sun.tools.attach.VirtualMachine;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -104,7 +105,11 @@ public class AgentAttacher {
                 virtualMachine.detach();
             }
         } catch (Exception exception) {
-            throw new ByteCodeParserException("Can't attach java agent to JVM process!", exception);
+            String message = "Can't attach java agent to JVM process";
+            if (exception instanceof IOException && "Can not attach to current VM".equals(exception.getMessage())) {
+                message = message + ". Please set \"-Djdk.attach.allowAttachSelf=true\" to VM options";
+            }
+            throw new ByteCodeParserException(message, exception);
         }
     }
 

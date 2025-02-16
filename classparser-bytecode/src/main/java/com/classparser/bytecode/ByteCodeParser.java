@@ -40,7 +40,7 @@ public class ByteCodeParser implements ClassParser {
     public ByteCodeParser() {
         this.configurationManager = new ConfigurationManager();
         this.bytecodeCollector = new ChainByteCodeCollector(configurationManager);
-        this.classesCollector = new InnerClassesCollector(configurationManager);
+        this.classesCollector = new InnerClassesCollector();
         this.saver = new BytecodeFileSaver(configurationManager);
     }
 

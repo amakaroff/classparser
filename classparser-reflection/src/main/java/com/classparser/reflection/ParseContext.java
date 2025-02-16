@@ -1,5 +1,6 @@
 package com.classparser.reflection;
 
+import java.lang.reflect.Member;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -19,10 +20,15 @@ public class ParseContext {
 
     private Class<?> currentParsedClass;
 
+    private Member currentParsedMember;
+
+    private Phase phase;
+
     public ParseContext(Class<?> baseClass) {
         this.baseClass = baseClass;
         this.currentParsedClass = baseClass;
         this.importClasses = getAllInnerAndNestedClasses(baseClass);
+        this.phase = Phase.NOT_STARTED;
     }
 
     public void setCurrentParsedClass(Class<?> currentParsedClass) {
@@ -58,6 +64,30 @@ public class ParseContext {
 
     public Class<?> getBaseParsedClass() {
         return baseClass;
+    }
+
+    public Phase getPhase() {
+        return phase;
+    }
+
+    public void setPhase(Phase phase) {
+        this.phase = phase;
+    }
+
+    public void clearPhase() {
+        setPhase(Phase.UNEXPECTED);
+    }
+
+    public Member getCurrentParsedMember() {
+        return currentParsedMember;
+    }
+
+    public void clearCurrentMember() {
+        setCurrentParsedMember(null);
+    }
+
+    public void setCurrentParsedMember(Member currentParsedMember) {
+        this.currentParsedMember = currentParsedMember;
     }
 
     /**

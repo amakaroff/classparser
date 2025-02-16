@@ -4,10 +4,9 @@ import com.classparser.api.ClassParser;
 import com.classparser.configuration.Configuration;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.exception.ReflectionParserException;
-import com.classparser.reflection.parser.structure.ImportParser;
-import com.classparser.reflection.parser.base.IndentParser;
 import com.classparser.reflection.parser.structure.ClassContentParser;
 import com.classparser.reflection.parser.structure.ClassSignatureParser;
+import com.classparser.reflection.parser.structure.ImportParser;
 import com.classparser.reflection.parser.structure.PackageParser;
 
 /**
@@ -23,8 +22,6 @@ import com.classparser.reflection.parser.structure.PackageParser;
  * @since 1.0.0
  */
 public class ReflectionParser implements ClassParser {
-
-    private final IndentParser indentParser;
 
     private final ImportParser importParser;
 
@@ -42,7 +39,6 @@ public class ReflectionParser implements ClassParser {
 
     public ReflectionParser(ConfigurationManager configurationManager) {
         this.configurationManager = configurationManager;
-        this.indentParser = new IndentParser(configurationManager);
         this.importParser = new ImportParser(configurationManager);
         this.packageParser = new PackageParser(configurationManager);
         this.classSignatureParser = new ClassSignatureParser(configurationManager);
@@ -58,21 +54,18 @@ public class ReflectionParser implements ClassParser {
         if (clazz != null) {
             setUp(clazz, context);
             try {
-                String lineSeparator = configurationManager.getLineSeparator();
-                String packageName = packageParser.parsePackage(clazz, context);
-                String indent = indentParser.getIndent(clazz, context);
-                String classSignature = classSignatureParser.getClassSignature(clazz, context);
-                String classContent = classContentParser.getClassContent(clazz, context);
-                String imports = getImports(clazz, context);
-                String classBody = '{' + lineSeparator + lineSeparator + classContent + indent + '}';
+                String packageName = packageParser.parsePackage(context);
+                String imports = importParser.getImports(context);
+                String classSignature = classSignatureParser.getClassSignature(context);
+                String classBody = classContentParser.getClassContent(context);
 
-                return packageName + imports + classSignature + ' ' + classBody;
+                return packageName + imports + ContentJoiner.joinSpace(classSignature, classBody);
             } finally {
                 tearDown(context);
             }
         }
 
-        throw new ReflectionParserException("Parsed class can't be a null!");
+        throw new ReflectionParserException("Parsed class can't be a null");
     }
 
     /**
@@ -92,21 +85,6 @@ public class ReflectionParser implements ClassParser {
      */
     private void tearDown(ParseContext context) {
         context.popCurrentClass();
-    }
-
-    /**
-     * Parses import section for class
-     *
-     * @param clazz any class
-     * @param context context of parsing class process
-     * @return parsed import section or empty string if {@link ConfigurationManager#isDisplayImports()} disable
-     */
-    private String getImports(Class<?> clazz, ParseContext context) {
-        if (context.isBasedParsedClass(clazz) && configurationManager.isDisplayImports()) {
-            return importParser.getImports(context);
-        }
-
-        return "";
     }
 
     @Override

@@ -8,12 +8,7 @@ import com.classparser.bytecode.decompile.procyon.configuration.ProcyonBuilderCo
 import com.classparser.bytecode.exception.decompile.DecompilationException;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import com.classparser.util.ConfigurationUtils;
-import com.strobel.assembler.metadata.Buffer;
-import com.strobel.assembler.metadata.DeobfuscationUtilities;
-import com.strobel.assembler.metadata.ITypeLoader;
-import com.strobel.assembler.metadata.MetadataSystem;
-import com.strobel.assembler.metadata.TypeDefinition;
-import com.strobel.assembler.metadata.TypeReference;
+import com.strobel.assembler.metadata.*;
 import com.strobel.decompiler.DecompilationOptions;
 import com.strobel.decompiler.DecompilerSettings;
 import com.strobel.decompiler.PlainTextOutput;
@@ -24,7 +19,6 @@ import com.strobel.decompiler.languages.java.JavaFormattingOptions;
 import com.strobel.decompiler.languages.java.JavaLanguage;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,7 +73,7 @@ public final class ProcyonDecompiler implements Decompiler {
             return output.toString();
         }
 
-        throw new DecompilationException("Byte code of classes for decompilation can't be a null!");
+        throw new DecompilationException("Byte code of classes for decompilation can't be a null");
     }
 
     /**

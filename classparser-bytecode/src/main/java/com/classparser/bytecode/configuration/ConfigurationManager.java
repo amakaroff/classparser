@@ -41,7 +41,6 @@ public class ConfigurationManager {
      *      <li>{@link #getDecompiler()} - {@link FernflowerDecompiler}</li>
      *      <li>{@link #isEnableClassFileByteCodeCollector()} - yes</li>
      *      <li>{@link #isEnableInstrumentationByteCodeCollector()} - yes</li>
-     *      <li>{@link #isEnableDumperByteCodeCollector()} - no</li>
      *      <li>{@link #isSaveToFile()} - no</li>
      *      <li>{@link #getCustomDecompilerConfiguration()} - Empty</li>
      *      <li>{@link #isCacheAgentJar()} - true</li>
@@ -139,15 +138,6 @@ public class ConfigurationManager {
      */
     public boolean isEnableInstrumentationByteCodeCollector() {
         return utils.getConfigOption(ENABLED_INSTRUMENTATION_BYTECODE_COLLECTOR_KEY, Boolean.class);
-    }
-
-    /**
-     * Checks if custom byte code collector should be enabled
-     *
-     * @return true if custom collector is enable
-     */
-    public boolean isEnableDumperByteCodeCollector() {
-        return utils.getConfigOption(ENABLED_DUMPER_BYTECODE_COLLECTOR_KEY, Boolean.class);
     }
 
     /**

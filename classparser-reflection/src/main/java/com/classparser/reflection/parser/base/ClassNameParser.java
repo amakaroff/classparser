@@ -1,6 +1,7 @@
 package com.classparser.reflection.parser.base;
 
 import com.classparser.reflection.ParseContext;
+import com.classparser.reflection.Phase;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.parser.structure.ImportParser;
 
@@ -40,73 +41,46 @@ public class ClassNameParser {
         }
     }
 
-    /**
-     * Parses class name with correctly resolving inner and nested classes
-     *
-     * @param classLink     any class link in class
-     * @param isInsideClass flag if class link contains inside class block
-     * @param context       context of parsing class process
-     * @return parsed class name
-     */
-    public String parseClassName(Class<?> classLink, boolean isInsideClass, ParseContext context) {
-        String className = parseTypeName(classLink, context);
-
-        if (isFullNameRequired(classLink, isInsideClass, context)) {
-            String packageName = "";
-            if (className.contains(".")) {
-                int simpleNameSeparator = className.lastIndexOf('.');
-
-                packageName = className.substring(0, simpleNameSeparator) + ".";
-                className = className.substring(simpleNameSeparator + 1);
-            }
-
-            Class<?> declaringClass = classLink.getDeclaringClass();
-            if (declaringClass != null) {
-                StringBuilder annotationNameBuilder = new StringBuilder(className);
-                do {
-                    annotationNameBuilder.insert(0, getSimpleName(declaringClass) + ".");
-                    declaringClass = declaringClass.getDeclaringClass();
-                } while (declaringClass != null && isFullNameRequired(declaringClass, isInsideClass, context));
-
-                return packageName + annotationNameBuilder.toString();
-            }
-
-            return packageName + className;
-        }
-
-        return className;
+    public boolean isRequireFullName(Class<?> clazz, ParseContext context) {
+        return importParser.isRequireFullName(clazz, context);
     }
 
     /**
-     * Tries understand is class name requires class name
+     * Checks if class is special package info interface
      *
-     * @param classLink     any class link
-     * @param isInsideClass flag if class link contains inside class block
-     * @param context       context of parsing class process
-     * @return true if class requires full name
+     * @param clazz any class
+     * @return true if class is package info
      */
-    boolean isFullNameRequired(Class<?> classLink, boolean isInsideClass, ParseContext context) {
-        if (classLink.isMemberClass()) {
-            return isNeedNameForInnerClass(classLink, isInsideClass, context);
-        } else if (classLink == context.getCurrentParsedClass()) {
-            return !isInsideClass;
-        } else {
-            return false;
-        }
+    public boolean isPackageInfo(Class<?> clazz) {
+        return getSimpleName(clazz).equals("package-info") && clazz.isInterface();
+    }
+
+    /**
+     * Obtains package name
+     *
+     * @param clazz any class
+     * @return name of package for class or empty string of class have not package
+     */
+    public String getPackageName(Class<?> clazz) {
+        return clazz.getPackage() != null ? clazz.getPackage().getName() : "";
     }
 
     /**
      * Is type for any member is inner class and contained in static context
      *
-     * @param member any member like field or method
-     * @param type   type related with that member
+     * @param type type related with that member
      * @return true if inner class is in static context
      */
-    public boolean isInnerClassInStaticContext(Member member, Class<?> type) {
-        return !Modifier.isStatic(member.getModifiers()) ||
-                !type.isMemberClass() ||
-                Modifier.isStatic(type.getModifiers()) ||
-                !isHaveGenericInterfaces(type);
+    public boolean isInnerClassInStaticContext(Class<?> type, ParseContext context) {
+        Member member = context.getCurrentParsedMember();
+        if (member != null) {
+            return Modifier.isStatic(member.getModifiers()) &&
+                    type.isMemberClass() &&
+                    !Modifier.isStatic(type.getModifiers()) &&
+                    isHaveGenericInterfaces(type);
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -141,12 +115,12 @@ public class ClassNameParser {
      * </p>
      *
      * @param classLink     any class
-     * @param isInsideClass is class link contained inside class block
      * @param context       context of parsing class process
      * @return true if class in visibility zone for current parsed class
      */
-    private boolean isInVisibilityZone(Class<?> classLink, boolean isInsideClass, ParseContext context) {
+    private boolean isInVisibilityZone(Class<?> classLink, ParseContext context) {
         Class<?> currentClass = context.getCurrentParsedClass();
+        boolean isInsideClass = context.getPhase() == Phase.BODY && !isInnerClassInStaticContext(classLink, context);
 
         while (currentClass != null) {
             List<Class<?>> innerClasses = Arrays.asList(currentClass.getDeclaredClasses());
@@ -169,10 +143,10 @@ public class ClassNameParser {
      * @param context    context of parsing class process
      * @return true if name needed for inner class
      */
-    boolean isNeedNameForInnerClass(Class<?> innerClass, boolean isInsideClass, ParseContext context) {
+    boolean isNeedNameForInnerClass(Class<?> innerClass, ParseContext context) {
         return innerClass.isMemberClass()
                 && (!getTopClass(innerClass).equals(getTopClass(context.getBaseParsedClass()))
-                || !isInVisibilityZone(innerClass, isInsideClass, context));
+                || !isInVisibilityZone(innerClass, context));
     }
 
     /**

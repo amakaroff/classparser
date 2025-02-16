@@ -41,6 +41,8 @@ public interface ReflectionParserConfiguration extends Configuration {
 
     String PARSE_ENUM_AS_CLASS = "pec";
 
+    String PARSE_PACKAGE_INFO_AS_CLASS = "ppc";
+
     /**
      * Set displaying annotation on types like
      * example {@link ElementType#TYPE_USE} or {@link ElementType#TYPE_PARAMETER}
@@ -175,6 +177,17 @@ public interface ReflectionParserConfiguration extends Configuration {
      * @return builder instance
      */
     ReflectionParserConfiguration displayEnumsAsClass(boolean flag);
+
+    /**
+     * Set to parse package info as simple java class
+     * <p>
+     * Default value: false
+     * </p>
+     *
+     * @param flag true if package info should be parsed as class
+     * @return builder instance
+     */
+    ReflectionParserConfiguration displayPackageInfosAsClass(boolean flag);
 
     /**
      * Set count of indent for parser structure of class

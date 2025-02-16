@@ -15,6 +15,7 @@ import org.jetbrains.java.decompiler.main.extern.IResultSaver;
 import org.jetbrains.java.decompiler.struct.StructClass;
 import org.jetbrains.java.decompiler.struct.StructContext;
 import org.jetbrains.java.decompiler.struct.lazy.LazyLoader;
+import org.jetbrains.java.decompiler.util.DataInputFullStream;
 
 import java.io.File;
 import java.io.IOException;
@@ -143,8 +144,8 @@ public final class FernflowerDecompiler implements Decompiler {
      */
     private StructClass createClassStruct(byte[] byteCode) {
         try {
-            LazyLoader lazyLoader = new LazyLoader((externalPath, internalPath) -> byteCode);
-            StructClass structClass = new StructClass(byteCode, true, lazyLoader);
+            LazyLoader lazyLoader = new LazyLoader((_, _) -> byteCode);
+            StructClass structClass = StructClass.create(new DataInputFullStream(byteCode), true, lazyLoader);
             LazyLoader.Link link = new LazyLoader.Link("", structClass.qualifiedName);
             lazyLoader.addClassLink(structClass.qualifiedName, link);
 

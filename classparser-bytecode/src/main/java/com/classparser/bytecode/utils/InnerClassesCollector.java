@@ -1,7 +1,5 @@
 package com.classparser.bytecode.utils;
 
-import com.classparser.bytecode.configuration.ConfigurationManager;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -13,12 +11,6 @@ import java.util.Set;
  * @since 1.0.0
  */
 public class InnerClassesCollector {
-
-    private final ConfigurationManager configurationManager;
-
-    public InnerClassesCollector(ConfigurationManager configurationManager) {
-        this.configurationManager = configurationManager;
-    }
 
     /**
      * Collects inner/anonymous/local classes
@@ -88,13 +80,10 @@ public class InnerClassesCollector {
     private Set<Class<?>> getLocalClasses(Class<?> clazz) {
         Set<Class<?>> localClasses = new HashSet<>();
 
-        ConstantPoolClassIterable classIterable = new ConstantPoolClassIterable(clazz, configurationManager);
-        for (Class<?> constantClass : classIterable) {
-            String constantClassName = ClassNameConverter.toJavaClassName(constantClass);
-            String className = ClassNameConverter.toJavaClassName(clazz);
-            if (constantClass.isLocalClass() && constantClass != clazz && constantClassName.startsWith(className)) {
-                localClasses.add(constantClass);
-                localClasses.addAll(getInnerClasses(constantClass));
+        for (Class<?> nestedClass : clazz.getNestMembers()) {
+            if (nestedClass.isLocalClass()) {
+                localClasses.add(nestedClass);
+                localClasses.addAll(getInnerClasses(nestedClass));
             }
         }
 

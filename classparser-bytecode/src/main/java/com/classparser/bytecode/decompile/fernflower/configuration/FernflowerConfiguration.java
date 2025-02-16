@@ -3,8 +3,8 @@ package com.classparser.bytecode.decompile.fernflower.configuration;
 import com.classparser.bytecode.decompile.fernflower.FernflowerDecompiler;
 import com.classparser.configuration.Configuration;
 import org.jetbrains.java.decompiler.main.extern.IFernflowerLogger;
-import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
-import org.jetbrains.java.decompiler.modules.renamer.ConverterHelper;
+import org.jetbrains.java.decompiler.main.extern.IMemberIdentifierRenamer;
+import org.jetbrains.java.decompiler.modules.renamer.MemberConverterHelper;
 
 import java.lang.reflect.Parameter;
 
@@ -252,9 +252,9 @@ public interface FernflowerConfiguration extends Configuration {
      *
      * @param renamer deobfuscator instance
      * @return builder instance
-     * @see ConverterHelper
+     * @see MemberConverterHelper
      */
-    FernflowerConfiguration setNewIIdentifierRenamer(Class<? extends IIdentifierRenamer> renamer);
+    FernflowerConfiguration setNewIIdentifierRenamer(Class<? extends IMemberIdentifierRenamer> renamer);
 
     /**
      * Checks for IntelliJ IDEA-specific @NotNull annotation and remove inserted code if found

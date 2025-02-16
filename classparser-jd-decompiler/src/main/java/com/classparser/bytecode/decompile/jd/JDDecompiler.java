@@ -12,20 +12,15 @@ import org.jd.core.v1.api.printer.Printer;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.COUNT_INDENT_SPACES_KEY;
-import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.MERGE_EMPTY_LINES_KEY;
-import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.REALIGNMENT_LINE_NUMBER_KEY;
-import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.SHOW_LINE_NUMBERS_KEY;
-import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.TYPE_MAKER_KEY;
+import static com.classparser.bytecode.decompile.jd.configuration.JDConfiguration.*;
 
 /**
  * Adapter of JD decompiler for {@link Decompiler} API
  * This decompiler was written of Emmanuel Dupuy
- * Decompiler version: 1.3.1
+ * Decompiler version: 1.1.3
  * <p>
  *
  * @author Aleksei Makarov
@@ -55,11 +50,11 @@ public final class JDDecompiler implements Decompiler {
 
                 return printer.getSource();
             } catch (Exception exception) {
-                throw new DecompilationException("Decompilcation process was interrupt with exception", exception);
+                throw new DecompilationException("Decompilation process was interrupt with exception", exception);
             }
         }
 
-        throw new DecompilationException("Byte code of classes for decompilation can't be a null!");
+        throw new DecompilationException("Byte code of classes for decompilation can't be a null");
     }
 
     private Map<String, Object> getConfiguration(Loader loader) {
@@ -198,9 +193,7 @@ public final class JDDecompiler implements Decompiler {
                 sourceBuilder.append(lineNumber);
             }
 
-            for (int i = 0; i < indentCounter; i++) {
-                sourceBuilder.append(indentSpaces);
-            }
+            sourceBuilder.append(String.valueOf(indentSpaces).repeat(Math.max(0, indentCounter)));
         }
 
         @Override

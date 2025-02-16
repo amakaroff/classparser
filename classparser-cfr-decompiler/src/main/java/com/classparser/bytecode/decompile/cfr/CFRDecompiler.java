@@ -73,7 +73,7 @@ public final class CFRDecompiler implements Decompiler {
             return dumper.toString().trim();
         }
 
-        throw new DecompilationException("Byte code of classes for decompilation can't be a null!");
+        throw new DecompilationException("Byte code of classes for decompilation can't be a null");
     }
 
     /**

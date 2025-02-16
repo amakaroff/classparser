@@ -1,7 +1,7 @@
 package com.classparser.reflection.parser.structure.executeble;
 
-import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.ContentJoiner;
+import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.parser.base.AnnotationParser;
 import com.classparser.reflection.parser.base.GenericTypeParser;
@@ -51,16 +51,20 @@ public class ConstructorParser {
      * about constructors for any {@link Class} instance.
      * Parsing result includes name, types, generics, annotations, modifiers, exceptions etc.
      *
-     * @param clazz   any class
      * @param context context of parsing class process
      * @return parsed constructors
      */
-    public String parseConstructors(Class<?> clazz, ParseContext context) {
+    public String parseConstructors(ParseContext context) {
         List<String> constructors = new ArrayList<>();
 
-        for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-            if (isShouldBeDisplayed(constructor)) {
-                constructors.add(parseConstructor(constructor, context));
+        for (Constructor<?> constructor : context.getCurrentParsedClass().getDeclaredConstructors()) {
+            context.setCurrentParsedMember(constructor);
+            try {
+                if (isShouldBeDisplayed(constructor)) {
+                    constructors.add(parseConstructor(constructor, context));
+                }
+            } finally {
+                context.clearCurrentMember();
             }
         }
 
@@ -79,16 +83,18 @@ public class ConstructorParser {
         String annotations = annotationParser.parseAnnotationsAsBlock(constructor, context);
         String indent = indentParser.getIndent(constructor, context);
         String modifiers = modifierParser.parseModifiers(constructor);
-        String generics = genericParser.parseGenerics(constructor, true, context);
+        String generics = genericParser.parseGenerics(constructor, context);
         String constructorName = genericParser.parseType(constructor.getDeclaringClass(), context);
         String arguments = argumentParser.parseArguments(constructor, context);
         String exceptions = exceptionParser.parseExceptions(constructor, context);
         String oneIndent = configurationManager.getIndentSpaces();
         String lineSeparator = configurationManager.getLineSeparator();
-        String body = " {" + lineSeparator + indent + oneIndent + "/* Compiled code */" + lineSeparator + indent + '}';
-        String content = ContentJoiner.joinNotEmptyContentBySpace(modifiers, generics, constructorName);
+        String body = "{" + lineSeparator + indent + oneIndent + "/* Compiled code */" + lineSeparator + indent + '}';
 
-        return annotations + indent + content + arguments + exceptions + body;
+        String content = ContentJoiner.joinSpace(modifiers, generics, constructorName);
+        String signature = ContentJoiner.joinSpace(arguments, exceptions, body);
+
+        return annotations + indent + content + signature;
     }
 
     /**

@@ -33,7 +33,7 @@ public class ImportParser {
     public boolean tryAddToImport(Class<?> classForImport, ParseContext context) {
         classForImport = resolveClass(classForImport);
 
-        if (!configurationManager.isDisplayImports() || isNeedFullName(classForImport, context)) {
+        if (isRequireFullName(classForImport, context)) {
             return false;
         } else {
             context.addImportClass(classForImport);
@@ -51,9 +51,11 @@ public class ImportParser {
         Set<String> imports = new TreeSet<>();
         String lineSeparator = configurationManager.getLineSeparator();
 
-        for (Class<?> clazz : context.getImportClasses()) {
-            if (isAppendToImports(clazz, context)) {
-                imports.add("import " + clazz.getName() + ';' + lineSeparator);
+        if (context.isBasedParsedClass(context.getCurrentParsedClass()) && configurationManager.isDisplayImports()) {
+            for (Class<?> clazz : context.getImportClasses()) {
+                if (isAppendToImports(clazz, context)) {
+                    imports.add("import " + clazz.getName() + ';' + lineSeparator);
+                }
             }
         }
 
@@ -84,15 +86,19 @@ public class ImportParser {
      * @param context        context of parsing class process
      * @return true if for class necessary full name displayed
      */
-    private boolean isNeedFullName(Class<?> classForImport, ParseContext context) {
-        Set<Class<?>> classes = context.getImportClasses();
-        for (Class<?> clazz : classes) {
-            if (areEqualBySimpleName(clazz, classForImport) && !areEqualByName(clazz, classForImport)) {
-                return !classes.contains(classForImport);
+    public boolean isRequireFullName(Class<?> classForImport, ParseContext context) {
+        if (configurationManager.isDisplayImports()) {
+            Set<Class<?>> classes = context.getImportClasses();
+            for (Class<?> clazz : classes) {
+                if (areEqualBySimpleName(clazz, classForImport) && !areEqualByName(clazz, classForImport)) {
+                    return !classes.contains(classForImport);
+                }
             }
+
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     /**

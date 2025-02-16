@@ -53,6 +53,7 @@ public class ConfigurationManager {
      *      <li>{@link #isDisplayImplicitModifiers()} - false</li>
      *      <li>{@link #isDisplayStaticBlock()} - true</li>
      *      <li>{@link #isDisplayEnumAsClass()} - false</li>
+     *      <li>{@link #isDisplayPackageInfoAsClass()} - false</li>
      *      <li>{@link #isDisplayImports()} - yes</li>
      *      <li>{@link #getIndentSpaces()} - 4 spaces</li>
      *      <li>{@link #chooseSystemNewLineCharacter} - choice depend on the system</li>
@@ -74,6 +75,7 @@ public class ConfigurationManager {
                 .displayDefaultInheritance(false)
                 .displayStaticBlock(true)
                 .displayEnumsAsClass(false)
+                .displayPackageInfosAsClass(false)
                 .displayImports(true)
                 .setCountIndentSpaces(4)
                 .defineLineSeparator(chooseSystemNewLineCharacter())
@@ -208,12 +210,20 @@ public class ConfigurationManager {
 
     /**
      * Checks is parser should parse enum type as simple java class
-     * or display special enum information
      *
      * @return true if enum should be parsed as class
      */
     public boolean isDisplayEnumAsClass() {
         return utils.getConfigOption(PARSE_ENUM_AS_CLASS, Boolean.class);
+    }
+
+    /**
+     * Checks is parser should parse package info interface as simple java class
+     *
+     * @return true if package info should be parsed as class
+     */
+    public boolean isDisplayPackageInfoAsClass() {
+        return utils.getConfigOption(PARSE_PACKAGE_INFO_AS_CLASS, Boolean.class);
     }
 
     /**

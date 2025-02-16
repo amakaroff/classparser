@@ -1,8 +1,8 @@
 package com.classparser.reflection;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Utility class provides methods for join contents by any separator
@@ -23,30 +23,45 @@ public class ContentJoiner {
      */
     public static String joinContent(List<String> content, String lineSeparator) {
         if (!content.isEmpty()) {
-            return String.join(lineSeparator + lineSeparator, content) + lineSeparator;
+            return join(lineSeparator + lineSeparator, content) + lineSeparator;
         }
 
         return "";
     }
 
-    /**
-     * Performs the join of non-empty class content by space
-     *
-     * @param content class content
-     * @return joined class content
-     */
-    public static String joinNotEmptyContentBySpace(String... content) {
-        return joinNotEmpty(" ", content);
+    public static String joinSpace(List<String> content) {
+        return join(" ", content);
     }
 
-    /**
-     * Performs the join of non-empty class content by space
-     *
-     * @param separator separator for content
-     * @param content   class content
-     * @return joined class content
-     */
-    public static String joinNotEmpty(String separator, String... content) {
-        return Stream.of(content).filter(s -> !s.isEmpty()).collect(Collectors.joining(separator));
+    public static String joinSpace(String... content) {
+        return join(" ", content);
+    }
+
+    public static String join(String separator, String... content) {
+        return join(separator, Arrays.asList(content));
+    }
+
+    public static String join(String separator, List<String> content) {
+        if (!content.isEmpty()) {
+            return content.stream().filter(line -> !line.isEmpty()).collect(Collectors.joining(separator));
+        }
+
+        return "";
+    }
+
+    public static String joinGenerics(List<String> generics) {
+        if (!generics.isEmpty()) {
+            return "<" + join(", ", generics) + ">";
+        }
+
+        return "";
+    }
+
+    public static String joinArguments(List<String> arguments) {
+        if (!arguments.isEmpty()) {
+            return "(" + join(", ", arguments) + ")";
+        }
+
+        return "";
     }
 }

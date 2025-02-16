@@ -50,34 +50,41 @@ public class FieldParser {
     /**
      * Parse fields meta information for class
      *
-     * @param clazz any class
      * @param context context of parsing class process
      * @return parsed fields
      */
-    public String parseFields(Class<?> clazz, ParseContext context) {
+    public String parseFields(ParseContext context) {
+        Class<?> currentParsedClass = context.getCurrentParsedClass();
+
         List<String> enumConstants = new ArrayList<>();
         List<String> staticFields = new ArrayList<>();
         List<String> instanceFields = new ArrayList<>();
 
-        for (Field field : clazz.getDeclaredFields()) {
-            if (isShouldBeDisplayed(field)) {
-                String parsedField = parseField(field, context);
+        for (Field field : currentParsedClass.getDeclaredFields()) {
+            context.setCurrentParsedMember(field);
+            try {
+                if (isShouldBeDisplayed(field)) {
+                    String parsedField = parseField(field, context);
 
-                if (field.isEnumConstant() && !configurationManager.isDisplayEnumAsClass()) {
-                    enumConstants.add(parsedField);
-                } else if (Modifier.isStatic(field.getModifiers())) {
-                    staticFields.add(parsedField);
-                } else {
-                    instanceFields.add(parsedField);
+                    if (field.isEnumConstant() && !configurationManager.isDisplayEnumAsClass()) {
+                        enumConstants.add(parsedField);
+                    } else if (Modifier.isStatic(field.getModifiers())) {
+                        staticFields.add(parsedField);
+                    } else {
+                        instanceFields.add(parsedField);
+                    }
                 }
+            } finally {
+                context.clearCurrentMember();
             }
+
         }
 
-        staticFields.addAll(getStaticImplicitFields(clazz, context));
-        instanceFields.addAll(getInstanceImplicitFields(clazz, context));
+        staticFields.addAll(getStaticImplicitFields(context));
+        instanceFields.addAll(getInstanceImplicitFields(context));
 
-        if (clazz.isEnum() && !configurationManager.isDisplayEnumAsClass()) {
-            return joinEnumFields(clazz, context, enumConstants, staticFields, instanceFields);
+        if (currentParsedClass.isEnum() && !configurationManager.isDisplayEnumAsClass()) {
+            return joinEnumFields(currentParsedClass, context, enumConstants, staticFields, instanceFields);
         } else {
             return joinClassFields(staticFields, instanceFields);
         }
@@ -87,7 +94,7 @@ public class FieldParser {
      * Parses the field meta information
      * Include types, name, annotation etc.
      *
-     * @param field any field
+     * @param field   any field
      * @param context context of parsing class process
      * @return parsed field
      */
@@ -101,18 +108,17 @@ public class FieldParser {
             String annotations = annotationParser.parseAnnotationsAsBlock(field, context);
             String indent = indentParser.getIndent(field, context);
             String modifiers = modifierParser.parseModifiers(field);
-            String type = genericTypeParser.parseType(getType(field),
-                    classNameParser.isInnerClassInStaticContext(field, field.getType()),
-                    field.getAnnotatedType(),
-                    context);
+            String type = genericTypeParser.parseType(getType(field), field.getAnnotatedType(), context);
             String name = classNameParser.getMemberName(field);
             String value = valueParser.parseValue(field, context);
 
-            return annotations + indent + ContentJoiner.joinNotEmptyContentBySpace(modifiers, type, name) + value + ';';
+            return annotations + indent + ContentJoiner.joinSpace(modifiers, type, name) + value + ';';
         }
     }
 
-    private List<String> getInstanceImplicitFields(Class<?> declaredClass, ParseContext context) {
+    private List<String> getInstanceImplicitFields(ParseContext context) {
+        Class<?> declaredClass = context.getCurrentParsedClass();
+
         List<String> instanceFields = new ArrayList<>();
 
         if (declaredClass.isArray()) {
@@ -138,7 +144,9 @@ public class FieldParser {
         return instanceFields;
     }
 
-    private List<String> getStaticImplicitFields(Class<?> declaredClass, ParseContext context) {
+    private List<String> getStaticImplicitFields(ParseContext context) {
+        Class<?> declaredClass = context.getCurrentParsedClass();
+
         List<String> staticFields = new ArrayList<>();
 
         if (declaredClass.equals(System.class)) {
@@ -153,7 +161,7 @@ public class FieldParser {
         return staticFields;
     }
 
-    private String joinEnumFields(Class<?> clazz,
+    private String joinEnumFields(Class<?> declaringClass,
                                   ParseContext context,
                                   List<String> enumConstants,
                                   List<String> staticFields,
@@ -165,14 +173,14 @@ public class FieldParser {
         if (!enumConstants.isEmpty()) {
             parsedEnumConstants = String.join("," + doubleLineSeparator, enumConstants) + ";";
         } else if (!staticFields.isEmpty() || !instanceFields.isEmpty()) {
-            String indent = indentParser.getIndent(clazz, context) + configurationManager.getIndentSpaces();
+            String indent = indentParser.getIndent(declaringClass, context) + configurationManager.getIndentSpaces();
             parsedEnumConstants = indent + ";";
         }
 
         String parsedStaticFields = String.join(doubleLineSeparator, staticFields);
         String parsedInstanceFields = String.join(doubleLineSeparator, instanceFields);
 
-        String fields = ContentJoiner.joinNotEmpty(doubleLineSeparator, parsedEnumConstants, parsedStaticFields, parsedInstanceFields);
+        String fields = ContentJoiner.join(doubleLineSeparator, parsedEnumConstants, parsedStaticFields, parsedInstanceFields);
 
         if (fields.isEmpty()) {
             return "";
@@ -220,11 +228,13 @@ public class FieldParser {
         }
     }
 
-    private String parseImplicitField(Class<?> clazz, ParseContext context, int modifiers, Type type, String name) {
-        return configurationManager.getIndentSpaces() + indentParser.getIndent(clazz, context) +
-                modifierParser.parseFieldModifiers(modifiers, clazz) + " " +
-                genericTypeParser.parseType(type, context) + " " +
-                name + ";";
+    private String parseImplicitField(Class<?> clazz, ParseContext context, int modifierMask, Type type, String name) {
+        String oneIndent = configurationManager.getIndentSpaces();
+        String indent = indentParser.getIndent(clazz, context);
+        String modifiers = modifierParser.parseFieldModifiers(modifierMask, clazz);
+        String fieldType = genericTypeParser.parseType(type, context);
+
+        return oneIndent + indent + ContentJoiner.joinSpace(modifiers, fieldType, name) + ";";
     }
 
     /**
@@ -286,15 +296,15 @@ public class FieldParser {
     }
 
     private Type getMapType() {
+        final class GenericFieldStorage {
+            public Map<Class<?>, String[]> mapField;
+        }
+
         try {
             Field mapField = GenericFieldStorage.class.getField("mapField");
             return mapField.getGenericType();
         } catch (NoSuchFieldException exception) {
             throw new ReflectionParserException("Unexpected exception", exception);
         }
-    }
-
-    private static final class GenericFieldStorage {
-        public Map<Class<?>, String[]> mapField;
     }
 }

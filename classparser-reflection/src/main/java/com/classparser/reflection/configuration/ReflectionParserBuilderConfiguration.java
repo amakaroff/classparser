@@ -102,13 +102,7 @@ public class ReflectionParserBuilderConfiguration {
 
         @Override
         public ReflectionParserConfiguration setCountIndentSpaces(int indent) {
-            StringBuilder builder = new StringBuilder();
-
-            for (int i = 0; i < indent; i++) {
-                builder.append(' ');
-            }
-
-            configuration.put(COUNT_INDENT_SPACES_KEY, builder.toString());
+            configuration.put(COUNT_INDENT_SPACES_KEY, " ".repeat(Math.max(0, indent)));
             return this;
         }
 
@@ -127,6 +121,12 @@ public class ReflectionParserBuilderConfiguration {
         @Override
         public ReflectionParserConfiguration displayEnumsAsClass(boolean flag) {
             configuration.put(PARSE_ENUM_AS_CLASS, flag);
+            return this;
+        }
+
+        @Override
+        public ReflectionParserConfiguration displayPackageInfosAsClass(boolean flag) {
+            configuration.put(PARSE_PACKAGE_INFO_AS_CLASS, flag);
             return this;
         }
     }

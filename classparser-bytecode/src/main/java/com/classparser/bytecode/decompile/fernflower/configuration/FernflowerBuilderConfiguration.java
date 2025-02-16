@@ -3,7 +3,7 @@ package com.classparser.bytecode.decompile.fernflower.configuration;
 import com.classparser.bytecode.decompile.fernflower.FernflowerDecompiler;
 import com.classparser.bytecode.utils.ClassNameConverter;
 import org.jetbrains.java.decompiler.main.extern.IFernflowerLogger;
-import org.jetbrains.java.decompiler.main.extern.IIdentifierRenamer;
+import org.jetbrains.java.decompiler.main.extern.IMemberIdentifierRenamer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -221,7 +221,7 @@ public class FernflowerBuilderConfiguration {
         }
 
         @Override
-        public FernflowerConfiguration setNewIIdentifierRenamer(Class<? extends IIdentifierRenamer> renamer) {
+        public FernflowerConfiguration setNewIIdentifierRenamer(Class<? extends IMemberIdentifierRenamer> renamer) {
             configuration.put("urc", ClassNameConverter.toJavaClassName(renamer));
             return this;
         }
@@ -239,13 +239,7 @@ public class FernflowerBuilderConfiguration {
 
         @Override
         public FernflowerConfiguration setCountIndentSpaces(int indent) {
-            StringBuilder builder = new StringBuilder();
-
-            for (int i = 0; i < indent; i++) {
-                builder.append(" ");
-            }
-
-            configuration.put("ind", builder.toString());
+            configuration.put("ind", " ".repeat(Math.max(0, indent)));
             return this;
         }
 

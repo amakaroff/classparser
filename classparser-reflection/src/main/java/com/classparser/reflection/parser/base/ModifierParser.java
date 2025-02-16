@@ -52,17 +52,6 @@ public class ModifierParser {
             modifiers.add("private");
         }
 
-        if (isSynthetic(modifierMask)) {
-            modifiers.add("synthetic");
-        }
-
-        if (Modifier.isAbstract(modifierMask)) {
-            if (configurationManager.isDisplayImplicitModifiers() ||
-                    !clazz.isInterface() && !clazz.isEnum() && !clazz.isArray() && !clazz.isPrimitive()) {
-                modifiers.add("abstract");
-            }
-        }
-
         if (Modifier.isStatic(modifierMask)) {
             if (configurationManager.isDisplayImplicitModifiers() || !isOnlyStaticInnerClass(clazz)) {
                 modifiers.add("static");
@@ -76,8 +65,24 @@ public class ModifierParser {
             }
         }
 
+        if (isSynthetic(modifierMask)) {
+            modifiers.add("synthetic");
+        }
+
+        if (Modifier.isAbstract(modifierMask)) {
+            if (configurationManager.isDisplayImplicitModifiers() ||
+                    !clazz.isInterface() && !clazz.isEnum() && !clazz.isArray() && !clazz.isPrimitive()) {
+                modifiers.add("abstract");
+            }
+        }
+
+        // strictfp modifier does not displayed on class
         if (Modifier.isStrict(modifierMask)) {
-            modifiers.add("strictfp ");
+            modifiers.add("strictfp");
+        }
+
+        if (clazz.isSealed()) {
+            modifiers.add("sealed");
         }
 
         return String.join(" ", modifiers);
@@ -156,18 +161,6 @@ public class ModifierParser {
             modifiers.add("private");
         }
 
-        if (isSynthetic(modifierMask)) {
-            modifiers.add("synthetic");
-        }
-
-        if (Modifier.isVolatile(modifierMask)) {
-            modifiers.add("volatile");
-        }
-
-        if (Modifier.isTransient(modifierMask)) {
-            modifiers.add("transient");
-        }
-
         if (Modifier.isStatic(modifierMask)) {
             if (configurationManager.isDisplayImplicitModifiers() || !declaredClass.isInterface()) {
                 modifiers.add("static");
@@ -178,6 +171,18 @@ public class ModifierParser {
             if (configurationManager.isDisplayImplicitModifiers() || !declaredClass.isEnum() && !declaredClass.isInterface()) {
                 modifiers.add("final");
             }
+        }
+
+        if (isSynthetic(modifierMask)) {
+            modifiers.add("synthetic");
+        }
+
+        if (Modifier.isVolatile(modifierMask)) {
+            modifiers.add("volatile");
+        }
+
+        if (Modifier.isTransient(modifierMask)) {
+            modifiers.add("transient");
         }
 
         return String.join(" ", modifiers);
@@ -210,6 +215,14 @@ public class ModifierParser {
             modifiers.add("private");
         }
 
+        if (Modifier.isStatic(modifierMask)) {
+            modifiers.add("static");
+        }
+
+        if (Modifier.isFinal(modifierMask)) {
+            modifiers.add("final");
+        }
+
         if (isSynthetic(modifierMask)) {
             modifiers.add("synthetic");
         }
@@ -236,16 +249,8 @@ public class ModifierParser {
             modifiers.add("strictfp");
         }
 
-        if (Modifier.isStatic(modifierMask)) {
-            modifiers.add("static");
-        }
-
         if (Modifier.isNative(modifierMask)) {
             modifiers.add("native");
-        }
-
-        if (Modifier.isFinal(modifierMask)) {
-            modifiers.add("final");
         }
 
         return String.join(" ", modifiers);

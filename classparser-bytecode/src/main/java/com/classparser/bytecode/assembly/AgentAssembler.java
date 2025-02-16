@@ -96,7 +96,7 @@ public class AgentAssembler {
         try {
             Files.deleteIfExists(agentJarPath);
         } catch (IOException exception) {
-            System.err.println("Problems occurred with removing agent jar file: " + agentJarPath.toString());
+            System.err.println("Problems occurred with removing agent jar file: " + agentJarPath);
             exception.printStackTrace();
         }
     }

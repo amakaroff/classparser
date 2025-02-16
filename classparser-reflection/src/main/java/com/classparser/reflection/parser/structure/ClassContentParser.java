@@ -1,8 +1,11 @@
 package com.classparser.reflection.parser.structure;
 
 import com.classparser.reflection.ParseContext;
+import com.classparser.reflection.Phase;
 import com.classparser.reflection.ReflectionParser;
 import com.classparser.reflection.configuration.ConfigurationManager;
+import com.classparser.reflection.parser.base.ClassNameParser;
+import com.classparser.reflection.parser.base.IndentParser;
 import com.classparser.reflection.parser.structure.executeble.ConstructorParser;
 import com.classparser.reflection.parser.structure.executeble.MethodParser;
 
@@ -22,6 +25,10 @@ public class ClassContentParser {
 
     private final ClassesParser classesParser;
 
+    private final ClassNameParser classNameParser;
+
+    private final IndentParser indentParser;
+
     private final ConfigurationManager manager;
 
     public ClassContentParser(ReflectionParser parser, ConfigurationManager configurationManager) {
@@ -30,6 +37,8 @@ public class ClassContentParser {
         this.constructorParser = new ConstructorParser(configurationManager);
         this.methodParser = new MethodParser(configurationManager);
         this.blockParser = new BlockParser(configurationManager);
+        this.classNameParser = new ClassNameParser(configurationManager);
+        this.indentParser = new IndentParser(configurationManager);
         this.manager = configurationManager;
     }
 
@@ -37,21 +46,35 @@ public class ClassContentParser {
      * Parses signature for class
      * Includes fields, static initializer block, constructors, methods and inner classes
      *
-     * @param clazz   any class
      * @param context context of parsing class process
      * @return parsed class context
      */
-    public String getClassContent(Class<?> clazz, ParseContext context) {
-        List<String> contents = new ArrayList<>();
+    public String getClassContent(ParseContext context) {
+        context.setPhase(Phase.BODY);
+        try {
+            Class<?> currentParsedClass = context.getCurrentParsedClass();
+            if (manager.isDisplayPackageInfoAsClass() || !classNameParser.isPackageInfo(currentParsedClass)) {
+                String lineSeparator = manager.getLineSeparator();
+                String indent = indentParser.getIndent(currentParsedClass, context);
 
-        contents.add(fieldParser.parseFields(clazz, context));
-        contents.add(blockParser.parseStaticBlock(clazz, context));
-        contents.add(constructorParser.parseConstructors(clazz, context));
-        contents.add(methodParser.parseMethods(clazz, context));
-        contents.add(classesParser.parseInnerClasses(clazz, context));
+                List<String> contents = new ArrayList<>();
 
-        String lineSeparator = manager.getLineSeparator();
+                contents.add(fieldParser.parseFields(context));
+                contents.add(blockParser.parseStaticBlock(context));
+                contents.add(constructorParser.parseConstructors(context));
+                contents.add(methodParser.parseMethods(context));
+                contents.add(classesParser.parseInnerClasses(context));
 
-        return contents.stream().filter(content -> !content.isEmpty()).collect(Collectors.joining(lineSeparator));
+                String classContent = contents.stream()
+                        .filter(content -> !content.isEmpty())
+                        .collect(Collectors.joining(lineSeparator));
+
+                return '{' + lineSeparator + lineSeparator + classContent + indent + '}';
+            } else {
+                return "";
+            }
+        } finally {
+            context.clearPhase();
+        }
     }
 }

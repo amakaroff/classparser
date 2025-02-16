@@ -1,5 +1,6 @@
 package com.classparser.reflection.parser.structure.executeble;
 
+import com.classparser.reflection.ContentJoiner;
 import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.parser.base.GenericTypeParser;
@@ -54,8 +55,8 @@ public class ExceptionParser {
                     context));
         }
 
-        if (exceptionTypesList.isEmpty()) {
-            return  " throws " + String.join(", ", exceptionTypesList);
+        if (!exceptionTypesList.isEmpty()) {
+            return ContentJoiner.joinSpace("throws", String.join(", ", exceptionTypesList));
         } else {
             return "";
         }

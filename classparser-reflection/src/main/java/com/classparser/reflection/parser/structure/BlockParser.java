@@ -29,15 +29,16 @@ public class BlockParser {
      * Parses and obtains information about initialization blocks
      * Information may be incorrectly
      *
-     * @param clazz   any class
      * @param context context of parsing class process
      * @return string line with initialization blocks
      */
-    public String parseStaticBlock(Class<?> clazz, ParseContext context) {
-        if (isShouldBeDisplayed(clazz) && hasStaticInitializer(clazz)) {
+    public String parseStaticBlock(ParseContext context) {
+        Class<?> currentParsedClass = context.getCurrentParsedClass();
+
+        if (isShouldBeDisplayed(currentParsedClass) && hasStaticInitializer(currentParsedClass)) {
             String oneIndent = configurationManager.getIndentSpaces();
             String lineSeparator = configurationManager.getLineSeparator();
-            String indent = indentParser.getIndent(clazz, context) + oneIndent;
+            String indent = indentParser.getIndent(currentParsedClass, context) + oneIndent;
             return indent + "static {" + lineSeparator + indent + oneIndent +
                     "/* Compiled code */" + lineSeparator + indent + '}' + lineSeparator;
         }

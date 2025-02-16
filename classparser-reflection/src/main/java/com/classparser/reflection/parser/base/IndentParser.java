@@ -32,8 +32,7 @@ public class IndentParser {
         StringBuilder indent = new StringBuilder();
 
         Class<?> declaringClass;
-        if (object instanceof Member) {
-            Member member = (Member) object;
+        if (object instanceof Member member) {
             declaringClass = member.getDeclaringClass();
 
             if (declaringClass != null) {

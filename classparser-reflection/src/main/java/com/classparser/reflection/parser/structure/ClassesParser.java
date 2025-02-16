@@ -29,16 +29,16 @@ public class ClassesParser {
     /**
      * Parses inner and nested class meta information and collects info to {@link String}
      *
-     * @param clazz any class
      * @param context context of parsing class process
      * @return string line of meta information for inner and nested classes
      */
-    public String parseInnerClasses(Class<?> clazz, ParseContext context) {
+    public String parseInnerClasses(ParseContext context) {
         if (configurationManager.isDisplayInnerClasses()) {
             List<String> classes = new ArrayList<>();
 
-            for (Class<?> declaredClass : clazz.getDeclaredClasses()) {
-                if (isShouldBeDisplayed(clazz)) {
+            Class<?> currentParsedClass = context.getCurrentParsedClass();
+            for (Class<?> declaredClass : currentParsedClass.getDeclaredClasses()) {
+                if (isShouldBeDisplayed(declaredClass)) {
                     classes.add(classParser.parseClass(declaredClass, context));
                 }
             }

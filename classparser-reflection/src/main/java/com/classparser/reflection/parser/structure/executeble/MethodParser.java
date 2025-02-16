@@ -9,9 +9,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Class provides functionality for parsing methods of class meta information
@@ -56,26 +54,30 @@ public class MethodParser {
     /**
      * Parses meta information of class about all methods and collects data to {@link String}
      *
-     * @param clazz   any class
      * @param context context of parsing class process
      * @return parsed methods
      */
-    public String parseMethods(Class<?> clazz, ParseContext context) {
+    public String parseMethods(ParseContext context) {
         List<String> staticMethods = new ArrayList<>();
         List<String> instanceMethods = new ArrayList<>();
 
-        for (Method method : clazz.getDeclaredMethods()) {
-            if (isDisplayMethod(method)) {
-                String parsedMethod = parseMethod(method, context);
-                if (Modifier.isStatic(method.getModifiers())) {
-                    staticMethods.add(parsedMethod);
-                } else {
-                    instanceMethods.add(parsedMethod);
+        for (Method method : context.getCurrentParsedClass().getDeclaredMethods()) {
+            context.setCurrentParsedMember(method);
+            try {
+                if (isDisplayMethod(method)) {
+                    String parsedMethod = parseMethod(method, context);
+                    if (Modifier.isStatic(method.getModifiers())) {
+                        staticMethods.add(parsedMethod);
+                    } else {
+                        instanceMethods.add(parsedMethod);
+                    }
                 }
+            } finally {
+                context.clearCurrentMember();
             }
         }
 
-        staticMethods.addAll(getStaticImplicitMethods(clazz, context));
+        staticMethods.addAll(getStaticImplicitMethods(context));
 
         List<String> methods = new ArrayList<>();
 
@@ -97,20 +99,18 @@ public class MethodParser {
         String indent = indentParser.getIndent(method, context);
         String annotations = annotationParser.parseAnnotationsAsBlock(method, context);
         String modifiers = modifierParser.parseModifiers(method);
-        String generics = genericTypeParser.parseGenerics(method, true, context);
-        String returnType = genericTypeParser.parseType(getReturnType(method),
-                classNameParser.isInnerClassInStaticContext(method, method.getReturnType()),
-                method.getAnnotatedReturnType(),
-                context);
+        String generics = genericTypeParser.parseGenerics(method, context);
+        String returnType = genericTypeParser.parseType(getReturnType(method), method.getAnnotatedReturnType(), context);
         String methodName = classNameParser.getMemberName(method);
         String arguments = argumentParser.parseArguments(method, context);
         String defaultAnnotationValue = valueParser.parseValue(method, context);
         String exceptions = exceptionParser.parseExceptions(method, context);
         String body = parseBody(method, context);
-        String content = ContentJoiner.joinNotEmptyContentBySpace(modifiers, generics, returnType);
 
-        return annotations + indent + content + " " + methodName + arguments +
-                defaultAnnotationValue + exceptions + body;
+        String content = ContentJoiner.joinSpace(modifiers, generics, returnType, methodName);
+        String signature = ContentJoiner.joinSpace(arguments, defaultAnnotationValue, exceptions, body);
+
+        return annotations + indent + content + signature;
     }
 
     /**
@@ -130,11 +130,12 @@ public class MethodParser {
     /**
      * Collect static implicit methods, which cannot be obtained by reflection
      *
-     * @param declaredClass declared class for methods
      * @param context       context of parsing class process
      * @return list of implicit methods
      */
-    private List<String> getStaticImplicitMethods(Class<?> declaredClass, ParseContext context) {
+    private List<String> getStaticImplicitMethods(ParseContext context) {
+        Class<?> declaredClass = context.getCurrentParsedClass();
+
         List<String> staticMethods = new ArrayList<>();
 
         if (declaredClass.equals(getUnsafeClass())) {
@@ -167,14 +168,17 @@ public class MethodParser {
      * @return parsed method body
      */
     private String parseBody(Method method, ParseContext context) {
+        return parseBody(indentParser.getIndent(method, context), isMethodExistsRealization(method));
+    }
+
+    private String parseBody(String indent, boolean hasImplementation) {
         String lineSeparator = configurationManager.getLineSeparator();
         String oneIndent = configurationManager.getIndentSpaces();
-        String indent = indentParser.getIndent(method, context);
 
-        if (isMethodExistsRealization(method)) {
-            return " {" + lineSeparator + indent + oneIndent + "/* Compiled code */" + lineSeparator + indent + '}';
+        if (hasImplementation) {
+            return "{" + lineSeparator + indent + oneIndent + "/* Compiled code */" + lineSeparator + indent + '}';
         } else {
-            return ";";
+            return "\b;";
         }
     }
 
@@ -219,22 +223,21 @@ public class MethodParser {
 
     private String parseImplicitMethod(Class<?> declaredClass,
                                        ParseContext context,
-                                       int modifiers,
-                                       Type returnType,
+                                       int modifierMask,
+                                       Type returnClass,
                                        String name,
                                        Type[] parameters) {
-        String lineSeparator = configurationManager.getLineSeparator();
         String oneIndent = configurationManager.getIndentSpaces();
         String indent = indentParser.getIndent(declaredClass, context) + oneIndent;
-        String parsedParameters = Arrays.stream(parameters)
-                .map(type -> genericTypeParser.parseType(type, context))
-                .collect(Collectors.joining(", "));
+        String modifiers = modifierParser.parseMethodModifiers(modifierMask, declaredClass);
+        String returnType = genericTypeParser.parseType(returnClass, context);
+        String arguments = argumentParser.parseArguments(parameters, context);
+        String body = parseBody(indent, true);
 
-        return indent +
-                modifierParser.parseMethodModifiers(modifiers, declaredClass) + " " +
-                genericTypeParser.parseType(returnType, context) + " " +
-                name + "(" + parsedParameters + ")" +
-                " {" + lineSeparator + indent + oneIndent + "/* Compiled code */" + lineSeparator + indent + '}';
+        String content = ContentJoiner.joinSpace(modifiers, returnType, name);
+        String signature = ContentJoiner.joinSpace(arguments, body);
+
+        return indent + content + signature;
     }
 
     private String parseUnsafeImplicitMethod(Class<?> declaredClass, ParseContext context) {

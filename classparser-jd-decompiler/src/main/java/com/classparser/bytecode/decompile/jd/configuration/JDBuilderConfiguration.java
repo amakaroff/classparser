@@ -61,13 +61,7 @@ public class JDBuilderConfiguration {
         @Override
         public JDConfiguration setCountIndentSpaces(int indent) {
             if (indent >= 0) {
-                StringBuilder builder = new StringBuilder();
-
-                for (int i = 0; i < indent; i++) {
-                    builder.append(' ');
-                }
-
-                configuration.put(COUNT_INDENT_SPACES_KEY, builder.toString());
+                configuration.put(COUNT_INDENT_SPACES_KEY, " ".repeat(indent));
                 return this;
             } else {
                 throw new IllegalArgumentException("The indent cannot be less, than zero");

@@ -31,16 +31,12 @@ class InstrumentationInvocationHandler implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
-        switch (methodName) {
-            case "retransformClasses":
-                return retransformClasses(method, args);
-            case "addTransformer":
-                return addTransformer(args);
-            case "removeTransformer":
-                return removeTransformer(args);
-            default:
-                return invoke(method, args);
-        }
+        return switch (methodName) {
+            case "retransformClasses" -> retransformClasses(method, args);
+            case "addTransformer" -> addTransformer(args);
+            case "removeTransformer" -> removeTransformer(args);
+            default -> invoke(method, args);
+        };
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.classparser.reflection.parser.base;
 
+import com.classparser.reflection.ContentJoiner;
 import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
 
@@ -59,7 +60,7 @@ public class ValueParser {
         String defaultValue = parseValue(method.getDefaultValue(), context);
 
         if (defaultValue != null) {
-            return " default " + defaultValue;
+            return ContentJoiner.joinSpace("default", defaultValue);
         }
 
         return "";
@@ -90,7 +91,7 @@ public class ValueParser {
             } else if (object instanceof Character) {
                 return "'" + escapeCharacter((Character) object) + "'";
             } else if (object instanceof Number || object instanceof Boolean) {
-                return object.toString() + getLiteral(object);
+                return object + getLiteral(object);
             } else if (object instanceof Class) {
                 return genericTypeParser.parseType((Class<?>) object, context) + ".class";
             } else if (object instanceof Annotation) {
@@ -153,26 +154,17 @@ public class ValueParser {
      * @return escaped character
      */
     private String escapeCharacter(char character) {
-        switch (character) {
-            case '\n':
-                return "\\n";
-            case '\r':
-                return "\\r";
-            case '\t':
-                return "\\t";
-            case '\f':
-                return "\\f";
-            case '\b':
-                return "\\b";
-            case '\"':
-                return "\\\"";
-            case '\\':
-                return "\\\\";
-            case '\'':
-                return "\\'";
-            default:
-                return String.valueOf(character);
-        }
+        return switch (character) {
+            case '\n' -> "\\n";
+            case '\r' -> "\\r";
+            case '\t' -> "\\t";
+            case '\f' -> "\\f";
+            case '\b' -> "\\b";
+            case '\"' -> "\\\"";
+            case '\\' -> "\\\\";
+            case '\'' -> "\\'";
+            default -> String.valueOf(character);
+        };
     }
 
     /**

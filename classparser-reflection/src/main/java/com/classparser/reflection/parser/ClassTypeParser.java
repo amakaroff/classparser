@@ -1,5 +1,7 @@
 package com.classparser.reflection.parser;
 
+import com.classparser.reflection.ParseContext;
+
 /**
  * Class provides functionality to obtain information about class type
  * <ul>
@@ -8,6 +10,7 @@ package com.classparser.reflection.parser;
  *      <li>@interface</li>
  *      <li>interface</li>
  *      <li>primitive</li>
+ *      <li>record</li>
  *      <li>array</li>
  * </ul>
  *
@@ -20,10 +23,11 @@ public class ClassTypeParser {
     /**
      * Parses meta information about class type
      *
-     * @param clazz any class
+     * @param context - parsing context
      * @return parsed type of class
      */
-    public String parseClassType(Class<?> clazz) {
+    public String parseClassType(ParseContext context) {
+        Class<?> clazz = context.getCurrentParsedClass();
         String type = "class";
 
         if (clazz.isEnum()) {
@@ -36,6 +40,8 @@ public class ClassTypeParser {
             type = "primitive";
         } else if (clazz.isArray()) {
             type = "array";
+        } if (clazz.isRecord()) {
+            type = "record";
         }
 
         return type;

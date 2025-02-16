@@ -1,5 +1,6 @@
 package com.classparser.reflection.parser.base;
 
+import com.classparser.reflection.ContentJoiner;
 import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
 
@@ -26,7 +27,7 @@ public class AnnotationParser {
 
     private final ConfigurationManager configurationManager;
 
-    private final ClassNameParser classNameParser;
+    private final GenericTypeParser genericTypeParser;
 
     private final ModifierParser modifierParser;
 
@@ -34,7 +35,7 @@ public class AnnotationParser {
 
     public AnnotationParser(ConfigurationManager configurationManager) {
         this.indentParser = new IndentParser(configurationManager);
-        this.classNameParser = new ClassNameParser(configurationManager);
+        this.genericTypeParser = new GenericTypeParser(this, configurationManager);
         this.modifierParser = new ModifierParser(configurationManager);
         this.valueParser = new ValueParser(this, configurationManager);
         this.configurationManager = configurationManager;
@@ -42,27 +43,10 @@ public class AnnotationParser {
 
     public AnnotationParser(ValueParser valueParser, ConfigurationManager configurationManager) {
         this.indentParser = new IndentParser(configurationManager);
-        this.classNameParser = new ClassNameParser(configurationManager);
+        this.genericTypeParser = new GenericTypeParser(this, configurationManager);
         this.modifierParser = new ModifierParser(configurationManager);
         this.valueParser = valueParser;
         this.configurationManager = configurationManager;
-    }
-
-    /**
-     * Parses annotation meta information and collecting it to inline string
-     * This method used for parameter or use type annotations only for inside class content
-     * <code>
-     * {
-     * {@literal @}Annotation {@literal @}OtherAnnotation
-     * }
-     * </code>
-     *
-     * @param annotatedElement any annotated element
-     * @param context          context of parsing class process
-     * @return string line with parsed annotation meta information
-     */
-    public String parseAnnotationsAsInline(AnnotatedElement annotatedElement, ParseContext context) {
-        return parseAnnotationsAsInline(annotatedElement, true, context);
     }
 
     /**
@@ -75,52 +59,22 @@ public class AnnotationParser {
      * </code>
      *
      * @param annotatedElement any annotated element
-     * @param isInsideClass    is annotation contains inside class
      * @param context          context of parsing class process
      * @return string line with parsed annotation meta information
      */
-    public String parseAnnotationsAsInline(AnnotatedElement annotatedElement, boolean isInsideClass, ParseContext context) {
+    public String parseAnnotationsAsInline(AnnotatedElement annotatedElement, ParseContext context) {
         if (annotatedElement != null) {
             List<String> annotations = new ArrayList<>();
             String indent = indentParser.getIndent(annotatedElement, context);
 
             for (Annotation annotation : unrollAnnotations(annotatedElement.getDeclaredAnnotations())) {
-                annotations.add(parseAnnotation(annotation, isInsideClass, context));
+                annotations.add(parseAnnotation(annotation, context));
             }
 
-            return indent + String.join(" ", annotations);
+            return indent + ContentJoiner.joinSpace(annotations);
         }
 
         return "";
-    }
-
-    /**
-     * Parses annotation meta information and collecting it to inline string
-     * <code>
-     * {
-     * {@literal @}Annotation
-     * {@literal @}OtherAnnotation
-     * }
-     * </code>
-     *
-     * @param annotatedElement any annotated element
-     * @param context          context of parsing class process
-     * @return string line with parsed annotation meta information
-     */
-    public String parseAnnotationsAsBlock(AnnotatedElement annotatedElement, ParseContext context) {
-        return parseAnnotationsAsBlock(annotatedElement, true, context);
-    }
-
-    /**
-     * Parses annotation meta information and collecting it to inline string
-     * Uses in case if annotation located above any class
-     *
-     * @param annotatedElement any annotated element
-     * @param context          context of parsing class process
-     * @return string line with parsed annotation meta information
-     */
-    public String parseAnnotationsAsBlockAboveClass(AnnotatedElement annotatedElement, ParseContext context) {
-        return parseAnnotationsAsBlock(annotatedElement, false, context);
     }
 
     /**
@@ -133,11 +87,10 @@ public class AnnotationParser {
      * </code>
      *
      * @param annotatedElement any annotated element
-     * @param isInsideClass    is annotation contains inside class
      * @param context          context of parsing class process
      * @return string line with parsed annotation meta information
      */
-    private String parseAnnotationsAsBlock(AnnotatedElement annotatedElement, boolean isInsideClass, ParseContext context) {
+    public String parseAnnotationsAsBlock(AnnotatedElement annotatedElement, ParseContext context) {
         StringBuilder annotations = new StringBuilder();
 
         if (annotatedElement != null) {
@@ -145,11 +98,10 @@ public class AnnotationParser {
             String lineSeparator = configurationManager.getLineSeparator();
 
             for (Annotation annotation : unrollAnnotations(annotatedElement.getDeclaredAnnotations())) {
-                annotations.append(indent).append(parseAnnotation(annotation, isInsideClass, context)).append(lineSeparator);
+                annotations.append(indent).append(parseAnnotation(annotation, context)).append(lineSeparator);
             }
 
-            if (annotatedElement instanceof Method) {
-                Method method = (Method) annotatedElement;
+            if (annotatedElement instanceof Method method) {
                 if (isOverriddenMethod(method)) {
                     annotations.append(indent).append("@Override").append(lineSeparator);
                 }
@@ -167,20 +119,8 @@ public class AnnotationParser {
      * @return string meta information about annotation
      */
     public String parseAnnotation(Annotation annotation, ParseContext context) {
-        return parseAnnotation(annotation, true, context);
-    }
-
-    /**
-     * Parse annotation meta information and collecting it to {@link String}
-     *
-     * @param annotation    any annotation
-     * @param isInsideClass is annotation contains inside class
-     * @param context       context of parsing class process
-     * @return string meta information about annotation
-     */
-    private String parseAnnotation(Annotation annotation, boolean isInsideClass, ParseContext context) {
         if (annotation != null) {
-            String annotationName = classNameParser.parseClassName(annotation.annotationType(), isInsideClass, context);
+            String annotationName = genericTypeParser.parseType(annotation.annotationType(), context);
             String annotationArguments = parseAnnotationArguments(annotation, context);
             return '@' + annotationName + annotationArguments;
         }
@@ -203,15 +143,11 @@ public class AnnotationParser {
             if (DEFAULT_ANNOTATION_METHOD.equals(entry.getKey()) && annotationParameters.size() == 1) {
                 arguments.add(String.valueOf(entry.getValue()));
             } else {
-                arguments.add(entry.getKey() + " = " + entry.getValue());
+                arguments.add(ContentJoiner.joinSpace(entry.getKey(), "=", String.valueOf(entry.getValue())));
             }
         }
 
-        if (!arguments.isEmpty()) {
-            return '(' + String.join(", ", arguments) + ')';
-        }
-
-        return "";
+        return ContentJoiner.joinArguments(arguments);
     }
 
     /**

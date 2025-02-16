@@ -4,14 +4,18 @@ import com.classparser.reflection.ContentJoiner;
 import com.classparser.reflection.ParseContext;
 import com.classparser.reflection.configuration.ConfigurationManager;
 import com.classparser.reflection.parser.base.AnnotationParser;
-import com.classparser.reflection.parser.base.ClassNameParser;
 import com.classparser.reflection.parser.base.GenericTypeParser;
 import com.classparser.reflection.parser.base.ModifierParser;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
+import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Executable;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Class provides functionality by parsing meta information
@@ -29,15 +33,12 @@ public class ArgumentParser {
 
     private final AnnotationParser annotationParser;
 
-    private final ClassNameParser classNameParser;
-
     private final ConfigurationManager configurationManager;
 
     public ArgumentParser(ConfigurationManager configurationManager) {
         this.genericTypeParser = new GenericTypeParser(configurationManager);
         this.modifierParser = new ModifierParser(configurationManager);
         this.annotationParser = new AnnotationParser(configurationManager);
-        this.classNameParser = new ClassNameParser(configurationManager);
         this.configurationManager = configurationManager;
     }
 
@@ -55,10 +56,10 @@ public class ArgumentParser {
      * @return parsed string line with information about arguments
      */
     public String parseArguments(Executable executable, ParseContext context) {
-        List<String> strings = new ArrayList<>();
+        List<String> parsedArguments = new ArrayList<>();
 
         if (isReceiverExplicitArgumentExists(executable)) {
-            strings.add(parseReceiverExplicitArgument(executable, context));
+            parsedArguments.add(parseReceiverExplicitArgument(executable, context));
         }
 
         AnnotatedType[] annotatedParameterTypes = executable.getAnnotatedParameterTypes();
@@ -67,11 +68,18 @@ public class ArgumentParser {
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
             if (isShouldBeDisplayed(parameter)) {
-                strings.add(parseArgument(parameter, annotatedParameterTypes[index], context));
+                parsedArguments.add(parseArgument(parameter, annotatedParameterTypes[index], context));
             }
         }
 
-        return '(' + String.join(", ", strings) + ')';
+        return "(" + ContentJoiner.join(", ", parsedArguments) + ")";
+    }
+
+    public String parseArguments(Type[] arguments, ParseContext context) {
+        List<String> parsedArguments = Arrays.stream(arguments)
+                .map(type -> genericTypeParser.parseType(type, context))
+                .collect(Collectors.toList());
+        return "(" + ContentJoiner.join(", ", parsedArguments) + ")";
     }
 
     /**
@@ -98,7 +106,7 @@ public class ArgumentParser {
         String modifiers = modifierParser.parseModifiers(parameter);
         String name = parameter.getName();
 
-        return ContentJoiner.joinNotEmptyContentBySpace(annotations, modifiers, type, name);
+        return ContentJoiner.joinSpace(annotations, modifiers, type, name);
     }
 
     /**
@@ -143,11 +151,12 @@ public class ArgumentParser {
         Class<?> declaringClass = executable.getDeclaringClass();
 
         String annotations = annotationParser.parseAnnotationsAsInline(annotatedReceiverType, context);
-        String type = genericTypeParser.parseType(declaringClass, context) +
-                genericTypeParser.parseGenerics(declaringClass, true, context);
+        String type = genericTypeParser.parseType(declaringClass, context);
+        String generics = genericTypeParser.parseGenerics(declaringClass, context);
+
         String name = "this";
 
-        return annotations + " " + type + name;
+        return ContentJoiner.joinSpace(annotations, type + generics) + name;
     }
 
     /**
@@ -160,7 +169,6 @@ public class ArgumentParser {
      */
     private String resolveVariableArguments(Parameter parameter, AnnotatedType annotatedType, ParseContext context) {
         String type = genericTypeParser.parseType(getParameterType(parameter),
-                classNameParser.isInnerClassInStaticContext(parameter.getDeclaringExecutable(), parameter.getType()),
                 annotatedType,
                 context);
         if (parameter.isVarArgs() && configurationManager.isDisplayVarArgs()) {

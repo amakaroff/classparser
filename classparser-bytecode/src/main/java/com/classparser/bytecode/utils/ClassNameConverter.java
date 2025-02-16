@@ -22,7 +22,7 @@ public class ClassNameConverter {
 
     private static final String CLASS_FILE_SUFFIX = ".class";
 
-    private static final Map<String, String> PRIMITIVE_NAMES = new HashMap<String, String>() {{
+    private static final Map<String, String> PRIMITIVE_NAMES = new HashMap<>() {{
         put("B", "byte");
         put("S", "short");
         put("I", "int");
@@ -113,13 +113,7 @@ public class ClassNameConverter {
      * @return string of array blocks
      */
     private static String createBlocks(int count) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        for (int i = 0; i < count; i++) {
-            stringBuilder.append("[]");
-        }
-
-        return stringBuilder.toString();
+        return "[]".repeat(Math.max(0, count));
     }
 
     /**
@@ -167,16 +161,6 @@ public class ClassNameConverter {
     }
 
     /**
-     * Creates java class file name from class name
-     *
-     * @param clazz java class
-     * @return class file name
-     */
-    public static String toFileJavaClassName(Class<?> clazz) {
-        return toJavaClassName(clazz).replace('.', File.separatorChar) + CLASS_FILE_SUFFIX;
-    }
-
-    /**
      * Obtains java class name from byte code of class uses constant pool
      * Returns class name in normally form
      * <p>
@@ -199,17 +183,25 @@ public class ClassNameConverter {
                         case 1:
                             constants[i] = stream.readUTF();
                             break;
-                        case 3: case 4: case 9: case 10: case 11: case 12: case 18:
+                        case 3:
+                        case 4:
+                        case 9:
+                        case 10:
+                        case 11:
+                        case 12:
+                        case 18:
                             stream.skipBytes(4);
                             break;
-                        case 5: case 6:
+                        case 5:
+                        case 6:
                             stream.skipBytes(8);
                             i++;
                             break;
                         case 7:
                             constants[i] = stream.readUnsignedShort();
                             break;
-                        case 8: case 16:
+                        case 8:
+                        case 16:
                             stream.skipBytes(2);
                             break;
                         case 15:

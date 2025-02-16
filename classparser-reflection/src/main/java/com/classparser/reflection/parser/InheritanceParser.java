@@ -37,31 +37,27 @@ public class InheritanceParser {
      * extends Parent implements Interface
      * </code>
      *
-     * @param clazz   any class
      * @param context context of parsing class process
      * @return parsed inheritances or empty string if inheritances is absent
      */
-    public String parseInheritances(Class<?> clazz, ParseContext context) {
-        return ContentJoiner.joinNotEmptyContentBySpace(parseSuperClass(clazz, context), parseInterfaces(clazz, context));
+    public String parseInheritances(ParseContext context) {
+        return ContentJoiner.joinSpace(parseSuperClass(context), parseInterfaces(context));
     }
 
     /**
      * Parses meta information about super class
      *
-     * @param clazz   any class
      * @param context context of parsing class process
      * @return parsed super class
      */
-    private String parseSuperClass(Class<?> clazz, ParseContext context) {
+    private String parseSuperClass(ParseContext context) {
+        Class<?> clazz = context.getCurrentParsedClass();
         if (isNecessaryDisplayedSuperClass(clazz)) {
             Type superClass = getSuperClassForClass(clazz);
             if (superClass != null) {
-                String parsedSuperClass = genericTypeParser.parseType(getSuperClassForClass(clazz),
-                        false,
-                        clazz.getAnnotatedSuperclass(),
-                        context);
+                String parsedSuperClass = genericTypeParser.parseType(superClass, clazz.getAnnotatedSuperclass(), context);
 
-                return "extends " + parsedSuperClass;
+                return ContentJoiner.joinSpace("extends", parsedSuperClass);
             }
 
         }
@@ -72,20 +68,22 @@ public class InheritanceParser {
     /**
      * Parses meta information about implemented interfaces
      *
-     * @param clazz   any class
      * @param context context of parsing class process
      * @return parsed interfaces
      */
-    private String parseInterfaces(Class<?> clazz, ParseContext context) {
+    private String parseInterfaces(ParseContext context) {
+        Class<?> clazz = context.getCurrentParsedClass();
+
         if (isNecessaryDisplayedInterfaces(clazz)) {
             List<String> types = parseMultipleParentTypes(getInterfacesForClass(clazz),
                     clazz.getAnnotatedInterfaces(),
                     context);
+
             String interfaces = String.join(", ", types);
-            String relationship = clazz.isInterface() ? "extends " : "implements ";
+            String relationship = clazz.isInterface() ? "extends" : "implements";
 
             if (!interfaces.isEmpty()) {
-                return relationship + interfaces;
+                return ContentJoiner.joinSpace(relationship, interfaces);
             }
         }
 
@@ -101,16 +99,11 @@ public class InheritanceParser {
      * @param context        context of parsing class process
      * @return list of processed parent types for class
      */
-    private List<String> parseMultipleParentTypes(Type[] parentTypes,
-                                                  AnnotatedType[] annotatedTypes,
-                                                  ParseContext context) {
+    private List<String> parseMultipleParentTypes(Type[] parentTypes, AnnotatedType[] annotatedTypes, ParseContext context) {
         List<String> multipleParentTypes = new ArrayList<>();
 
         for (int index = 0; index < parentTypes.length; index++) {
-            multipleParentTypes.add(genericTypeParser.parseType(parentTypes[index],
-                    false,
-                    ifEmpty(annotatedTypes, index),
-                    context));
+            multipleParentTypes.add(genericTypeParser.parseType(parentTypes[index], ifEmpty(annotatedTypes, index), context));
         }
 
         return multipleParentTypes;
