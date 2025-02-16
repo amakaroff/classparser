@@ -2,6 +2,7 @@ package com.classparser.reflection;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -43,7 +44,7 @@ public class ContentJoiner {
 
     public static String join(String separator, List<String> content) {
         if (!content.isEmpty()) {
-            return content.stream().filter(line -> !line.isEmpty()).collect(Collectors.joining(separator));
+            return content.stream().filter(Predicate.not(String::isEmpty)).collect(Collectors.joining(separator));
         }
 
         return "";

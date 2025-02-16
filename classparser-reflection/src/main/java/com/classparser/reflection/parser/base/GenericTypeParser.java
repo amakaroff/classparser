@@ -160,8 +160,12 @@ public class GenericTypeParser {
         String parsedAnnotations = annotationParser.parseAnnotationsAsInline(resolvedAnnotatedType, context);
 
         String classTypeName = classNameParser.parseTypeName(clazz, context);
-        if (classNameParser.isNeedNameForInnerClass(clazz, context) && annotatedType != null) {
-            AnnotatedType annotatedOwnerParametrizedType = annotatedType.getAnnotatedOwnerType();
+        if (classNameParser.isNeedNameForInnerClass(clazz, context)) {
+            AnnotatedType annotatedOwnerParametrizedType = null;
+            if (annotatedType != null) {
+                annotatedOwnerParametrizedType = annotatedType.getAnnotatedOwnerType();
+            }
+
             String ownerType = parseType(owner, annotatedOwnerParametrizedType, context);
 
             return ownerType + "." + ContentJoiner.joinSpace(parsedAnnotations, classTypeName);
